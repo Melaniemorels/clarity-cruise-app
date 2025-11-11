@@ -7,6 +7,27 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import vyvLogo from "@/assets/vyv-logo.png";
+import { z } from "zod";
+
+const signUpSchema = z.object({
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[0-9]/, "Must contain a number"),
+  handle: z
+    .string()
+    .min(3, "Handle must be at least 3 characters")
+    .max(20, "Handle must be less than 20 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed"),
+});
+
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,6 +35,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +47,28 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Validate inputs
+    try {
+      if (isSignUp) {
+        signUpSchema.parse({ email, password, handle });
+      } else {
+        signInSchema.parse({ email, password });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -44,7 +88,7 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,6 +124,9 @@ const Auth = () => {
                   onChange={(e) => setHandle(e.target.value)}
                   required
                 />
+                {errors.handle && (
+                  <p className="text-xs text-destructive">{errors.handle}</p>
+                )}
               </div>
             )}
             
@@ -93,6 +140,9 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -104,8 +154,11 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={isSignUp ? 8 : 1}
               />
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              )}
             </div>
             
             <Button type="submit" className="w-full" disabled={loading}>

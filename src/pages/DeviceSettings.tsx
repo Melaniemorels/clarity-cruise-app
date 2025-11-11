@@ -77,7 +77,10 @@ const DeviceSettings = () => {
       if (error) throw error;
       setConnections(data || []);
     } catch (error) {
-      console.error('Error fetching connections:', error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching device connections:", error);
+      }
+      toast.error("Error al cargar dispositivos conectados");
     } finally {
       setLoading(false);
     }
@@ -103,11 +106,13 @@ const DeviceSettings = () => {
 
       if (error) throw error;
 
+      await fetchConnections();
       toast.success(`${devices.find(d => d.id === deviceId)?.name} conectado exitosamente`);
-      fetchConnections();
     } catch (error) {
-      console.error('Error connecting device:', error);
-      toast.error('Error al conectar dispositivo');
+      if (import.meta.env.DEV) {
+        console.error("Error connecting device:", error);
+      }
+      toast.error("Error al conectar dispositivo");
     }
   };
 
@@ -123,11 +128,13 @@ const DeviceSettings = () => {
 
       if (error) throw error;
 
-      toast.success('Dispositivo desconectado');
-      fetchConnections();
+      await fetchConnections();
+      toast.success(`${devices.find(d => d.id === deviceId)?.name} desconectado exitosamente`);
     } catch (error) {
-      console.error('Error disconnecting device:', error);
-      toast.error('Error al desconectar dispositivo');
+      if (import.meta.env.DEV) {
+        console.error("Error disconnecting device:", error);
+      }
+      toast.error("Error al desconectar dispositivo");
     }
   };
 

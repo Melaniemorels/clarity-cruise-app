@@ -98,7 +98,9 @@ const Home = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching feed:", error);
+        if (import.meta.env.DEV) {
+          console.error("Error fetching feed:", error);
+        }
       } finally {
         setLoading(false);
       }

@@ -34,8 +34,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         videoRef.current.srcObject = stream;
       }
     } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Failed to start camera:", error);
+      }
       toast.error("No se pudo acceder a la cámara");
-      console.error(error);
     }
   };
 
@@ -121,8 +123,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       setIsOpen(false);
       setCapturedImage(null);
     } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Error uploading photo:", error);
+      }
       toast.error("Error al guardar la foto");
-      console.error(error);
     } finally {
       setIsUploading(false);
     }

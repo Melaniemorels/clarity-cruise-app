@@ -94,7 +94,9 @@ export const FeedPost = ({
       }
     } catch (error) {
       toast.error("Error al actualizar reacción");
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error("Reaction error:", error);
+      }
     }
   };
 
