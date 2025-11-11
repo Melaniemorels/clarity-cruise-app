@@ -8,8 +8,15 @@ import { toast } from "sonner";
 
 type FilterType = "natural" | "bw";
 
-export const QuickCamera = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface QuickCameraProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCameraProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
   const [filter, setFilter] = useState<FilterType>("natural");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -134,14 +141,16 @@ export const QuickCamera = () => {
 
   return (
     <>
-      <Button
-        onClick={() => handleOpen(true)}
-        size="lg"
-        className="w-full bg-primary hover:bg-primary/90"
-      >
-        <Camera className="mr-2 h-5 w-5" />
-        Captura Rápida
-      </Button>
+      {controlledOpen === undefined && (
+        <Button
+          onClick={() => handleOpen(true)}
+          size="lg"
+          className="w-full bg-primary hover:bg-primary/90"
+        >
+          <Camera className="mr-2 h-5 w-5" />
+          Captura Rápida
+        </Button>
+      )}
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent className="max-w-md">
