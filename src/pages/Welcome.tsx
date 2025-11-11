@@ -31,10 +31,10 @@ const Welcome = () => {
 
         {/* Title */}
         <div className="space-y-4 animate-in slide-in-from-bottom duration-700 delay-300">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-luxury-emerald to-primary bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold text-luxury-emerald">
             VYV
           </h1>
-          <p className="text-2xl font-semibold text-foreground">
+          <p className="text-2xl font-semibold text-luxury-emerald/90">
             Visualize Your Vibe
           </p>
           <p className="text-muted-foreground max-w-sm mx-auto">

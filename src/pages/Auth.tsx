@@ -61,7 +61,7 @@ const Auth = () => {
               className="w-24 h-24 object-contain drop-shadow-lg"
             />
           </div>
-          <CardTitle className="text-2xl bg-gradient-to-r from-primary to-luxury-emerald bg-clip-text text-transparent">
+          <CardTitle className="text-2xl text-luxury-emerald">
             VYV
           </CardTitle>
           <CardDescription>
