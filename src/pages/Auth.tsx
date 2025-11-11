@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import vyvLogo from "@/assets/vyv-logo.png";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -53,8 +54,16 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mb-4 text-4xl">🌿</div>
-          <CardTitle className="text-2xl">VYV</CardTitle>
+          <div className="mb-4 flex justify-center">
+            <img 
+              src={vyvLogo} 
+              alt="VYV Logo" 
+              className="w-24 h-24 object-contain drop-shadow-lg"
+            />
+          </div>
+          <CardTitle className="text-2xl bg-gradient-to-r from-primary to-luxury-emerald bg-clip-text text-transparent">
+            VYV
+          </CardTitle>
           <CardDescription>
             {isSignUp ? "Create your account" : "Welcome back"}
           </CardDescription>

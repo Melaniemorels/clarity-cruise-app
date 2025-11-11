@@ -17,73 +17,73 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 5%;
 
-    --primary: 160 70% 40%;
+    --primary: 158 64% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 65% 50%;
+    --secondary: 158 60% 45%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 160 10% 92%;
+    --muted: 158 10% 92%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 160 75% 35%;
+    --accent: 158 68% 30%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 160 15% 88%;
-    --input: 160 15% 88%;
-    --ring: 160 70% 40%;
+    --border: 158 15% 88%;
+    --input: 158 15% 88%;
+    --ring: 158 64% 35%;
 
     --radius: 0.75rem;
 
-    --luxury-emerald: 160 70% 40%;
-    --luxury-emerald-light: 160 65% 50%;
-    --luxury-emerald-dark: 160 75% 35%;
+    --luxury-emerald: 158 64% 35%;
+    --luxury-emerald-light: 158 60% 45%;
+    --luxury-emerald-dark: 158 68% 30%;
     --luxury-chocolate: 25 75% 25%;
     --luxury-navy: 220 100% 20%;
     --luxury-white: 0 0% 100%;
     --luxury-black: 0 0% 5%;
     
-    --gradient-emerald: linear-gradient(135deg, hsl(160 70% 40%) 0%, hsl(160 65% 50%) 100%);
-    --gradient-emerald-glow: linear-gradient(135deg, hsl(160 75% 35%) 0%, hsl(160 70% 45%) 100%);
+    --gradient-emerald: linear-gradient(135deg, hsl(158 64% 35%) 0%, hsl(158 60% 45%) 100%);
+    --gradient-emerald-glow: linear-gradient(135deg, hsl(158 68% 30%) 0%, hsl(158 64% 40%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
     --background: 0 0% 8%;
-    --foreground: 160 10% 95%;
+    --foreground: 158 10% 95%;
 
     --card: 0 0% 12%;
-    --card-foreground: 160 10% 95%;
+    --card-foreground: 158 10% 95%;
 
     --popover: 0 0% 12%;
-    --popover-foreground: 160 10% 95%;
+    --popover-foreground: 158 10% 95%;
 
-    --primary: 160 65% 50%;
+    --primary: 158 60% 45%;
     --primary-foreground: 0 0% 8%;
 
-    --secondary: 160 60% 55%;
+    --secondary: 158 55% 50%;
     --secondary-foreground: 0 0% 8%;
 
-    --muted: 160 5% 18%;
-    --muted-foreground: 160 10% 70%;
+    --muted: 158 5% 18%;
+    --muted-foreground: 158 10% 70%;
 
-    --accent: 160 70% 45%;
+    --accent: 158 65% 40%;
     --accent-foreground: 0 0% 8%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 160 8% 20%;
-    --input: 160 8% 20%;
-    --ring: 160 65% 50%;
+    --border: 158 8% 20%;
+    --input: 158 8% 20%;
+    --ring: 158 60% 45%;
     
-    --luxury-emerald: 160 65% 50%;
-    --luxury-emerald-light: 160 60% 55%;
-    --luxury-emerald-dark: 160 70% 45%;
+    --luxury-emerald: 158 60% 45%;
+    --luxury-emerald-light: 158 55% 50%;
+    --luxury-emerald-dark: 158 65% 40%;
     --luxury-chocolate: 25 80% 30%;
     --luxury-navy: 220 100% 30%;
     --luxury-white: 0 0% 100%;
