@@ -1,140 +1,172 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
-import { Calendar as CalendarIcon, Users, Heart, Bookmark } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { FeedPost } from "@/components/FeedPost";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
+
+interface Entry {
+  id: string;
+  user_id: string;
+  photo_url: string | null;
+  caption: string | null;
+  created_at: string;
+  profiles: {
+    handle: string;
+    photo_url: string | null;
+  } | null;
+}
 
 const Home = () => {
+  const { user } = useAuth();
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [reactions, setReactions] = useState<Record<string, { inspire: number; save: number }>>({});
+  const [userReactions, setUserReactions] = useState<Record<string, { inspire: boolean; save: boolean }>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeed = async () => {
+      try {
+        // Fetch entries with profiles
+        const { data: entriesData, error: entriesError } = await supabase
+          .from("entries")
+          .select("*")
+          .eq("visibility", "public")
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (entriesError) throw entriesError;
+
+        // Fetch profiles for each entry
+        const userIds = [...new Set((entriesData || []).map((e) => e.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, handle, photo_url")
+          .in("user_id", userIds);
+
+        const profilesMap = new Map(
+          (profilesData || []).map((p) => [p.user_id, p])
+        );
+
+        const enrichedEntries: Entry[] = (entriesData || []).map((e) => ({
+          id: e.id,
+          user_id: e.user_id,
+          photo_url: e.photo_url,
+          caption: e.caption,
+          created_at: e.created_at,
+          profiles: profilesMap.get(e.user_id) || null,
+        }));
+
+        setEntries(enrichedEntries);
+
+        // Fetch reaction counts
+        const entryIds = (entriesData || []).map((e) => e.id);
+        if (entryIds.length > 0) {
+          const { data: reactionsData } = await supabase
+            .from("reactions")
+            .select("entry_id, type")
+            .in("entry_id", entryIds);
+
+          const counts: Record<string, { inspire: number; save: number }> = {};
+          (reactionsData || []).forEach((r) => {
+            if (!counts[r.entry_id]) {
+              counts[r.entry_id] = { inspire: 0, save: 0 };
+            }
+            if (r.type === "INSPIRE") counts[r.entry_id].inspire++;
+            if (r.type === "SAVE_IDEA") counts[r.entry_id].save++;
+          });
+          setReactions(counts);
+
+          // Fetch user's reactions
+          if (user) {
+            const { data: userReactionsData } = await supabase
+              .from("reactions")
+              .select("entry_id, type")
+              .eq("user_id", user.id)
+              .in("entry_id", entryIds);
+
+            const userCounts: Record<string, { inspire: boolean; save: boolean }> = {};
+            (userReactionsData || []).forEach((r) => {
+              if (!userCounts[r.entry_id]) {
+                userCounts[r.entry_id] = { inspire: false, save: false };
+              }
+              if (r.type === "INSPIRE") userCounts[r.entry_id].inspire = true;
+              if (r.type === "SAVE_IDEA") userCounts[r.entry_id].save = true;
+            });
+            setUserReactions(userCounts);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching feed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeed();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel("feed-updates")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "entries",
+          filter: "visibility=eq.public",
+        },
+        () => {
+          fetchFeed();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">VYV</h1>
-          <div className="text-sm text-muted-foreground">Today</div>
+          <div className="text-sm text-muted-foreground">Feed</div>
         </div>
 
-        {/* Top Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="text-3xl">🧘</div>
-                <h3 className="font-semibold text-foreground">Online Class</h3>
-                <p className="text-xs text-muted-foreground">Yoga • Pilates • Meditation</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="text-3xl">🎵</div>
-                <h3 className="font-semibold text-foreground">Listen</h3>
-                <p className="text-xs text-muted-foreground">Music • Audiobooks • Podcasts</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Monthly Calendar Widget */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                January 2025
-              </h3>
-              <Button variant="ghost" size="sm">View All</Button>
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1 text-center text-xs">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                <div key={i} className="text-muted-foreground font-medium py-2">{day}</div>
-              ))}
-              {Array.from({ length: 35 }, (_, i) => i + 1).map((day) => (
-                <div
-                  key={day}
-                  className={`aspect-square flex items-center justify-center rounded-md ${
-                    day === 11
-                      ? 'bg-primary text-primary-foreground font-semibold'
-                      : day > 31
-                      ? 'text-muted-foreground/30'
-                      : day % 3 === 0
-                      ? 'bg-accent/20'
-                      : ''
-                  }`}
-                >
-                  {day <= 31 ? day : ''}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Large Photo Post */}
-        <Card className="overflow-hidden">
-          <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-            <div className="text-6xl">🌿</div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-          <CardContent className="p-4">
-            <p className="text-sm mb-2">Morning meditation by the lake. Finding peace in the simple moments. #mindfulness #wellness</p>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>2 hours ago</span>
-              <div className="flex gap-4">
-                <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                  <Heart className="h-4 w-4" />
-                  <span>24</span>
-                </button>
-                <button className="flex items-center gap-1 hover:text-secondary transition-colors">
-                  <Bookmark className="h-4 w-4" />
-                  <span>8</span>
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Friends Tile */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Friends</h3>
-                  <p className="text-sm text-muted-foreground">42 connections</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">View All</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Day Agenda */}
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-4">Today's Agenda</h3>
-            <div className="space-y-3">
-              {[
-                { time: '7:00 AM', title: 'Morning Yoga', icon: '🧘', calories: '150 cal' },
-                { time: '12:30 PM', title: 'Lunch Break', icon: '🍽️', calories: '20 min' },
-                { time: '6:00 PM', title: 'Evening Run', icon: '🏃', calories: '300 cal' },
-                { time: '8:00 PM', title: 'Meditation', icon: '🧘‍♀️', calories: '15 min' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox />
-                  <div className="text-2xl">{item.icon}</div>
-                  <div className="flex-1">
-                    <div className="font-medium">{item.title}</div>
-                    <div className="text-xs text-muted-foreground">{item.time}</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{item.calories}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        ) : entries.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-4xl mb-4">🌿</div>
+              <p className="text-muted-foreground">No hay publicaciones aún</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Captura tu primera foto desde Focus
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          entries.map((entry) => (
+            <FeedPost
+              key={entry.id}
+              postId={entry.id}
+              userHandle={entry.profiles?.handle || "anonymous"}
+              userPhotoUrl={entry.profiles?.photo_url || undefined}
+              photoUrl={entry.photo_url || undefined}
+              caption={entry.caption || undefined}
+              createdAt={entry.created_at}
+              inspireCount={reactions[entry.id]?.inspire || 0}
+              saveCount={reactions[entry.id]?.save || 0}
+              hasInspired={userReactions[entry.id]?.inspire || false}
+              hasSaved={userReactions[entry.id]?.save || false}
+            />
+          ))
+        )}
       </div>
 
       <BottomNav />
