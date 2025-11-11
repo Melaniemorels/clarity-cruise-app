@@ -1,11 +1,18 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Heart, Bookmark } from "lucide-react";
+import { Settings, Heart, Bookmark, Sun, Moon, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/components/ThemeProvider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const Profile = () => {
   const { signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   
   const healthData = {
     steps: { value: 8432, goal: 10000, label: 'Steps' },
@@ -19,7 +26,7 @@ const Profile = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">Profile</h1>
-          <Button variant="ghost" size="icon" onClick={signOut}>
+          <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
             <Settings className="h-5 w-5" />
           </Button>
         </div>
@@ -131,6 +138,48 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Settings Dialog */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Theme Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {theme === "dark" ? (
+                  <Moon className="h-5 w-5 text-primary" />
+                ) : (
+                  <Sun className="h-5 w-5 text-primary" />
+                )}
+                <div>
+                  <Label className="text-base">Modo Oscuro</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {theme === "dark" ? "Modo noche activo" : "Modo día activo"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+            </div>
+
+            {/* Sign Out */}
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={signOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar Sesión
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
