@@ -877,6 +877,9 @@ export type Database = {
         | "HEALTH_CONNECT"
         | "GOOGLE_FIT"
         | "MANUAL"
+        | "OURA"
+        | "WHOOP"
+        | "APPLE_WATCH"
       goal_period: "daily" | "weekly"
       health_metric: "steps" | "workout_minutes" | "resistance"
       reaction_type: "INSPIRE" | "SAVE_IDEA"
@@ -1022,6 +1025,9 @@ export const Constants = {
         "HEALTH_CONNECT",
         "GOOGLE_FIT",
         "MANUAL",
+        "OURA",
+        "WHOOP",
+        "APPLE_WATCH",
       ],
       goal_period: ["daily", "weekly"],
       health_metric: ["steps", "workout_minutes", "resistance"],

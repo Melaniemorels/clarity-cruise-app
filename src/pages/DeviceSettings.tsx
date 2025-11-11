@@ -7,38 +7,47 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+
+type DeviceProvider = Database['public']['Enums']['device_provider'];
 
 interface DeviceConnection {
   id: string;
-  provider: string;
+  provider: DeviceProvider;
   connected_at: string;
   last_sync_at: string | null;
 }
 
-const devices = [
+const devices: Array<{
+  id: DeviceProvider;
+  name: string;
+  icon: any;
+  description: string;
+  color: string;
+}> = [
   {
-    id: 'apple_health',
+    id: 'APPLE_HEALTH',
     name: 'Apple Health',
     icon: Apple,
     description: 'Sincroniza pasos, actividad y métricas de salud',
     color: 'text-gray-900 dark:text-gray-100',
   },
   {
-    id: 'oura',
+    id: 'OURA',
     name: 'Oura Ring',
     icon: Zap,
     description: 'Monitoreo de sueño, frecuencia cardíaca y recuperación',
     color: 'text-blue-500',
   },
   {
-    id: 'whoop',
+    id: 'WHOOP',
     name: 'Whoop',
     icon: Activity,
     description: 'Strain, recuperación y análisis de sueño',
     color: 'text-red-500',
   },
   {
-    id: 'apple_watch',
+    id: 'APPLE_WATCH',
     name: 'Apple Watch',
     icon: Watch,
     description: 'Actividad, entrenamientos y métricas de fitness',
@@ -74,11 +83,11 @@ const DeviceSettings = () => {
     }
   };
 
-  const isConnected = (deviceId: string) => {
+  const isConnected = (deviceId: DeviceProvider) => {
     return connections.some(conn => conn.provider === deviceId);
   };
 
-  const handleConnect = async (deviceId: string) => {
+  const handleConnect = async (deviceId: DeviceProvider) => {
     if (!user) return;
 
     try {
@@ -102,7 +111,7 @@ const DeviceSettings = () => {
     }
   };
 
-  const handleDisconnect = async (deviceId: string) => {
+  const handleDisconnect = async (deviceId: DeviceProvider) => {
     if (!user) return;
 
     try {
