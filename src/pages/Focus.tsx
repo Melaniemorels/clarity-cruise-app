@@ -3,6 +3,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Lock, Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { QuickCamera } from "@/components/QuickCamera";
 
 const Focus = () => {
   const dailyMinutes = 45;
@@ -33,6 +34,9 @@ const Focus = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">Focus Mode</h1>
           <p className="text-sm text-muted-foreground">Time well spent</p>
         </div>
+
+        {/* Quick Camera */}
+        <QuickCamera />
 
         {/* Daily Time Cap */}
         <Card>
