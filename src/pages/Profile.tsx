@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Heart, Bookmark, Sun, Moon, LogOut, FileText, Scale, ChevronRight } from "lucide-react";
+import { Settings, Heart, Bookmark, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -170,6 +170,27 @@ const Profile = () => {
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
               />
             </div>
+
+            <Separator />
+
+            {/* Health Devices */}
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-auto py-3"
+              onClick={() => {
+                setSettingsOpen(false);
+                navigate("/device-settings");
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <Activity className="h-5 w-5 text-primary" />
+                <div className="text-left">
+                  <div className="text-base">Dispositivos de Salud</div>
+                  <div className="text-sm text-muted-foreground">Conecta relojes, anillos y apps</div>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </Button>
 
             <Separator />
 
