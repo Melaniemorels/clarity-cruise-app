@@ -47,11 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        wellness: {
-          sage: "hsl(var(--wellness-sage))",
-          coral: "hsl(var(--wellness-coral))",
-          cream: "hsl(var(--wellness-cream))",
-          shadow: "hsl(var(--wellness-shadow))",
+        luxury: {
+          royal: "hsl(var(--luxury-royal))",
+          gold: "hsl(var(--luxury-gold))",
+          rose: "hsl(var(--luxury-rose))",
+          charcoal: "hsl(var(--luxury-charcoal))",
         },
       },
       borderRadius: {
