@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 120 5% 95%;
+    --background: 120 5% 96%;
     --foreground: 0 0% 5%;
 
     --card: 0 0% 100%;
@@ -17,69 +17,73 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 5%;
 
-    --primary: 165 45% 35%;
+    --primary: 160 70% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 25 75% 25%;
+    --secondary: 160 65% 50%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 120 5% 92%;
+    --muted: 160 10% 92%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 220 100% 20%;
+    --accent: 160 75% 35%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 120 5% 85%;
-    --input: 120 5% 85%;
-    --ring: 165 45% 35%;
+    --border: 160 15% 88%;
+    --input: 160 15% 88%;
+    --ring: 160 70% 40%;
 
     --radius: 0.75rem;
 
-    --luxury-jungle: 165 45% 35%;
+    --luxury-emerald: 160 70% 40%;
+    --luxury-emerald-light: 160 65% 50%;
+    --luxury-emerald-dark: 160 75% 35%;
     --luxury-chocolate: 25 75% 25%;
     --luxury-navy: 220 100% 20%;
     --luxury-white: 0 0% 100%;
     --luxury-black: 0 0% 5%;
     
-    --gradient-luxury: linear-gradient(135deg, hsl(165 45% 35%) 0%, hsl(165 50% 45%) 100%);
-    --gradient-chocolate: linear-gradient(135deg, hsl(25 75% 25%) 0%, hsl(25 80% 30%) 100%);
+    --gradient-emerald: linear-gradient(135deg, hsl(160 70% 40%) 0%, hsl(160 65% 50%) 100%);
+    --gradient-emerald-glow: linear-gradient(135deg, hsl(160 75% 35%) 0%, hsl(160 70% 45%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
     --background: 0 0% 8%;
-    --foreground: 120 5% 95%;
+    --foreground: 160 10% 95%;
 
     --card: 0 0% 12%;
-    --card-foreground: 120 5% 95%;
+    --card-foreground: 160 10% 95%;
 
     --popover: 0 0% 12%;
-    --popover-foreground: 120 5% 95%;
+    --popover-foreground: 160 10% 95%;
 
-    --primary: 165 50% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 160 65% 50%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 25 80% 30%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 160 60% 55%;
+    --secondary-foreground: 0 0% 8%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 120 5% 70%;
+    --muted: 160 5% 18%;
+    --muted-foreground: 160 10% 70%;
 
-    --accent: 220 100% 30%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 160 70% 45%;
+    --accent-foreground: 0 0% 8%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 165 50% 45%;
+    --border: 160 8% 20%;
+    --input: 160 8% 20%;
+    --ring: 160 65% 50%;
     
-    --luxury-jungle: 165 50% 45%;
+    --luxury-emerald: 160 65% 50%;
+    --luxury-emerald-light: 160 60% 55%;
+    --luxury-emerald-dark: 160 70% 45%;
     --luxury-chocolate: 25 80% 30%;
     --luxury-navy: 220 100% 30%;
     --luxury-white: 0 0% 100%;

@@ -48,7 +48,9 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         luxury: {
-          jungle: "hsl(var(--luxury-jungle))",
+          emerald: "hsl(var(--luxury-emerald))",
+          emeraldLight: "hsl(var(--luxury-emerald-light))",
+          emeraldDark: "hsl(var(--luxury-emerald-dark))",
           chocolate: "hsl(var(--luxury-chocolate))",
           navy: "hsl(var(--luxury-navy))",
           white: "hsl(var(--luxury-white))",
