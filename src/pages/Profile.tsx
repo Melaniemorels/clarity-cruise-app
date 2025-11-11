@@ -2,16 +2,19 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Heart, Bookmark, Sun, Moon, LogOut } from "lucide-react";
+import { Settings, Heart, Bookmark, Sun, Moon, LogOut, FileText, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
 
 const Profile = () => {
   const { signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
   
   const healthData = {
@@ -167,6 +170,32 @@ const Profile = () => {
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
               />
             </div>
+
+            <Separator />
+
+            {/* Legal Section */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Legal</h3>
+              <Button
+                variant="ghost"
+                className="w-full justify-between h-auto py-3"
+                onClick={() => {
+                  setSettingsOpen(false);
+                  navigate("/privacy-policy");
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <div className="text-left">
+                    <div className="text-base">Privacy Policy</div>
+                    <div className="text-sm text-muted-foreground">Política de Privacidad</div>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <Separator />
 
             {/* Sign Out */}
             <Button 
