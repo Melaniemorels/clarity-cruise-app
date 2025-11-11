@@ -8,80 +8,82 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 40 20% 97%;
-    --foreground: 240 15% 15%;
+    --background: 120 5% 95%;
+    --foreground: 0 0% 5%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 15% 15%;
+    --card-foreground: 0 0% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 15% 15%;
+    --popover-foreground: 0 0% 5%;
 
-    --primary: 270 60% 40%;
-    --primary-foreground: 40 20% 97%;
+    --primary: 165 45% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 70% 60%;
-    --secondary-foreground: 240 15% 15%;
+    --secondary: 25 75% 25%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 95%;
-    --muted-foreground: 240 8% 50%;
+    --muted: 120 5% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 15 60% 65%;
-    --accent-foreground: 240 15% 15%;
+    --accent: 220 100% 20%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 15% 88%;
-    --input: 240 15% 88%;
-    --ring: 270 60% 40%;
+    --border: 120 5% 85%;
+    --input: 120 5% 85%;
+    --ring: 165 45% 35%;
 
     --radius: 0.75rem;
 
-    --luxury-royal: 270 60% 40%;
-    --luxury-gold: 45 70% 60%;
-    --luxury-rose: 15 60% 65%;
-    --luxury-charcoal: 240 15% 20%;
+    --luxury-jungle: 165 45% 35%;
+    --luxury-chocolate: 25 75% 25%;
+    --luxury-navy: 220 100% 20%;
+    --luxury-white: 0 0% 100%;
+    --luxury-black: 0 0% 5%;
     
-    --gradient-luxury: linear-gradient(135deg, hsl(270 60% 40%) 0%, hsl(270 65% 50%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(45 70% 60%) 0%, hsl(45 75% 70%) 100%);
+    --gradient-luxury: linear-gradient(135deg, hsl(165 45% 35%) 0%, hsl(165 50% 45%) 100%);
+    --gradient-chocolate: linear-gradient(135deg, hsl(25 75% 25%) 0%, hsl(25 80% 30%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 240 15% 10%;
-    --foreground: 40 20% 92%;
+    --background: 0 0% 8%;
+    --foreground: 120 5% 95%;
 
-    --card: 240 12% 15%;
-    --card-foreground: 40 20% 92%;
+    --card: 0 0% 12%;
+    --card-foreground: 120 5% 95%;
 
-    --popover: 240 12% 15%;
-    --popover-foreground: 40 20% 92%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 120 5% 95%;
 
-    --primary: 270 65% 55%;
-    --primary-foreground: 240 15% 10%;
+    --primary: 165 50% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 75% 65%;
-    --secondary-foreground: 240 15% 10%;
+    --secondary: 25 80% 30%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 20%;
-    --muted-foreground: 240 8% 65%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 120 5% 70%;
 
-    --accent: 15 65% 70%;
-    --accent-foreground: 240 15% 10%;
+    --accent: 220 100% 30%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 12% 25%;
-    --input: 240 12% 25%;
-    --ring: 270 65% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 165 50% 45%;
     
-    --luxury-royal: 270 65% 55%;
-    --luxury-gold: 45 75% 65%;
-    --luxury-rose: 15 65% 70%;
-    --luxury-charcoal: 240 12% 18%;
+    --luxury-jungle: 165 50% 45%;
+    --luxury-chocolate: 25 80% 30%;
+    --luxury-navy: 220 100% 30%;
+    --luxury-white: 0 0% 100%;
+    --luxury-black: 0 0% 8%;
   }
 }
 

@@ -48,10 +48,11 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         luxury: {
-          royal: "hsl(var(--luxury-royal))",
-          gold: "hsl(var(--luxury-gold))",
-          rose: "hsl(var(--luxury-rose))",
-          charcoal: "hsl(var(--luxury-charcoal))",
+          jungle: "hsl(var(--luxury-jungle))",
+          chocolate: "hsl(var(--luxury-chocolate))",
+          navy: "hsl(var(--luxury-navy))",
+          white: "hsl(var(--luxury-white))",
+          black: "hsl(var(--luxury-black))",
         },
       },
       borderRadius: {
