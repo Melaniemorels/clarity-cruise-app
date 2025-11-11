@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,6 +123,27 @@ const Auth = () => {
               {isSignUp ? "Sign In" : "Sign Up"}
             </Button>
           </div>
+
+          {isSignUp && (
+            <div className="mt-6 pt-4 border-t border-border text-center text-xs text-muted-foreground">
+              <p className="mb-2">By signing up, you agree to our</p>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Link 
+                  to="/privacy-policy" 
+                  className="text-primary hover:underline"
+                >
+                  Privacy Policy
+                </Link>
+                <span>and</span>
+                <Link 
+                  to="/terms-of-use" 
+                  className="text-primary hover:underline"
+                >
+                  Terms of Use
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

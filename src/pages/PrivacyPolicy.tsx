@@ -14,57 +14,60 @@ const PrivacyPolicy = () => {
     sections: [
       {
         heading: "1. Introducción",
-        content: `Bienvenida a VYV ("nosotros", "nuestro/a"). En VYV te ayudamos a mejorar tu bienestar y productividad personal. Esta Política de Privacidad explica cómo recopilamos, usamos, compartimos y protegemos la información que obtengamos a través de la app, incluidas las fotos, publicaciones y la interacción social entre usuarios. Al usar VYV, aceptas que la información se procese según lo descrito aquí.`
+        content: `Bienvenida a VYV ("nosotros", "nuestro/a"). En VYV te ayudamos a mejorar tu bienestar y productividad personal. Esta Política de Privacidad explica cómo recopilamos, usamos, compartimos y protegemos la información obtenida a través de la app, incluidas fotos, publicaciones y actividad social.
+Al usar VYV, aceptas el tratamiento de datos conforme a esta política.
+
+La aplicación está disponible en múltiples idiomas y puede ser utilizada en el idioma que el usuario prefiera. La interfaz, textos y mensajes se adaptarán automáticamente al idioma seleccionado, del mismo modo que lo hace Instagram.`
       },
       {
         heading: "2. Información que recopilamos",
-        content: `• Datos que tú proporcionas (nombre, correo electrónico, foto de perfil, publicaciones, imágenes, videos, comentarios).
+        content: `• Datos proporcionados por ti (nombre, email, foto de perfil, publicaciones, imágenes, comentarios).
 
-• Datos generados por el uso de la app (actividad, horarios, interacciones, estadísticas).
+• Datos generados por tu uso de la app (horarios, hábitos, estadísticas, interacciones).
 
 • Datos técnicos (IP, tipo de dispositivo, sistema operativo).
 
-• Si decides conectar wearables o apps de salud, se podrán leer datos como pasos o tiempo de sueño.`
+• Si decides vincular wearables o apps de salud, se podrán leer datos como pasos, horas de sueño o ritmo cardíaco.`
       },
       {
         heading: "3. Cómo usamos tu información",
-        content: `• Para permitir publicaciones, comentarios y visualización de contenido.
+        content: `• Para permitir la publicación y visualización de contenido.
 
-• Personalizar la experiencia del usuario.
+• Personalizar tu experiencia y ofrecerte recomendaciones.
 
-• Analizar el uso de la app para mejorarla.
+• Analizar el uso de la app y mejorarla.
 
-• Cumplir obligaciones legales o prevenir abusos.`
+• Cumplir requisitos legales o prevenir abusos.`
       },
       {
         heading: "4. Compartir información",
-        content: `• No vendemos información personal a terceros.
+        content: `• No vendemos tu información personal.
 
-• Los contenidos públicos (fotos, publicaciones) podrán verse según la configuración de privacidad que elijas.
+• Los contenidos públicos podrán verse según la configuración de privacidad que elijas.
 
-• Podemos compartir información agregada (sin identificarte) con fines estadísticos o de mejora.`
+• Podremos compartir datos agregados (sin identificarte) con fines estadísticos.`
       },
       {
-        heading: "5. Tus derechos y control",
-        content: `• Puedes decidir qué contenido haces público o privado.
+        heading: "5. Tus derechos",
+        content: `• Podés decidir qué compartís y con quién.
 
-• Puedes editar o eliminar tu perfil o publicaciones.
+• Podés editar o eliminar tu perfil o publicaciones.
 
-• Puedes revocar permisos (ubicación, cámara, notificaciones) desde la configuración.`
+• Podés revocar permisos desde los ajustes.`
       },
       {
         heading: "6. Seguridad y retención de datos",
-        content: `• Protegemos tus datos con medidas técnicas y organizativas adecuadas.
+        content: `• Protegemos tu información con medidas de seguridad razonables.
 
-• Conservamos la información solo mientras sea necesaria para los fines descritos.`
+• Conservamos los datos solo el tiempo necesario para cumplir los fines establecidos.`
       },
       {
         heading: "7. Menores de edad",
-        content: `Si tienes menos de 13 años (o la edad mínima legal de tu país), se requiere consentimiento parental.`
+        content: `Si tenés menos de 13 años, necesitás consentimiento parental.`
       },
       {
         heading: "8. Cambios",
-        content: `Podremos actualizar esta Política ocasionalmente. Te notificaremos sobre cambios importantes.`
+        content: `Podemos actualizar esta Política y te avisaremos de cambios importantes.`
       },
       {
         heading: "9. Contacto",
@@ -81,57 +84,60 @@ Dirección: San Diego, California, EE.UU.`
     sections: [
       {
         heading: "1. Introduction",
-        content: `Welcome to VYV ("we", "our"). VYV helps you improve wellness and personal productivity. This Privacy Policy explains how we collect, use, share, and protect information obtained through the app, including photos, posts, and user interactions. By using VYV, you agree to this policy.`
+        content: `Welcome to VYV ("we", "our"). VYV helps you improve wellness and personal productivity. This Privacy Policy explains how we collect, use, share, and protect information obtained through the app, including photos, posts, and social activity.
+By using VYV, you agree to the data processing as described in this policy.
+
+The application is available in multiple languages and can be used in the language the user prefers. The interface, texts, and messages will automatically adapt to the selected language, just like Instagram does.`
       },
       {
         heading: "2. Information We Collect",
-        content: `• Data you provide (name, email, profile picture, posts, photos, videos, comments).
+        content: `• Data you provide (name, email, profile picture, posts, images, comments).
 
-• App usage data (activity, times, interactions, statistics).
+• Data generated by your app usage (schedules, habits, statistics, interactions).
 
 • Technical data (IP address, device type, operating system).
 
-• If you connect wearables or health apps, basic wellness data like steps or sleep may be accessed.`
+• If you choose to link wearables or health apps, data such as steps, sleep hours, or heart rate may be read.`
       },
       {
         heading: "3. How We Use Your Information",
-        content: `• To enable posting, commenting, and sharing.
+        content: `• To enable posting and viewing content.
 
-• To personalize user experience.
+• To personalize your experience and offer recommendations.
 
-• To analyze app usage for improvement.
+• To analyze app usage and improve it.
 
-• To comply with legal requirements and prevent misuse.`
+• To comply with legal requirements or prevent abuse.`
       },
       {
         heading: "4. Sharing Information",
-        content: `• We do not sell personal information.
+        content: `• We do not sell your personal information.
 
-• Public posts and photos can be seen based on your visibility settings.
+• Public content may be viewed based on the privacy settings you choose.
 
-• We may share aggregated (non-identifiable) data for analytics or improvement.`
+• We may share aggregated data (without identifying you) for statistical purposes.`
       },
       {
-        heading: "5. Your Rights and Control",
-        content: `• You control what content is public or private.
+        heading: "5. Your Rights",
+        content: `• You can decide what you share and with whom.
 
-• You can edit or delete your profile or posts anytime.
+• You can edit or delete your profile or posts.
 
-• You can revoke permissions (location, camera, notifications) from settings.`
+• You can revoke permissions from settings.`
       },
       {
         heading: "6. Data Security & Retention",
-        content: `• We implement technical and organizational measures to protect your data.
+        content: `• We protect your information with reasonable security measures.
 
-• Data is retained only as long as necessary for the described purposes.`
+• Data is retained only as long as necessary to fulfill the stated purposes.`
       },
       {
         heading: "7. Minors",
-        content: `Users under 13 (or local legal age) require parental consent.`
+        content: `If you are under 13, you need parental consent.`
       },
       {
         heading: "8. Changes",
-        content: `We may update this Policy occasionally and notify users of significant changes.`
+        content: `We may update this Policy and notify you of significant changes.`
       },
       {
         heading: "9. Contact",
