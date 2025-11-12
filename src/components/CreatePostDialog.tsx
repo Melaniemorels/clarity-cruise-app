@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Camera, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface CreatePostDialogProps {
@@ -44,9 +43,95 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const [activityTag, setActivityTag] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const lastSubmitTime = useRef<number>(0);
   const DEBOUNCE_MS = 800;
+
+  // Start camera
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        setIsCameraActive(true);
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      toast.error("No se pudo acceder a la cámara");
+    }
+  };
+
+  // Stop camera
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Capture photo with B&W filter
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+
+    if (ctx) {
+      ctx.filter = "grayscale(100%)";
+      ctx.drawImage(video, 0, 0);
+      
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      setCapturedImage(dataUrl);
+      stopCamera();
+
+      // Convert to File
+      fetch(dataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], `photo-${Date.now()}.jpg`, { type: "image/jpeg" });
+          setImageFile(file);
+          setImagePreview(dataUrl);
+        });
+    }
+  };
+
+  // Retry camera
+  const retryCamera = () => {
+    setCapturedImage(null);
+    setImageFile(null);
+    setImagePreview(null);
+    startCamera();
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  // Start camera when dialog opens
+  useEffect(() => {
+    if (open) {
+      startCamera();
+    } else {
+      stopCamera();
+      setCapturedImage(null);
+    }
+  }, [open]);
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
@@ -91,6 +176,19 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           throw new Error(`Error al crear post: ${insertError.message}`);
         }
 
+        // Create calendar event
+        const now = new Date();
+        const eventEnd = new Date(now.getTime() + 15 * 60000); // 15 minutes later
+        
+        await (supabase as any).from("calendar_events").insert({
+          user_id: user.id,
+          title: "Momento capturado",
+          category: activityTag || "otros",
+          starts_at: now.toISOString(),
+          ends_at: eventEnd.toISOString(),
+          notes: caption.trim() || null,
+        });
+
         return true;
       } catch (error) {
         if (error instanceof Error) {
@@ -120,45 +218,15 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-      if (!validTypes.includes(file.type)) {
-        toast.error("Formato de imagen no válido. Usa JPG, PNG o WEBP");
-        return;
-      }
-
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen no puede superar 5MB");
-        return;
-      }
-
-      setImageFile(file);
-      setUploadError(null);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setUploadError(null);
-  };
-
   const handleClose = () => {
     if (!createPostMutation.isPending) {
       setCaption("");
       setActivityTag("");
       setImageFile(null);
       setImagePreview(null);
+      setCapturedImage(null);
       setUploadError(null);
+      stopCamera();
       onOpenChange(false);
     }
   };
@@ -175,7 +243,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
     // Validate image is required
     if (!imageFile) {
-      toast.error("La imagen es obligatoria");
+      toast.error("Debes capturar una foto primero");
       return;
     }
 
@@ -192,121 +260,124 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Crear Post</DialogTitle>
+          <DialogTitle>Capturar Momento</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="image" className="flex items-center gap-2">
-              Imagen <span className="text-destructive text-xs">*obligatoria</span>
-            </Label>
-            <div className="flex flex-col gap-3">
-              {!imagePreview ? (
-                <label
-                  htmlFor="image"
-                  className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/50"
-                >
-                  <Upload className="h-12 w-12 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Haz clic para subir una imagen
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG o WEBP (máx. 5MB)
-                  </p>
-                </label>
-              ) : (
-                <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={handleRemoveImage}
-                    disabled={createPostMutation.isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-              <Input
-                id="image"
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleImageChange}
-                disabled={createPostMutation.isPending}
-                className="hidden"
+
+        <div className="space-y-4">
+          {/* Camera View */}
+          {isCameraActive && !capturedImage && (
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-64 object-cover rounded-lg"
+                style={{ filter: "grayscale(100%)" }}
               />
+              <Button
+                type="button"
+                size="lg"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2"
+                onClick={capturePhoto}
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                Capturar
+              </Button>
             </div>
-            {uploadError && (
-              <p className="text-sm text-destructive">{uploadError}</p>
-            )}
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="caption">
-              Caption <span className="text-muted-foreground text-xs">(opcional, {caption.length}/140)</span>
-            </Label>
-            <Textarea
-              id="caption"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="¿Qué está pasando?"
-              maxLength={140}
-              rows={3}
-              disabled={createPostMutation.isPending}
-            />
-          </div>
+          {/* Captured Image Preview */}
+          {capturedImage && (
+            <div className="relative">
+              <img
+                src={capturedImage}
+                alt="Captured"
+                className="w-full h-64 object-cover rounded-lg"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={retryCamera}
+                disabled={createPostMutation.isPending}
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="tag">
-              Etiqueta de actividad <span className="text-muted-foreground text-xs">(opcional)</span>
-            </Label>
-            <Select
-              value={activityTag}
-              onValueChange={setActivityTag}
-              disabled={createPostMutation.isPending}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona una actividad" />
-              </SelectTrigger>
-              <SelectContent>
-                {ACTIVITY_TAGS.map((tag) => (
-                  <SelectItem key={tag.value} value={tag.value}>
-                    {tag.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={createPostMutation.isPending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={createPostMutation.isPending || !imageFile}
-            >
-              {createPostMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Publicando...
-                </>
-              ) : (
-                "Publicar"
+          {/* Form - only show after capture */}
+          {capturedImage && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {uploadError && (
+                <p className="text-sm text-destructive">{uploadError}</p>
               )}
-            </Button>
-          </div>
-        </form>
+
+              <div className="space-y-2">
+                <Label htmlFor="caption">
+                  Caption <span className="text-muted-foreground text-xs">(opcional, {caption.length}/140)</span>
+                </Label>
+                <Textarea
+                  id="caption"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="¿Qué está pasando?"
+                  maxLength={140}
+                  rows={3}
+                  disabled={createPostMutation.isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tag">
+                  Etiqueta de actividad <span className="text-muted-foreground text-xs">(opcional)</span>
+                </Label>
+                <Select
+                  value={activityTag}
+                  onValueChange={setActivityTag}
+                  disabled={createPostMutation.isPending}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una actividad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACTIVITY_TAGS.map((tag) => (
+                      <SelectItem key={tag.value} value={tag.value}>
+                        {tag.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={createPostMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createPostMutation.isPending || !imageFile}
+                >
+                  {createPostMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Publicando...
+                    </>
+                  ) : (
+                    "Publicar"
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
