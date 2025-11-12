@@ -24,7 +24,6 @@ const Profile = () => {
   const healthData = {
     steps: { value: 8432, goal: 10000, label: 'Steps' },
     workout: { value: 45, goal: 60, label: 'Workout (min)' },
-    resistance: { value: 3, goal: 4, label: 'Resistance Sets' },
     sleep: { value: 7.5, goal: 8, label: 'Sleep (hrs)' },
     screenTime: { value: 3.2, goal: 4, label: 'Screen Time (hrs)' },
   };
