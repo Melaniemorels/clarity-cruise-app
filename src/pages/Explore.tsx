@@ -3,8 +3,27 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Bookmark } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ContentPlayer } from "@/components/ContentPlayer";
+import { useState } from "react";
 
 const Explore = () => {
+  const [selectedContent, setSelectedContent] = useState<{
+    title: string;
+    category: string;
+    icon: string;
+    duration: string;
+    color: string;
+  } | null>(null);
+  const [playerOpen, setPlayerOpen] = useState(false);
+
+  const handleContentClick = (item: any, category: any) => {
+    setSelectedContent({
+      ...item,
+      category: category.title,
+      icon: category.icon,
+    });
+    setPlayerOpen(true);
+  };
   const categories = [
     {
       title: "Music",
@@ -87,7 +106,11 @@ const Explore = () => {
             <ScrollArea className="w-full whitespace-nowrap">
               <div className="flex gap-4 pb-4">
                 {category.items.map((item, i) => (
-                  <Card key={i} className="flex-shrink-0 w-48 overflow-hidden">
+                  <Card 
+                    key={i} 
+                    className="flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => handleContentClick(item, category)}
+                  >
                     <div className={`h-32 bg-gradient-to-br ${item.color} flex items-center justify-center`}>
                       <div className="text-4xl">{category.icon}</div>
                     </div>
@@ -95,7 +118,15 @@ const Explore = () => {
                       <h3 className="font-medium text-sm mb-1 truncate">{item.title}</h3>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">{item.duration}</span>
-                        <Button size="icon" variant="ghost" className="h-6 w-6">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle bookmark
+                          }}
+                        >
                           <Bookmark className="h-3 w-3" />
                         </Button>
                       </div>
@@ -119,6 +150,12 @@ const Explore = () => {
           </CardContent>
         </Card>
       </div>
+
+      <ContentPlayer
+        open={playerOpen}
+        onOpenChange={setPlayerOpen}
+        content={selectedContent}
+      />
 
       <BottomNav />
     </div>
