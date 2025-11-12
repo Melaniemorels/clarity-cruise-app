@@ -10,17 +10,40 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { DailyActivityModal } from "@/components/DailyActivityModal";
+import { subDays } from "date-fns";
 
 const Profile = () => {
   const { signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
   
   const healthData = {
     steps: { value: 8432, goal: 10000, label: 'Steps' },
     workout: { value: 45, goal: 60, label: 'Workout (min)' },
     resistance: { value: 3, goal: 4, label: 'Resistance Sets' },
+  };
+
+  // Mock activity data for each day (in a real app, this would come from the database)
+  const getActivityData = (dayIndex: number) => {
+    const seed = dayIndex;
+    return {
+      work: Math.floor(Math.random() * 480) * (Math.random() > 0.3 ? 1 : 0),
+      workout: Math.floor(Math.random() * 90) * (Math.random() > 0.5 ? 1 : 0),
+      steps: Math.floor(Math.random() * 12000) * (Math.random() > 0.3 ? 1 : 0),
+      audiobooks: Math.floor(Math.random() * 120) * (Math.random() > 0.6 ? 1 : 0),
+      reading: Math.floor(Math.random() * 90) * (Math.random() > 0.6 ? 1 : 0),
+      social: Math.floor(Math.random() * 180) * (Math.random() > 0.7 ? 1 : 0),
+    };
+  };
+
+  const handleDayClick = (dayIndex: number) => {
+    const date = subDays(new Date(), 27 - dayIndex);
+    setSelectedDate(date);
+    setActivityModalOpen(true);
   };
 
   return (
@@ -84,12 +107,18 @@ const Profile = () => {
             <h3 className="font-semibold mb-4">Activity Calendar</h3>
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: 28 }, (_, i) => {
-                const hasActivity = Math.random() > 0.3;
-                const intensity = Math.floor(Math.random() * 3);
+                const activities = getActivityData(i);
+                const totalActivity = activities.work + activities.workout + activities.audiobooks + activities.reading + activities.social;
+                const hasActivity = totalActivity > 0;
+                const intensity = hasActivity 
+                  ? totalActivity > 600 ? 2 : totalActivity > 300 ? 1 : 0
+                  : -1;
+                
                 return (
-                  <div
+                  <button
                     key={i}
-                    className={`aspect-square rounded ${
+                    onClick={() => handleDayClick(i)}
+                    className={`aspect-square rounded transition-all hover:ring-2 hover:ring-primary cursor-pointer ${
                       hasActivity
                         ? intensity === 0
                           ? 'bg-primary/20'
@@ -250,6 +279,20 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DailyActivityModal 
+        open={activityModalOpen}
+        onOpenChange={setActivityModalOpen}
+        date={selectedDate}
+        activities={selectedDate ? getActivityData(Math.floor((new Date().getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))) : {
+          work: 0,
+          workout: 0,
+          steps: 0,
+          audiobooks: 0,
+          reading: 0,
+          social: 0,
+        }}
+      />
 
       <BottomNav />
     </div>
