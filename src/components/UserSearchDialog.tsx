@@ -3,15 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Search, UserPlus, UserCheck } from "lucide-react";
+import { Search, UserPlus, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserSearchDialogProps {
@@ -101,89 +101,105 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Buscar Amigos</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
+        <SheetHeader className="px-4 pt-4 pb-3 border-b border-border sticky top-0 bg-background z-10">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl">Buscar Amigos</SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+        </SheetHeader>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por @usuario..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        <div className="px-4 py-3 border-b border-border sticky top-[60px] bg-background z-10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por @usuario..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 text-base"
+              autoFocus
+            />
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-[200px]">
+        <div className="flex-1 overflow-y-auto px-4 py-2">
           {!searchQuery.trim() ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Busca usuarios por su @handle</p>
+            <div className="text-center py-16 text-muted-foreground">
+              <Search className="h-16 w-16 mx-auto mb-3 opacity-30" />
+              <p className="text-lg">Busca usuarios por su @handle</p>
             </div>
           ) : isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Buscando...
+            <div className="text-center py-16 text-muted-foreground">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+              <p>Buscando...</p>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No se encontraron usuarios</p>
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg">No se encontraron usuarios</p>
             </div>
           ) : (
-            users.map((searchUser) => (
-              <div
-                key={searchUser.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src={searchUser.photo_url || undefined} />
-                    <AvatarFallback>
-                      {searchUser.handle[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">
-                      @{searchUser.handle}
-                    </p>
-                    {searchUser.name && (
-                      <p className="text-sm text-muted-foreground truncate">
-                        {searchUser.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant={searchUser.is_following ? "outline" : "default"}
-                  onClick={() =>
-                    followMutation.mutate({
-                      userId: searchUser.user_id,
-                      isFollowing: searchUser.is_following,
-                    })
-                  }
-                  disabled={followMutation.isPending}
-                  className="flex-shrink-0"
+            <div className="space-y-1">
+              {users.map((searchUser) => (
+                <div
+                  key={searchUser.id}
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors active:scale-[0.98]"
                 >
-                  {searchUser.is_following ? (
-                    <>
-                      <UserCheck className="h-4 w-4 mr-1" />
-                      Siguiendo
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-1" />
-                      Seguir
-                    </>
-                  )}
-                </Button>
-              </div>
-            ))
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                      <AvatarImage src={searchUser.photo_url || undefined} />
+                      <AvatarFallback className="text-lg">
+                        {searchUser.handle[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate text-base">
+                        @{searchUser.handle}
+                      </p>
+                      {searchUser.name && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {searchUser.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={searchUser.is_following ? "outline" : "default"}
+                    onClick={() =>
+                      followMutation.mutate({
+                        userId: searchUser.user_id,
+                        isFollowing: searchUser.is_following,
+                      })
+                    }
+                    disabled={followMutation.isPending}
+                    className="flex-shrink-0 h-9 px-4"
+                  >
+                    {searchUser.is_following ? (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-1.5" />
+                        Siguiendo
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-1.5" />
+                        Seguir
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
