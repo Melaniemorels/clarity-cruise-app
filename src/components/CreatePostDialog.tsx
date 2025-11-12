@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -8,11 +9,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface CreatePostDialogProps {
@@ -20,21 +28,35 @@ interface CreatePostDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const ACTIVITY_TAGS = [
+  { value: "comida", label: "🍽️ Comida" },
+  { value: "gym", label: "💪 Gym" },
+  { value: "meditación", label: "🧘 Meditación" },
+  { value: "estudio", label: "📚 Estudio" },
+  { value: "otros", label: "✨ Otros" },
+];
+
 export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [caption, setCaption] = useState("");
   const [activityTag, setActivityTag] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const lastSubmitTime = useRef<number>(0);
+  const DEBOUNCE_MS = 800;
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Usuario no autenticado");
+      if (!imageFile) throw new Error("Imagen requerida");
 
-      let imageUrl: string | null = null;
+      setUploadError(null);
 
-      if (imageFile) {
+      try {
+        // Upload image to storage
         const fileExt = imageFile.name.split(".").pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         
@@ -45,41 +67,77 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
             upsert: false,
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          throw new Error(`Error al subir imagen: ${uploadError.message}`);
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("images")
           .getPublicUrl(fileName);
 
-        imageUrl = publicUrl;
+        // Insert post into database
+        const { error: insertError } = await supabase
+          .from("posts")
+          .insert({
+            user_id: user.id,
+            caption: caption.trim() || null,
+            activity_tag: activityTag || null,
+            image_url: publicUrl,
+          });
+
+        if (insertError) {
+          // Clean up uploaded image if post creation fails
+          await supabase.storage.from("images").remove([fileName]);
+          throw new Error(`Error al crear post: ${insertError.message}`);
+        }
+
+        return true;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("Error desconocido al crear post");
       }
-
-      const { error } = await supabase
-        .from("posts")
-        .insert({
-          user_id: user.id,
-          caption: caption || null,
-          activity_tag: activityTag || null,
-          image_url: imageUrl,
-        });
-
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success("Post creado exitosamente");
+      toast.success("Publicado");
       handleClose();
+      navigate("/");
     },
     onError: (error) => {
-      toast.error("Error al crear post");
-      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : "Error al crear post";
+      setUploadError(errorMessage);
+      toast.error(errorMessage, {
+        action: {
+          label: "Reintentar",
+          onClick: () => {
+            setUploadError(null);
+            handleSubmit(new Event("submit") as any);
+          },
+        },
+      });
     },
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Formato de imagen no válido. Usa JPG, PNG o WEBP");
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("La imagen no puede superar 5MB");
+        return;
+      }
+
       setImageFile(file);
+      setUploadError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -88,23 +146,41 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     }
   };
 
-  const handleClose = () => {
-    setCaption("");
-    setActivityTag("");
+  const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    onOpenChange(false);
+    setUploadError(null);
+  };
+
+  const handleClose = () => {
+    if (!createPostMutation.isPending) {
+      setCaption("");
+      setActivityTag("");
+      setImageFile(null);
+      setImagePreview(null);
+      setUploadError(null);
+      onOpenChange(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!caption.trim() && !imageFile) {
-      toast.error("Agrega una imagen o texto");
+    // Debounce to prevent repeated taps
+    const now = Date.now();
+    if (now - lastSubmitTime.current < DEBOUNCE_MS) {
+      return;
+    }
+    lastSubmitTime.current = now;
+
+    // Validate image is required
+    if (!imageFile) {
+      toast.error("La imagen es obligatoria");
       return;
     }
 
-    if (caption.length > 140) {
+    // Validate caption length
+    if (caption.trim() && caption.length > 140) {
       toast.error("El caption no puede tener más de 140 caracteres");
       return;
     }
@@ -120,30 +196,59 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="image">Imagen</Label>
-            <div className="flex flex-col gap-2">
-              <Input
-                id="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                disabled={createPostMutation.isPending}
-              />
-              {imagePreview && (
+            <Label htmlFor="image" className="flex items-center gap-2">
+              Imagen <span className="text-destructive text-xs">*obligatoria</span>
+            </Label>
+            <div className="flex flex-col gap-3">
+              {!imagePreview ? (
+                <label
+                  htmlFor="image"
+                  className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/50"
+                >
+                  <Upload className="h-12 w-12 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Haz clic para subir una imagen
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    JPG, PNG o WEBP (máx. 5MB)
+                  </p>
+                </label>
+              ) : (
                 <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                   <img
                     src={imagePreview}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={handleRemoveImage}
+                    disabled={createPostMutation.isPending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
+              <Input
+                id="image"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageChange}
+                disabled={createPostMutation.isPending}
+                className="hidden"
+              />
             </div>
+            {uploadError && (
+              <p className="text-sm text-destructive">{uploadError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="caption">
-              Caption ({caption.length}/140)
+              Caption <span className="text-muted-foreground text-xs">(opcional, {caption.length}/140)</span>
             </Label>
             <Textarea
               id="caption"
@@ -157,14 +262,25 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tag">Etiqueta de actividad</Label>
-            <Input
-              id="tag"
+            <Label htmlFor="tag">
+              Etiqueta de actividad <span className="text-muted-foreground text-xs">(opcional)</span>
+            </Label>
+            <Select
               value={activityTag}
-              onChange={(e) => setActivityTag(e.target.value)}
-              placeholder="ej: Fitness, Lectura, Meditación"
+              onValueChange={setActivityTag}
               disabled={createPostMutation.isPending}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una actividad" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACTIVITY_TAGS.map((tag) => (
+                  <SelectItem key={tag.value} value={tag.value}>
+                    {tag.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2">
@@ -178,15 +294,15 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
             </Button>
             <Button
               type="submit"
-              disabled={createPostMutation.isPending}
+              disabled={createPostMutation.isPending || !imageFile}
             >
               {createPostMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creando...
+                  Publicando...
                 </>
               ) : (
-                "Crear Post"
+                "Publicar"
               )}
             </Button>
           </div>
