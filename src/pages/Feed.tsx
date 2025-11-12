@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
+import { UserSearchDialog } from "@/components/UserSearchDialog";
 
 interface Post {
   id: string;
@@ -30,6 +31,7 @@ const Feed = () => {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const { data: posts = [], isLoading, refetch } = useQuery({
     queryKey: ["posts"],
@@ -133,6 +135,13 @@ const Feed = () => {
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
@@ -192,6 +201,11 @@ const Feed = () => {
       <CreatePostDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
+      />
+
+      <UserSearchDialog
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
       />
 
       <BottomNav />
