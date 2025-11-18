@@ -158,21 +158,22 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent 
-          className="max-w-md pb-10 md:pb-6 bg-theme-bgElevated dark:bg-[#101010] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" 
+          className="max-w-md bg-[#FAFAF8] dark:bg-[#101010] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" 
           style={{ 
-            paddingTop: '32px',
+            paddingTop: '38px',
+            paddingBottom: '36px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
           }}
         >
           <div className="flex flex-col items-center" style={{ justifyContent: 'center', minHeight: '500px' }}>
             <DialogHeader className="text-center dark:shadow-[0_2px_10px_rgba(0,0,0,0.35)]" style={{
               paddingBottom: '16px',
-              marginBottom: '16px'
+              marginBottom: '20px'
             }}>
-              <DialogTitle className="text-theme-textPrimary dark:text-[#F5F5F5]" style={{
+              <DialogTitle className="text-[#1A1A1A] dark:text-[#F5F5F5]" style={{
                 fontSize: '22px',
                 fontWeight: 600,
-                letterSpacing: '0.3px',
+                letterSpacing: '0.2px',
                 textAlign: 'center'
               }}>
                 Captura Rápida
@@ -183,8 +184,9 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
-                    width: '80%',
-                    height: '300px',
+                    width: '84%',
+                    height: '48%',
+                    minHeight: '280px',
                     borderRadius: '32px',
                     border: '1px solid rgba(0,0,0,0.05)',
                     boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
@@ -200,7 +202,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2 justify-center" style={{ marginTop: '16px', width: '80%' }}>
+                <div className="flex gap-3 justify-center" style={{ marginTop: '20px', width: '84%' }}>
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
@@ -210,12 +212,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                         : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
                     }`}
                     style={{
-                      borderRadius: '20px',
-                      height: '40px',
+                      borderRadius: '22px',
+                      height: '42px',
                       fontSize: '14px',
                       fontWeight: 600,
-                      paddingLeft: '24px',
-                      paddingRight: '24px',
+                      paddingLeft: '22px',
+                      paddingRight: '22px',
                       backgroundColor: filter === "natural" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
                       color: filter === "natural" ? '#FFFFFF' : '#4A4A4A',
                       border: filter === "natural" ? 'none' : '1px solid rgba(0,0,0,0.08)',
@@ -233,12 +235,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                         : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
                     }`}
                     style={{
-                      borderRadius: '20px',
-                      height: '40px',
+                      borderRadius: '22px',
+                      height: '42px',
                       fontSize: '14px',
                       fontWeight: 600,
-                      paddingLeft: '24px',
-                      paddingRight: '24px',
+                      paddingLeft: '22px',
+                      paddingRight: '22px',
                       backgroundColor: filter === "bw" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
                       color: filter === "bw" ? '#FFFFFF' : '#4A4A4A',
                       border: filter === "bw" ? 'none' : '1px solid rgba(0,0,0,0.08)',
@@ -254,18 +256,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   size="lg" 
                   className="transition-transform duration-[120ms] hover:scale-[0.98] dark:shadow-[0_4px_16px_rgba(0,0,0,0.28),0_0_28px_rgba(70,200,140,0.22)]"
                   style={{
-                    marginTop: '20px',
-                    width: '80%',
-                    borderRadius: '28px',
+                    marginTop: '22px',
+                    width: '84%',
+                    borderRadius: '30px',
                     height: '54px',
-                    background: 'linear-gradient(180deg, #49D3A0, #37B680)',
-                    color: '#FAFAF8',
+                    background: 'linear-gradient(180deg, #59D7A1, #3BB986)',
+                    color: '#FFFFFF',
                     fontSize: '16px',
                     fontWeight: 600,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.15), 0 0 28px rgba(70,200,140,0.18)'
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.10)'
                   }}
                 >
-                  <Camera className="mr-2" size={18} strokeWidth={1.4} />
+                  <Camera className="mr-2" size={18} strokeWidth={1.4} style={{ color: '#FFFFFF' }} />
                   Capturar
                 </Button>
               </>
@@ -274,8 +276,9 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
-                    width: '80%',
-                    height: '300px',
+                    width: '84%',
+                    height: '48%',
+                    minHeight: '280px',
                     borderRadius: '32px',
                     border: '1px solid rgba(0,0,0,0.05)',
                     boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
@@ -288,7 +291,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2" style={{ marginTop: '20px', width: '80%' }}>
+                <div className="flex gap-3" style={{ marginTop: '22px', width: '84%' }}>
                   <Button
                     variant="outline"
                     onClick={() => {
