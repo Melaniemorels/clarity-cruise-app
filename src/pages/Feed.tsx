@@ -127,7 +127,7 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen pb-20 relative" style={{ 
-      background: 'linear-gradient(180deg, #0B0B0D 0%, #000000 100%)' 
+      background: 'radial-gradient(circle at center, rgba(11, 11, 13, 0.18) 0%, rgba(0, 0, 0, 0.18) 100%), #000000'
     }}>
       {/* Watermark */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
