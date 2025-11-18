@@ -157,7 +157,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       )}
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
-        <DialogContent className="max-w-md" style={{ paddingTop: '24px' }}>
+        <DialogContent className="max-w-md" style={{ paddingTop: '28px' }}>
           <DialogHeader className="text-center" style={{
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             paddingBottom: '16px',
