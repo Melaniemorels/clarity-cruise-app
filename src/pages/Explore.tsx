@@ -82,13 +82,13 @@ const Explore = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-theme-bg pb-20">
       <div className="p-4 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Explore</h1>
-            <p className="text-sm text-muted-foreground">Discover wellness content</p>
+            <h1 className="text-2xl font-bold text-theme-textPrimary">Explore</h1>
+            <p className="text-sm text-theme-textSecondary">Discover wellness content</p>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ const Explore = () => {
         {categories.map((category, idx) => (
           <div key={idx} className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="text-lg font-semibold flex items-center gap-2 text-theme-textPrimary">
                 <span className="text-2xl">{category.icon}</span>
                 {category.title}
               </h2>
@@ -108,16 +108,20 @@ const Explore = () => {
                 {category.items.map((item, i) => (
                   <Card 
                     key={i} 
-                    className="flex-shrink-0 w-48 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                    className="flex-shrink-0 w-48 overflow-hidden cursor-pointer transition-shadow bg-theme-cardBg"
+                    style={{
+                      borderRadius: '18px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                    }}
                     onClick={() => handleContentClick(item, category)}
                   >
                     <div className={`h-32 bg-gradient-to-br ${item.color} flex items-center justify-center`}>
                       <div className="text-4xl">{category.icon}</div>
                     </div>
                     <CardContent className="p-4">
-                      <h3 className="font-medium text-sm mb-1 truncate">{item.title}</h3>
+                      <h3 className="font-medium text-sm mb-1 truncate text-theme-textPrimary">{item.title}</h3>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{item.duration}</span>
+                        <span className="text-xs text-theme-textSecondary">{item.duration}</span>
                         <Button 
                           size="icon" 
                           variant="ghost" 
@@ -140,10 +144,10 @@ const Explore = () => {
         ))}
 
         {/* Save as Template CTA */}
-        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
+        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 bg-theme-cardBg">
           <CardContent className="p-6 text-center">
-            <h3 className="font-semibold mb-2">Create Your Perfect Day</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <h3 className="font-semibold mb-2 text-theme-textPrimary">Create Your Perfect Day</h3>
+            <p className="text-sm text-theme-textSecondary mb-4">
               Save your favorite activities as a template and apply them to your calendar in one tap
             </p>
             <Button>Create Template</Button>
