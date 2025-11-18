@@ -216,10 +216,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "natural" ? '#2E5C4F' : '#FAFAF8',
-                      color: filter === "natural" ? '#FAFAF8' : '#5A5A5A',
-                      border: filter === "natural" ? 'none' : '1px solid #E1E1E1',
-                      boxShadow: filter === "natural" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
+                      backgroundColor: filter === "natural" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
+                      color: filter === "natural" ? '#FFFFFF' : '#4A4A4A',
+                      border: filter === "natural" ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: filter === "natural" ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
                     Natural
@@ -239,10 +239,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "bw" ? '#2E5C4F' : '#FAFAF8',
-                      color: filter === "bw" ? '#FAFAF8' : '#5A5A5A',
-                      border: filter === "bw" ? 'none' : '1px solid #E1E1E1',
-                      boxShadow: filter === "bw" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
+                      backgroundColor: filter === "bw" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
+                      color: filter === "bw" ? '#FFFFFF' : '#4A4A4A',
+                      border: filter === "bw" ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: filter === "bw" ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
                     Blanco y Negro
