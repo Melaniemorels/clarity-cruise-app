@@ -8,50 +8,55 @@ export const BottomNav = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/20 shadow-lg backdrop-blur-xl"
+        style={{
+          backgroundColor: 'rgba(15, 15, 17, 0.7)'
+        }}
+      >
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-4">
           <NavLink
             to="/"
             end
             className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-primary"
+            activeClassName="text-[#6BDFA8]"
           >
-            <Home className="h-6 w-6" />
+            <Home className="h-6 w-6" strokeWidth={1.5} />
             <span className="text-xs font-medium">Feed</span>
           </NavLink>
           
           <NavLink
             to="/explore"
             className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-primary"
+            activeClassName="text-[#6BDFA8]"
           >
-            <Compass className="h-6 w-6" />
+            <Compass className="h-6 w-6" strokeWidth={1.5} />
             <span className="text-xs font-medium">Explore</span>
           </NavLink>
           
           <button
             onClick={() => setCameraOpen(true)}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors hover:text-primary"
+            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors hover:text-[#6BDFA8]"
           >
-            <Lock className="h-6 w-6" />
+            <Lock className="h-6 w-6" strokeWidth={1.5} />
             <span className="text-xs font-medium">Focus</span>
           </button>
         
         <NavLink
           to="/calendar"
           className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-          activeClassName="text-primary"
+          activeClassName="text-[#6BDFA8]"
         >
-          <Calendar className="h-6 w-6" />
+          <Calendar className="h-6 w-6" strokeWidth={1.5} />
           <span className="text-xs font-medium">Calendar</span>
         </NavLink>
         
           <NavLink
             to="/profile"
             className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-primary"
+            activeClassName="text-[#6BDFA8]"
           >
-            <User className="h-6 w-6" />
+            <User className="h-6 w-6" strokeWidth={1.5} />
             <span className="text-xs font-medium">Profile</span>
           </NavLink>
         </div>
