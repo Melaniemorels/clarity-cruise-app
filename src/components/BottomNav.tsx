@@ -9,7 +9,10 @@ export const BottomNav = () => {
   return (
     <>
       <nav 
-        className="fixed bottom-0 left-0 right-0 z-50 border-t bg-theme-tabBg/70 border-theme-borderSubtle shadow-lg backdrop-blur-xl"
+        className="fixed bottom-0 left-0 right-0 z-50 border-t bg-theme-tabBg border-theme-borderSubtle backdrop-blur-xl"
+        style={{
+          boxShadow: '0 0 12px rgba(0,0,0,0.08)'
+        }}
       >
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-4">
           <NavLink
