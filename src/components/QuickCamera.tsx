@@ -158,23 +158,22 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent className="max-w-md" style={{ paddingTop: '32px', paddingBottom: '24px' }}>
-          <DialogHeader className="text-center" style={{
-            boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
-            paddingBottom: '16px',
-            marginBottom: '16px'
-          }}>
-            <DialogTitle style={{
-              fontSize: '22px',
-              fontWeight: 600,
-              letterSpacing: '0.3px',
-              color: '#F5F5F5',
-              textAlign: 'center'
+          <div className="flex flex-col items-center" style={{ justifyContent: 'center', minHeight: '500px' }}>
+            <DialogHeader className="text-center" style={{
+              boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
+              paddingBottom: '16px',
+              marginBottom: '16px'
             }}>
-              Captura Rápida
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col items-center" style={{ marginTop: '8px' }}>
+              <DialogTitle style={{
+                fontSize: '22px',
+                fontWeight: 600,
+                letterSpacing: '0.3px',
+                color: '#F5F5F5',
+                textAlign: 'center'
+              }}>
+                Captura Rápida
+              </DialogTitle>
+            </DialogHeader>
             {!capturedImage ? (
               <>
                 <div 
