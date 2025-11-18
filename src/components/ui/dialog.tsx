@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
         className,
       )}
       style={{
-        backgroundColor: 'rgba(20, 20, 20, 0.55)',
+        background: 'linear-gradient(180deg, rgba(20, 20, 20, 0.55) 0%, rgba(15, 15, 15, 0.65) 100%)',
         backdropFilter: 'blur(18px)',
         borderRadius: '24px',
         border: '1px solid rgba(255, 255, 255, 0.08)'
