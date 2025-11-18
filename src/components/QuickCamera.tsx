@@ -175,10 +175,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative aspect-[4/3] overflow-hidden"
                   style={{
-                    borderRadius: '22px',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    boxShadow: '0 0 12px rgba(0,0,0,0.4)',
-                    backgroundColor: '#1F1F1F'
+                    borderRadius: '26px',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
+                    backgroundColor: '#1A1A1A'
                   }}
                 >
                   <video
@@ -249,10 +249,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative aspect-[4/3] overflow-hidden"
                   style={{
-                    borderRadius: '22px',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    boxShadow: '0 0 12px rgba(0,0,0,0.4)',
-                    backgroundColor: '#1F1F1F'
+                    borderRadius: '26px',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
+                    backgroundColor: '#1A1A1A'
                   }}
                 >
                   <img
