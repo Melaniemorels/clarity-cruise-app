@@ -186,16 +186,34 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
                 <div className="flex gap-2">
                   <Button
-                    variant={filter === "natural" ? "default" : "outline"}
+                    variant="ghost"
                     onClick={() => setFilter("natural")}
                     className="flex-1"
+                    style={{
+                      borderRadius: '22px',
+                      height: '42px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      backgroundColor: filter === "natural" ? '#2E5C4F' : 'transparent',
+                      color: filter === "natural" ? '#FFFFFF' : '#B7B7B7',
+                      border: filter === "natural" ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                    }}
                   >
                     Natural
                   </Button>
                   <Button
-                    variant={filter === "bw" ? "default" : "outline"}
+                    variant="ghost"
                     onClick={() => setFilter("bw")}
                     className="flex-1"
+                    style={{
+                      borderRadius: '22px',
+                      height: '42px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      backgroundColor: filter === "bw" ? '#2E5C4F' : 'transparent',
+                      color: filter === "bw" ? '#FFFFFF' : '#B7B7B7',
+                      border: filter === "bw" ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                    }}
                   >
                     Blanco y Negro
                   </Button>
