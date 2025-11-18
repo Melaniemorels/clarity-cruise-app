@@ -181,12 +181,13 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             {!capturedImage ? (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
+                  className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
                     width: '80%',
                     height: '300px',
-                    borderRadius: '28px',
-                    border: '1px solid #E1E1E1',
+                    borderRadius: '32px',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
                   }}
                 >
                   <video
@@ -196,9 +197,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     className={`w-full h-full object-cover ${
                       filter === "bw" ? "grayscale" : ""
                     }`}
-                    style={{
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
-                    }}
                   />
                 </div>
 
@@ -274,13 +272,13 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             ) : (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
+                  className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
                     width: '80%',
                     height: '300px',
-                    borderRadius: '28px',
-                    border: '1px solid #E1E1E1',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
+                    borderRadius: '32px',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
                   }}
                 >
                   <img
