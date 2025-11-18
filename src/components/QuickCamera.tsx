@@ -159,7 +159,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Captura Rápida</DialogTitle>
+            <DialogTitle style={{
+              fontSize: '20px',
+              fontWeight: 600,
+              letterSpacing: '0.4px',
+              color: '#F4F4F4'
+            }}>
+              Captura Rápida
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
