@@ -218,8 +218,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "natural" ? '#2E5C4F' : '#FFFFFF',
-                      color: filter === "natural" ? '#FFFFFF' : '#5A5A5A',
+                      backgroundColor: filter === "natural" ? '#2E5C4F' : '#FAFAF8',
+                      color: filter === "natural" ? '#FAFAF8' : '#5A5A5A',
                       border: filter === "natural" ? 'none' : '1px solid #E1E1E1',
                       boxShadow: filter === "natural" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
                     }}
@@ -241,8 +241,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "bw" ? '#2E5C4F' : '#FFFFFF',
-                      color: filter === "bw" ? '#FFFFFF' : '#5A5A5A',
+                      backgroundColor: filter === "bw" ? '#2E5C4F' : '#FAFAF8',
+                      color: filter === "bw" ? '#FAFAF8' : '#5A5A5A',
                       border: filter === "bw" ? 'none' : '1px solid #E1E1E1',
                       boxShadow: filter === "bw" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
                     }}
@@ -261,7 +261,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     borderRadius: '28px',
                     height: '54px',
                     background: 'linear-gradient(180deg, #49D3A0, #37B680)',
-                    color: '#FFFFFF',
+                    color: '#FAFAF8',
                     fontSize: '16px',
                     fontWeight: 600,
                     boxShadow: '0 4px 16px rgba(0,0,0,0.15), 0 0 28px rgba(70,200,140,0.18)'
