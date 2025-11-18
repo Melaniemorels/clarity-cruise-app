@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Circle } from "lucide-react";
+import { Hexagon } from "lucide-react";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Welcome = () => {
         <div className="flex justify-center mb-8 animate-in fade-in zoom-in duration-700">
           <div className="relative">
             <div className="absolute inset-0 bg-white/10 blur-2xl rounded-full" />
-            <Circle
+            <Hexagon
               size={192}
               strokeWidth={1}
               style={{ color: '#6BDFA8', filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}
