@@ -195,15 +195,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
-                    className="flex-1"
+                    className="flex-1 transition-all duration-[140ms]"
                     style={{
-                      borderRadius: '22px',
-                      height: '42px',
+                      borderRadius: '20px',
+                      height: '40px',
                       fontSize: '14px',
                       fontWeight: 600,
                       backgroundColor: filter === "natural" ? '#2E5C4F' : 'transparent',
-                      color: filter === "natural" ? '#FFFFFF' : '#B7B7B7',
-                      border: filter === "natural" ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                      color: filter === "natural" ? '#FFFFFF' : '#C7C7C7',
+                      border: filter === "natural" ? 'none' : '1px solid rgba(255,255,255,0.18)',
+                      boxShadow: filter === "natural" ? '0 2px 8px rgba(0,0,0,0.25)' : 'none'
                     }}
                   >
                     Natural
@@ -211,15 +212,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("bw")}
-                    className="flex-1"
+                    className="flex-1 transition-all duration-[140ms]"
                     style={{
-                      borderRadius: '22px',
-                      height: '42px',
+                      borderRadius: '20px',
+                      height: '40px',
                       fontSize: '14px',
                       fontWeight: 600,
                       backgroundColor: filter === "bw" ? '#2E5C4F' : 'transparent',
-                      color: filter === "bw" ? '#FFFFFF' : '#B7B7B7',
-                      border: filter === "bw" ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                      color: filter === "bw" ? '#FFFFFF' : '#C7C7C7',
+                      border: filter === "bw" ? 'none' : '1px solid rgba(255,255,255,0.18)',
+                      boxShadow: filter === "bw" ? '0 2px 8px rgba(0,0,0,0.25)' : 'none'
                     }}
                   >
                     Blanco y Negro
