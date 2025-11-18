@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
-import { Plus, RefreshCw, Search, Hexagon } from "lucide-react";
+import { Plus, RefreshCw, Search, Hexagon, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
 
@@ -202,7 +202,9 @@ const Feed = () => {
             </>
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">📸</div>
+              <div className="flex justify-center mb-4">
+                <Camera size={48} strokeWidth={1.5} style={{ color: '#D9D9D9' }} />
+              </div>
               <p className="text-muted-foreground mb-2">No hay posts aún</p>
               <p className="text-sm text-muted-foreground mb-4">
                 Sé el primero en compartir algo
