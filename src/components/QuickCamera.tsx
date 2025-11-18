@@ -179,8 +179,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative overflow-hidden"
                   style={{
-                    width: '82%',
-                    height: '250px',
+                    width: '80%',
+                    height: '300px',
                     borderRadius: '28px',
                     border: '1px solid rgba(255,255,255,0.06)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
@@ -197,7 +197,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2 justify-center" style={{ marginTop: '16px', width: '82%' }}>
+                <div className="flex gap-2 justify-center" style={{ marginTop: '16px', width: '80%' }}>
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
@@ -244,7 +244,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   className="transition-transform duration-[120ms] hover:scale-[0.98]"
                   style={{
                     marginTop: '20px',
-                    width: '82%',
+                    width: '80%',
                     borderRadius: '28px',
                     height: '54px',
                     background: 'linear-gradient(180deg, #49D3A0, #37B680)',
@@ -263,8 +263,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <div 
                   className="relative overflow-hidden"
                   style={{
-                    width: '82%',
-                    height: '250px',
+                    width: '80%',
+                    height: '300px',
                     borderRadius: '28px',
                     border: '1px solid rgba(255,255,255,0.06)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
@@ -278,7 +278,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2" style={{ marginTop: '20px', width: '82%' }}>
+                <div className="flex gap-2" style={{ marginTop: '20px', width: '80%' }}>
                   <Button
                     variant="outline"
                     onClick={() => {
