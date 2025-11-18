@@ -126,9 +126,13 @@ const Feed = () => {
   }, [refetch]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-20" style={{ 
+      background: 'linear-gradient(180deg, #0B0B0D 0%, #000000 100%)' 
+    }}>
       <div className="mx-auto max-w-2xl">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+        <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-[#0B0B0D]/80 border-b border-border/20" style={{
+          background: 'linear-gradient(180deg, rgba(11, 11, 13, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%)'
+        }}>
           <div className="flex items-center justify-between p-4">
             <h1 className="text-2xl font-bold text-foreground">VYV</h1>
             <div className="flex items-center gap-2">
