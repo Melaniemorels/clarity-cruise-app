@@ -159,7 +159,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent className="max-w-md" style={{ paddingTop: '28px' }}>
           <DialogHeader className="text-center" style={{
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
             paddingBottom: '16px',
             marginBottom: '32px'
           }}>
@@ -182,7 +182,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     borderRadius: '26px',
                     border: '1px solid rgba(255,255,255,0.05)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
-                    backgroundColor: '#1A1A1A'
+                    background: 'linear-gradient(180deg, #1C1C1C, #151515)'
                   }}
                 >
                   <video
@@ -262,7 +262,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     borderRadius: '26px',
                     border: '1px solid rgba(255,255,255,0.05)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
-                    backgroundColor: '#1A1A1A'
+                    background: 'linear-gradient(180deg, #1C1C1C, #151515)'
                   }}
                 >
                   <img
