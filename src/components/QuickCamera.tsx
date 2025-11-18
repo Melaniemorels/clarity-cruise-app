@@ -239,7 +239,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     color: '#FFFFFF',
                     fontSize: '16px',
                     fontWeight: 600,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.28)'
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.28), 0 0 40px rgba(70,200,140,0.22)'
                   }}
                 >
                   <Camera className="mr-2" size={18} strokeWidth={1.4} />
