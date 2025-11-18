@@ -272,8 +272,14 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-64 object-cover rounded-lg"
-                style={{ filter: "grayscale(100%)" }}
+                className="w-full h-64 object-cover"
+                style={{ 
+                  filter: "grayscale(100%)",
+                  borderRadius: '22px',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  boxShadow: '0 0 12px rgba(0,0,0,0.4)',
+                  backgroundColor: '#1F1F1F'
+                }}
               />
               <Button
                 type="button"
@@ -293,7 +299,13 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
               <img
                 src={capturedImage}
                 alt="Captured"
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full h-64 object-cover"
+                style={{
+                  borderRadius: '22px',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  boxShadow: '0 0 12px rgba(0,0,0,0.4)',
+                  backgroundColor: '#1F1F1F'
+                }}
               />
               <Button
                 type="button"
