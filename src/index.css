@@ -8,86 +8,112 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 120 5% 96%;
-    --foreground: 0 0% 5%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    --card-foreground: 0 0% 7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
+    --popover-foreground: 0 0% 7%;
 
-    --primary: 158 64% 35%;
+    --primary: 163 33% 27%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 158 60% 45%;
+    --secondary: 156 48% 51%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 158 10% 92%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 88%;
+    --muted-foreground: 0 0% 35%;
 
-    --accent: 158 68% 30%;
+    --accent: 156 48% 51%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 158 15% 88%;
-    --input: 158 15% 88%;
-    --ring: 158 64% 35%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 163 33% 27%;
 
     --radius: 0.75rem;
 
-    --luxury-emerald: 158 64% 35%;
-    --luxury-emerald-light: 158 60% 45%;
-    --luxury-emerald-dark: 158 68% 30%;
+    /* Theme tokens - Light */
+    --theme-bg: 0 0% 96%;
+    --theme-bg-elevated: 0 0% 100%;
+    --theme-card-bg: 0 0% 100%;
+    --theme-text-primary: 0 0% 7%;
+    --theme-text-secondary: 0 0% 35%;
+    --theme-accent-primary: 163 33% 27%;
+    --theme-accent-highlight: 156 48% 51%;
+    --theme-border-subtle: 0 0% 88%;
+    --theme-tab-bg: 0 0% 100%;
+    --theme-tab-icon-active: 163 33% 27%;
+    --theme-tab-icon-inactive: 0 0% 60%;
+
+    --luxury-emerald: 163 33% 27%;
+    --luxury-emerald-light: 156 48% 51%;
+    --luxury-emerald-dark: 163 33% 27%;
     --luxury-chocolate: 25 75% 25%;
     --luxury-navy: 220 100% 20%;
     --luxury-white: 0 0% 100%;
-    --luxury-black: 0 0% 5%;
+    --luxury-black: 0 0% 7%;
     
-    --gradient-emerald: linear-gradient(135deg, hsl(158 64% 35%) 0%, hsl(158 60% 45%) 100%);
-    --gradient-emerald-glow: linear-gradient(135deg, hsl(158 68% 30%) 0%, hsl(158 64% 40%) 100%);
+    --gradient-emerald: linear-gradient(135deg, hsl(163 33% 27%) 0%, hsl(156 48% 51%) 100%);
+    --gradient-emerald-glow: linear-gradient(135deg, hsl(156 48% 51%) 0%, hsl(163 33% 27%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 158 10% 95%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 158 10% 95%;
+    --card: 0 0% 6.3%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 158 10% 95%;
+    --popover: 0 0% 6.3%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 158 60% 45%;
-    --primary-foreground: 0 0% 8%;
+    --primary: 156 48% 51%;
+    --primary-foreground: 0 0% 2%;
 
-    --secondary: 158 55% 50%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 163 33% 27%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 158 5% 18%;
-    --muted-foreground: 158 10% 70%;
+    --muted: 0 0% 6.3%;
+    --muted-foreground: 0 0% 64%;
 
-    --accent: 158 65% 40%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 156 48% 51%;
+    --accent-foreground: 0 0% 2%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 158 8% 20%;
-    --input: 158 8% 20%;
-    --ring: 158 60% 45%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.08;
+    --ring: 156 48% 51%;
     
-    --luxury-emerald: 180 50% 50%;
-    --luxury-emerald-light: 180 50% 60%;
-    --luxury-emerald-dark: 180 55% 40%;
+    /* Theme tokens - Dark */
+    --theme-bg: 0 0% 2%;
+    --theme-bg-elevated: 0 0% 6.3%;
+    --theme-card-bg: 0 0% 6.3%;
+    --theme-text-primary: 0 0% 96%;
+    --theme-text-secondary: 0 0% 64%;
+    --theme-accent-primary: 163 33% 27%;
+    --theme-accent-highlight: 156 48% 51%;
+    --theme-border-subtle: 0 0% 100% / 0.08;
+    --theme-tab-bg: 0 0% 2%;
+    --theme-tab-icon-active: 156 48% 51%;
+    --theme-tab-icon-inactive: 0 0% 48%;
+
+    --luxury-emerald: 156 48% 51%;
+    --luxury-emerald-light: 156 48% 51%;
+    --luxury-emerald-dark: 163 33% 27%;
     --luxury-chocolate: 25 80% 30%;
     --luxury-navy: 220 100% 30%;
     --luxury-white: 0 0% 100%;
-    --luxury-black: 0 0% 8%;
+    --luxury-black: 0 0% 2%;
   }
 }
 

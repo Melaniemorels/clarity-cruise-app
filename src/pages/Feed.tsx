@@ -126,25 +126,18 @@ const Feed = () => {
   }, [refetch]);
 
   return (
-    <div className="min-h-screen pb-20 relative" style={{ 
-      background: 'radial-gradient(circle at center, rgba(11, 11, 13, 0.18) 0%, rgba(0, 0, 0, 0.18) 100%), #000000'
-    }}>
+    <div className="min-h-screen pb-20 relative bg-theme-bg">
       {/* Watermark */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
         <Hexagon 
           size={400} 
           strokeWidth={0.5}
-          style={{ 
-            color: '#1A1A1A',
-            opacity: 0.12
-          }}
+          className="text-theme-borderSubtle opacity-12"
         />
       </div>
 
       <div className="mx-auto max-w-2xl relative z-10">
-        <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-[#0B0B0D]/80 border-b border-border/20" style={{
-          background: 'linear-gradient(180deg, rgba(11, 11, 13, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%)'
-        }}>
+        <div className="sticky top-0 z-10 backdrop-blur bg-theme-bgElevated/80 border-b border-theme-borderSubtle">
           <div className="flex items-center justify-between p-4">
             <h1 className="text-2xl font-bold text-foreground">VYV</h1>
             <div className="flex items-center gap-5">
