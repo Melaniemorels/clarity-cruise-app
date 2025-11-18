@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import vyvLogo from "@/assets/vyv-logo.png";
+import { Sparkles } from "lucide-react";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -20,11 +20,12 @@ const Welcome = () => {
         {/* Logo */}
         <div className="flex justify-center mb-8 animate-in fade-in zoom-in duration-700">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-            <img
-              src={vyvLogo}
-              alt="VYV Logo"
-              className="w-48 h-48 object-contain relative z-10 drop-shadow-2xl"
+            <div className="absolute inset-0 bg-white/10 blur-2xl rounded-full" />
+            <Sparkles
+              size={192}
+              strokeWidth={1.5}
+              style={{ color: '#6BDFA8', filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}
+              className="relative z-10"
             />
           </div>
         </div>
