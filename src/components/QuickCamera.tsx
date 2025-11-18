@@ -157,30 +157,33 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       )}
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
-        <DialogContent className="max-w-md" style={{ paddingTop: '28px' }}>
+        <DialogContent className="max-w-md" style={{ paddingTop: '32px', paddingBottom: '24px' }}>
           <DialogHeader className="text-center" style={{
             boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
             paddingBottom: '16px',
-            marginBottom: '32px'
+            marginBottom: '16px'
           }}>
             <DialogTitle style={{
               fontSize: '22px',
               fontWeight: 600,
               letterSpacing: '0.3px',
-              color: '#F5F5F5'
+              color: '#F5F5F5',
+              textAlign: 'center'
             }}>
               Captura Rápida
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4" style={{ marginTop: '24px', marginBottom: '24px' }}>
+          <div className="flex flex-col items-center" style={{ marginTop: '8px' }}>
             {!capturedImage ? (
               <>
                 <div 
-                  className="relative aspect-[4/3] overflow-hidden"
+                  className="relative overflow-hidden"
                   style={{
-                    borderRadius: '26px',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    width: '80%',
+                    height: '300px',
+                    borderRadius: '28px',
+                    border: '1px solid rgba(255,255,255,0.06)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
                     background: 'linear-gradient(180deg, #1C1C1C, #151515)'
                   }}
@@ -195,7 +198,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center" style={{ marginTop: '16px', width: '80%' }}>
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
@@ -239,8 +242,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <Button 
                   onClick={capturePhoto} 
                   size="lg" 
-                  className="w-full transition-transform duration-[120ms] hover:scale-[0.98]"
+                  className="transition-transform duration-[120ms] hover:scale-[0.98]"
                   style={{
+                    marginTop: '20px',
+                    width: '80%',
                     borderRadius: '28px',
                     height: '54px',
                     background: 'linear-gradient(180deg, #49D3A0, #37B680)',
@@ -257,10 +262,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             ) : (
               <>
                 <div 
-                  className="relative aspect-[4/3] overflow-hidden"
+                  className="relative overflow-hidden"
                   style={{
-                    borderRadius: '26px',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    width: '80%',
+                    height: '300px',
+                    borderRadius: '28px',
+                    border: '1px solid rgba(255,255,255,0.06)',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
                     background: 'linear-gradient(180deg, #1C1C1C, #151515)'
                   }}
@@ -272,7 +279,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2" style={{ marginTop: '20px', width: '80%' }}>
                   <Button
                     variant="outline"
                     onClick={() => {
