@@ -195,16 +195,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
-                    className="flex-1 transition-all duration-[140ms]"
+                    className="transition-all duration-[140ms]"
                     style={{
                       borderRadius: '20px',
                       height: '40px',
                       fontSize: '14px',
                       fontWeight: 600,
+                      paddingLeft: '24px',
+                      paddingRight: '24px',
                       backgroundColor: filter === "natural" ? '#2E5C4F' : 'transparent',
                       color: filter === "natural" ? '#FFFFFF' : '#C7C7C7',
                       border: filter === "natural" ? 'none' : '1px solid rgba(255,255,255,0.18)',
@@ -216,12 +218,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("bw")}
-                    className="flex-1 transition-all duration-[140ms]"
+                    className="transition-all duration-[140ms]"
                     style={{
                       borderRadius: '20px',
                       height: '40px',
                       fontSize: '14px',
                       fontWeight: 600,
+                      paddingLeft: '24px',
+                      paddingRight: '24px',
                       backgroundColor: filter === "bw" ? '#2E5C4F' : 'transparent',
                       color: filter === "bw" ? '#FFFFFF' : '#C7C7C7',
                       border: filter === "bw" ? 'none' : '1px solid rgba(255,255,255,0.18)',
