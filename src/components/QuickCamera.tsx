@@ -231,18 +231,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <Button 
                   onClick={capturePhoto} 
                   size="lg" 
-                  className="w-full"
+                  className="w-full transition-transform duration-[120ms] hover:scale-[0.98]"
                   style={{
-                    borderRadius: '30px',
+                    borderRadius: '28px',
                     height: '54px',
-                    backgroundColor: '#45C08F',
+                    background: 'linear-gradient(180deg, #49D3A0, #37B680)',
                     color: '#FFFFFF',
                     fontSize: '16px',
                     fontWeight: 600,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.25)'
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.28)'
                   }}
                 >
-                  <Camera className="mr-2 h-5 w-5" strokeWidth={1.4} />
+                  <Camera className="mr-2" size={18} strokeWidth={1.4} />
                   Capturar
                 </Button>
               </>
