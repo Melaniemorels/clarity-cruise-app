@@ -205,8 +205,18 @@ const Feed = () => {
               <div className="flex justify-center mb-4">
                 <Camera size={48} strokeWidth={1.5} style={{ color: '#D9D9D9' }} />
               </div>
-              <p className="text-muted-foreground mb-2">No hay posts aún</p>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="mb-1.5" style={{ 
+                fontSize: '20px', 
+                fontWeight: 500, 
+                letterSpacing: '0.3px',
+                color: 'hsl(var(--foreground))'
+              }}>
+                No hay posts aún
+              </p>
+              <p className="mb-4" style={{ 
+                fontSize: '14px', 
+                color: '#A3A3A3' 
+              }}>
                 Sé el primero en compartir algo
               </p>
               <Button 
