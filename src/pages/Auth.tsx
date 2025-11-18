@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Circle } from "lucide-react";
+import { Hexagon } from "lucide-react";
 import { z } from "zod";
 
 const signUpSchema = z.object({
@@ -99,7 +99,7 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <Circle
+            <Hexagon
               size={96}
               strokeWidth={1}
               style={{ color: '#6BDFA8', filter: 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.25))' }}
