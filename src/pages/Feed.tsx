@@ -133,10 +133,10 @@ const Feed = () => {
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
         <Hexagon 
           size={400} 
-          strokeWidth={1}
+          strokeWidth={0.5}
           style={{ 
-            color: '#FFFFFF',
-            opacity: 0.06
+            color: '#1A1A1A',
+            opacity: 0.12
           }}
         />
       </div>
