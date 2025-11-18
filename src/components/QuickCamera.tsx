@@ -165,7 +165,15 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
           <div className="space-y-4">
             {!capturedImage ? (
               <>
-                <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+                <div 
+                  className="relative aspect-[4/3] overflow-hidden"
+                  style={{
+                    borderRadius: '22px',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    boxShadow: '0 0 12px rgba(0,0,0,0.4)',
+                    backgroundColor: '#1F1F1F'
+                  }}
+                >
                   <video
                     ref={videoRef}
                     autoPlay
@@ -200,7 +208,15 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
               </>
             ) : (
               <>
-                <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+                <div 
+                  className="relative aspect-[4/3] overflow-hidden"
+                  style={{
+                    borderRadius: '22px',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    boxShadow: '0 0 12px rgba(0,0,0,0.4)',
+                    backgroundColor: '#1F1F1F'
+                  }}
+                >
                   <img
                     src={capturedImage}
                     alt="Captured"
