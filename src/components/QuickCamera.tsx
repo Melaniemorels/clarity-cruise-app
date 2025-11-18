@@ -158,11 +158,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent 
-          className="max-w-md bg-[#FAFAF8] dark:bg-[#101010] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" 
+          className="max-w-md dark:bg-[#101010] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" 
           style={{ 
             paddingTop: '38px',
             paddingBottom: '36px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+            backgroundColor: 'rgba(255, 255, 255, 0.55)',
+            backdropFilter: 'blur(22px)',
+            WebkitBackdropFilter: 'blur(22px)',
+            border: '1px solid rgba(255, 255, 255, 0.35)',
+            borderRadius: '26px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.10)'
           }}
         >
           <div className="flex flex-col items-center" style={{ justifyContent: 'center', minHeight: '500px' }}>
