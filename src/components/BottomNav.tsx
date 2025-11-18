@@ -18,45 +18,50 @@ export const BottomNav = () => {
           <NavLink
             to="/"
             end
-            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-[#6BDFA8]"
+            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors"
+            activeClassName="text-[#45C08F]"
+            style={{ color: 'rgba(122, 122, 122, 0.6)' }}
           >
-            <Home className="h-6 w-6" strokeWidth={1.5} />
+            <Home className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">Feed</span>
           </NavLink>
           
           <NavLink
             to="/explore"
-            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-[#6BDFA8]"
+            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors"
+            activeClassName="text-[#45C08F]"
+            style={{ color: 'rgba(122, 122, 122, 0.6)' }}
           >
-            <Compass className="h-6 w-6" strokeWidth={1.5} />
+            <Compass className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">Explore</span>
           </NavLink>
           
           <button
             onClick={() => setCameraOpen(true)}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors hover:text-[#6BDFA8]"
+            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors hover:text-[#45C08F]"
+            style={{ color: 'rgba(122, 122, 122, 0.6)' }}
           >
-            <Lock className="h-6 w-6" strokeWidth={1.5} />
+            <Lock className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">Focus</span>
           </button>
         
         <NavLink
           to="/calendar"
-          className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-          activeClassName="text-[#6BDFA8]"
+          className="flex flex-col items-center gap-1 px-4 py-2 transition-colors"
+          activeClassName="text-[#45C08F]"
+          style={{ color: 'rgba(122, 122, 122, 0.6)' }}
         >
-          <Calendar className="h-6 w-6" strokeWidth={1.5} />
+          <Calendar className="h-6 w-6" strokeWidth={1.4} />
           <span className="text-xs font-medium">Calendar</span>
         </NavLink>
         
           <NavLink
             to="/profile"
-            className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground transition-colors"
-            activeClassName="text-[#6BDFA8]"
+            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors"
+            activeClassName="text-[#45C08F]"
+            style={{ color: 'rgba(122, 122, 122, 0.6)' }}
           >
-            <User className="h-6 w-6" strokeWidth={1.5} />
+            <User className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">Profile</span>
           </NavLink>
         </div>
