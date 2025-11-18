@@ -158,18 +158,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogContent 
-          className="max-w-md pb-10 md:pb-6 bg-theme-bgElevated" 
+          className="max-w-md pb-10 md:pb-6 bg-theme-bgElevated dark:bg-[#101010] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" 
           style={{ 
             paddingTop: '32px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
           }}
         >
           <div className="flex flex-col items-center" style={{ justifyContent: 'center', minHeight: '500px' }}>
-            <DialogHeader className="text-center" style={{
+            <DialogHeader className="text-center dark:shadow-[0_2px_10px_rgba(0,0,0,0.35)]" style={{
               paddingBottom: '16px',
               marginBottom: '16px'
             }}>
-              <DialogTitle className="text-theme-textPrimary" style={{
+              <DialogTitle className="text-theme-textPrimary dark:text-[#F5F5F5]" style={{
                 fontSize: '22px',
                 fontWeight: 600,
                 letterSpacing: '0.3px',
@@ -181,13 +181,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             {!capturedImage ? (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515]"
+                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
                     width: '80%',
                     height: '300px',
                     borderRadius: '28px',
                     border: '1px solid #E1E1E1',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
                   }}
                 >
                   <video
@@ -197,6 +196,9 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     className={`w-full h-full object-cover ${
                       filter === "bw" ? "grayscale" : ""
                     }`}
+                    style={{
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
+                    }}
                   />
                 </div>
 
@@ -204,7 +206,11 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("natural")}
-                    className="transition-all duration-[140ms] bg-theme-accentPrimary dark:bg-theme-accentPrimary hover:bg-theme-accentPrimary/90"
+                    className={`transition-all duration-[140ms] ${
+                      filter === "natural" 
+                        ? "dark:!bg-[#2E5C4F] dark:!text-white dark:!border-0 dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]" 
+                        : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
+                    }`}
                     style={{
                       borderRadius: '20px',
                       height: '40px',
@@ -212,8 +218,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "natural" ? 'hsl(var(--theme-accent-primary))' : '#FFFFFF',
-                      color: filter === "natural" ? '#FFFFFF' : 'hsl(var(--theme-text-secondary))',
+                      backgroundColor: filter === "natural" ? '#2E5C4F' : '#FFFFFF',
+                      color: filter === "natural" ? '#FFFFFF' : '#5A5A5A',
                       border: filter === "natural" ? 'none' : '1px solid #E1E1E1',
                       boxShadow: filter === "natural" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
                     }}
@@ -223,7 +229,11 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   <Button
                     variant="ghost"
                     onClick={() => setFilter("bw")}
-                    className="transition-all duration-[140ms]"
+                    className={`transition-all duration-[140ms] ${
+                      filter === "bw" 
+                        ? "dark:!bg-[#2E5C4F] dark:!text-white dark:!border-0 dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]" 
+                        : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
+                    }`}
                     style={{
                       borderRadius: '20px',
                       height: '40px',
@@ -231,8 +241,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       fontWeight: 600,
                       paddingLeft: '24px',
                       paddingRight: '24px',
-                      backgroundColor: filter === "bw" ? 'hsl(var(--theme-accent-primary))' : '#FFFFFF',
-                      color: filter === "bw" ? '#FFFFFF' : 'hsl(var(--theme-text-secondary))',
+                      backgroundColor: filter === "bw" ? '#2E5C4F' : '#FFFFFF',
+                      color: filter === "bw" ? '#FFFFFF' : '#5A5A5A',
                       border: filter === "bw" ? 'none' : '1px solid #E1E1E1',
                       boxShadow: filter === "bw" ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
                     }}
@@ -244,7 +254,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <Button 
                   onClick={capturePhoto} 
                   size="lg" 
-                  className="transition-transform duration-[120ms] hover:scale-[0.98]"
+                  className="transition-transform duration-[120ms] hover:scale-[0.98] dark:shadow-[0_4px_16px_rgba(0,0,0,0.28),0_0_28px_rgba(70,200,140,0.22)]"
                   style={{
                     marginTop: '20px',
                     width: '80%',
@@ -264,7 +274,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             ) : (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515]"
+                  className="relative overflow-hidden bg-[#F1F1F1] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
                   style={{
                     width: '80%',
                     height: '300px',
