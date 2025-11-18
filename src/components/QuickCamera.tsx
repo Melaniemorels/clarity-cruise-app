@@ -173,7 +173,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4" style={{ marginTop: '24px', marginBottom: '24px' }}>
             {!capturedImage ? (
               <>
                 <div 
