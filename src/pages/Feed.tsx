@@ -155,8 +155,17 @@ const Feed = () => {
                 size="icon"
                 onClick={() => setIsCreateOpen(true)}
                 className="rounded-full"
+                style={{
+                  backgroundColor: '#2F7058',
+                  color: '#FFFFFF',
+                  borderRadius: '18px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                  padding: '0 16px',
+                  height: '36px',
+                  width: 'auto'
+                }}
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             </div>
           </div>
@@ -186,8 +195,17 @@ const Feed = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Sé el primero en compartir algo
               </p>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button 
+                onClick={() => setIsCreateOpen(true)}
+                style={{
+                  backgroundColor: '#2F7058',
+                  color: '#FFFFFF',
+                  borderRadius: '18px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                  padding: '10px 24px'
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
                 Crear Post
               </Button>
             </div>
