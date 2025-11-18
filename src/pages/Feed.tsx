@@ -147,13 +147,13 @@ const Feed = () => {
         }}>
           <div className="flex items-center justify-between p-4">
             <h1 className="text-2xl font-bold text-foreground">VYV</h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-5">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSearchOpen(true)}
               >
-                <Search className="h-5 w-5" />
+                <Search className="h-5 w-5" strokeWidth={1.4} style={{ color: '#EAEAEA' }} />
               </Button>
               <Button
                 variant="ghost"
@@ -161,7 +161,7 @@ const Feed = () => {
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
-                <RefreshCw className={`h-5 w-5 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-5 w-5 ${isRefreshing ? "animate-spin" : ""}`} strokeWidth={1.4} style={{ color: '#EAEAEA' }} />
               </Button>
               <Button
                 size="icon"
@@ -177,7 +177,7 @@ const Feed = () => {
                   width: 'auto'
                 }}
               >
-                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                <Plus className="h-4 w-4" strokeWidth={1.4} />
               </Button>
             </div>
           </div>
