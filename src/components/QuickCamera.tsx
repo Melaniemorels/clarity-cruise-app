@@ -219,8 +219,21 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   </Button>
                 </div>
 
-                <Button onClick={capturePhoto} size="lg" className="w-full">
-                  <Camera className="mr-2 h-5 w-5" />
+                <Button 
+                  onClick={capturePhoto} 
+                  size="lg" 
+                  className="w-full"
+                  style={{
+                    borderRadius: '30px',
+                    height: '54px',
+                    backgroundColor: '#45C08F',
+                    color: '#FFFFFF',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.25)'
+                  }}
+                >
+                  <Camera className="mr-2 h-5 w-5" strokeWidth={1.4} />
                   Capturar
                 </Button>
               </>
