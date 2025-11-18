@@ -201,7 +201,7 @@ const Feed = () => {
               ))}
             </>
           ) : posts.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 animate-in fade-in" style={{ animationDuration: '280ms' }}>
               <div className="flex justify-center mb-4">
                 <Camera size={48} strokeWidth={1.5} style={{ color: '#D9D9D9' }} />
               </div>
