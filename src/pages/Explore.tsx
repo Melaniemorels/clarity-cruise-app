@@ -16,67 +16,64 @@ const Explore = () => {
   } | null>(null);
   const [playerOpen, setPlayerOpen] = useState(false);
 
-  const handleContentClick = (item: any, category: any) => {
-    setSelectedContent({
-      ...item,
-      category: category.title,
-      icon: category.icon,
-    });
-    setPlayerOpen(true);
+  const handleContentClick = (item: { url?: string }) => {
+    if (item.url) {
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
   };
   const categories = [
     {
       title: "Music",
       icon: "🎵",
       items: [
-        { title: "Lo-Fi Beats", duration: "60 min", color: "from-purple-500/20 to-pink-500/20" },
-        { title: "Nature Sounds", duration: "45 min", color: "from-green-500/20 to-teal-500/20" },
-        { title: "Meditation Music", duration: "30 min", color: "from-blue-500/20 to-indigo-500/20" },
+        { title: "Lo-Fi Beats", duration: "60 min", color: "from-purple-500/20 to-pink-500/20", url: "https://open.spotify.com/playlist/XXXX" },
+        { title: "Nature Sounds", duration: "45 min", color: "from-green-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Meditation Music", duration: "30 min", color: "from-blue-500/20 to-indigo-500/20", url: "https://open.spotify.com/playlist/XXXX" },
       ],
     },
     {
       title: "Audiobooks",
       icon: "🎧",
       items: [
-        { title: "The Power of Now", duration: "7h 37m", color: "from-amber-500/20 to-orange-500/20" },
-        { title: "Atomic Habits", duration: "5h 35m", color: "from-red-500/20 to-rose-500/20" },
-        { title: "Mindfulness", duration: "4h 20m", color: "from-cyan-500/20 to-sky-500/20" },
+        { title: "The Power of Now", duration: "7h 37m", color: "from-amber-500/20 to-orange-500/20", url: "https://open.spotify.com/show/XXXX" },
+        { title: "Atomic Habits", duration: "5h 35m", color: "from-red-500/20 to-rose-500/20", url: "https://www.audible.com/pd/XXXX" },
+        { title: "Mindfulness", duration: "4h 20m", color: "from-cyan-500/20 to-sky-500/20", url: "https://www.audible.com/pd/XXXX" },
       ],
     },
     {
       title: "Podcasts",
       icon: "🎙️",
       items: [
-        { title: "Wellness Daily", duration: "25 min", color: "from-emerald-500/20 to-green-500/20" },
-        { title: "Mindful Living", duration: "35 min", color: "from-violet-500/20 to-purple-500/20" },
-        { title: "Health & Habits", duration: "40 min", color: "from-fuchsia-500/20 to-pink-500/20" },
+        { title: "Wellness Daily", duration: "25 min", color: "from-emerald-500/20 to-green-500/20", url: "https://open.spotify.com/show/XXXX" },
+        { title: "Mindful Living", duration: "35 min", color: "from-violet-500/20 to-purple-500/20", url: "https://open.spotify.com/show/XXXX" },
+        { title: "Health & Habits", duration: "40 min", color: "from-fuchsia-500/20 to-pink-500/20", url: "https://open.spotify.com/show/XXXX" },
       ],
     },
     {
       title: "Yoga Classes",
       icon: "🧘",
       items: [
-        { title: "Morning Flow", duration: "30 min", color: "from-primary/20 to-primary/10" },
-        { title: "Power Yoga", duration: "45 min", color: "from-primary/20 to-primary/10" },
-        { title: "Gentle Stretch", duration: "20 min", color: "from-primary/20 to-primary/10" },
+        { title: "Morning Flow", duration: "30 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Power Yoga", duration: "45 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Gentle Stretch", duration: "20 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
     {
       title: "Pilates",
       icon: "🤸",
       items: [
-        { title: "Core Strength", duration: "25 min", color: "from-secondary/20 to-secondary/10" },
-        { title: "Full Body", duration: "40 min", color: "from-secondary/20 to-secondary/10" },
-        { title: "Beginner Flow", duration: "15 min", color: "from-secondary/20 to-secondary/10" },
+        { title: "Core Strength", duration: "25 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Full Body", duration: "40 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Beginner Flow", duration: "15 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
     {
       title: "Meditation",
       icon: "🧘‍♀️",
       items: [
-        { title: "Morning Calm", duration: "10 min", color: "from-accent/20 to-accent/10" },
-        { title: "Sleep Meditation", duration: "20 min", color: "from-accent/20 to-accent/10" },
-        { title: "Stress Relief", duration: "15 min", color: "from-accent/20 to-accent/10" },
+        { title: "Morning Calm", duration: "10 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Sleep Meditation", duration: "20 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Stress Relief", duration: "15 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
   ];
@@ -113,7 +110,7 @@ const Explore = () => {
                       borderRadius: '18px',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                     }}
-                    onClick={() => handleContentClick(item, category)}
+                    onClick={() => handleContentClick(item)}
                   >
                     <div className={`h-32 bg-gradient-to-br ${item.color} flex items-center justify-center`}>
                       <div className="text-4xl">{category.icon}</div>
