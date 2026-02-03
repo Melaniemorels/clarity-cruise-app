@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
+import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ const Profile = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
 
@@ -144,7 +146,9 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-            <Button className="w-full" variant="outline">Edit Profile</Button>
+            <Button className="w-full" variant="outline" onClick={() => setEditProfileOpen(true)}>
+              Editar Perfil
+            </Button>
           </CardContent>
         </Card>
 
@@ -400,6 +404,12 @@ const Profile = () => {
           reading: 0,
           social: 0,
         }}
+      />
+
+      <EditProfileDialog
+        open={editProfileOpen}
+        onOpenChange={setEditProfileOpen}
+        profile={profile}
       />
 
       <BottomNav />
