@@ -97,24 +97,37 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       const now = new Date().toISOString();
 
+      // Save to entries (almanac/profile)
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
         photo_url: urlData.publicUrl,
         caption: "",
         occurred_at: now,
-        visibility: "private",
+        visibility: "public",
       });
 
       if (entryError) throw entryError;
 
+      // Auto-publish to posts (feed)
+      const { error: postError } = await supabase.from("posts").insert({
+        user_id: user.id,
+        image_url: urlData.publicUrl,
+        caption: "",
+        activity_tag: "📸 Captura instantánea",
+      });
+
+      if (postError) throw postError;
+
+      // Create calendar block for the capture
       const endTime = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
       const { error: blockError } = await supabase.from("schedule_blocks").insert({
         user_id: user.id,
-        title: "Quick Capture",
+        title: "📸 Captura instantánea",
         start_at: now,
         end_at: endTime,
-        visibility: "private",
+        visibility: "public",
+        note: urlData.publicUrl,
       });
 
       if (blockError) throw blockError;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Heart, Bookmark, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity } from "lucide-react";
+import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,15 +11,51 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
-import { subDays } from "date-fns";
+import { subDays, format, isSameDay, parseISO } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const Profile = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
+
+  // Fetch user's entries (photos) from database
+  const { data: entries = [] } = useQuery({
+    queryKey: ['user-entries', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('occurred_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch user's profile
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
   
   const healthData = {
     steps: { value: 8432, goal: 10000, label: 'Steps' },
@@ -28,16 +64,22 @@ const Profile = () => {
     screenTime: { value: 3.2, goal: 4, label: 'Screen Time (hrs)' },
   };
 
-  // Mock activity data for each day (in a real app, this would come from the database)
+  // Calculate activity based on real entries for each day
   const getActivityData = (dayIndex: number) => {
-    const seed = dayIndex;
+    const date = subDays(new Date(), 27 - dayIndex);
+    const dayEntries = entries.filter(entry => 
+      isSameDay(parseISO(entry.occurred_at), date)
+    );
+    
     return {
-      work: Math.floor(Math.random() * 480) * (Math.random() > 0.3 ? 1 : 0),
-      workout: Math.floor(Math.random() * 90) * (Math.random() > 0.5 ? 1 : 0),
-      steps: Math.floor(Math.random() * 12000) * (Math.random() > 0.3 ? 1 : 0),
-      audiobooks: Math.floor(Math.random() * 120) * (Math.random() > 0.6 ? 1 : 0),
-      reading: Math.floor(Math.random() * 90) * (Math.random() > 0.6 ? 1 : 0),
-      social: Math.floor(Math.random() * 180) * (Math.random() > 0.7 ? 1 : 0),
+      work: 0,
+      workout: 0,
+      steps: 0,
+      audiobooks: 0,
+      reading: 0,
+      social: 0,
+      photos: dayEntries.length,
+      entries: dayEntries,
     };
   };
 
@@ -62,14 +104,18 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl">
-                🌿
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl overflow-hidden">
+                {profile?.photo_url ? (
+                  <img src={profile.photo_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  "🌿"
+                )}
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold">@wellness_vibes</h2>
-                <p className="text-sm text-muted-foreground">Finding balance through movement</p>
+                <h2 className="text-xl font-bold">@{profile?.handle || 'user'}</h2>
+                <p className="text-sm text-muted-foreground">{profile?.bio || 'Finding balance through movement'}</p>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span><strong>124</strong> posts</span>
+                  <span><strong>{entries.length}</strong> posts</span>
                   <span><strong>42</strong> friends</span>
                 </div>
               </div>
@@ -109,10 +155,9 @@ const Profile = () => {
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: 28 }, (_, i) => {
                 const activities = getActivityData(i);
-                const totalActivity = activities.work + activities.workout + activities.audiobooks + activities.reading + activities.social;
-                const hasActivity = totalActivity > 0;
-                const intensity = hasActivity 
-                  ? totalActivity > 600 ? 2 : totalActivity > 300 ? 1 : 0
+                const hasPhotos = activities.photos > 0;
+                const intensity = hasPhotos 
+                  ? activities.photos >= 3 ? 2 : activities.photos >= 2 ? 1 : 0
                   : -1;
                 
                 return (
@@ -120,7 +165,7 @@ const Profile = () => {
                     key={i}
                     onClick={() => handleDayClick(i)}
                     className={`aspect-square rounded transition-all hover:ring-2 hover:ring-primary cursor-pointer ${
-                      hasActivity
+                      hasPhotos
                         ? intensity === 0
                           ? 'bg-primary/20'
                           : intensity === 1
@@ -145,29 +190,41 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Latest Posts */}
+        {/* Latest Posts - Show real entries */}
         <div className="space-y-3">
-          <h2 className="font-semibold">Latest Posts</h2>
+          <h2 className="font-semibold">Mis Capturas</h2>
           
           <div className="grid grid-cols-3 gap-2">
-            {Array.from({ length: 9 }, (_, i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-2xl relative overflow-hidden group cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                  <div className="flex items-center gap-1 text-white text-xs">
-                    <Heart className="h-3 w-3" />
-                    <span>{Math.floor(Math.random() * 50)}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-white text-xs">
-                    <Bookmark className="h-3 w-3" />
-                    <span>{Math.floor(Math.random() * 20)}</span>
+            {entries.length > 0 ? (
+              entries.slice(0, 9).map((entry) => (
+                <div
+                  key={entry.id}
+                  className="aspect-square rounded-lg bg-muted relative overflow-hidden group cursor-pointer"
+                >
+                  {entry.photo_url ? (
+                    <img 
+                      src={entry.photo_url} 
+                      alt="Capture" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
+                      📸
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs">
+                      {format(parseISO(entry.occurred_at), "d MMM, HH:mm")}
+                    </p>
                   </div>
                 </div>
-                {['🧘', '🏃', '💪', '🥗', '🌅', '🧘‍♀️', '🚴', '🏊', '🌿'][i]}
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8 text-muted-foreground">
+                <p>No hay capturas aún</p>
+                <p className="text-sm">Usa la cámara rápida para empezar</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
