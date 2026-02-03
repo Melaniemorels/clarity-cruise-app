@@ -1,0 +1,303 @@
+import { useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Camera, Loader2, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+interface EditProfileDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  profile: {
+    handle: string;
+    bio: string | null;
+    photo_url: string | null;
+    name: string | null;
+  } | null;
+}
+
+export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDialogProps) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [handle, setHandle] = useState(profile?.handle || "");
+  const [bio, setBio] = useState(profile?.bio || "");
+  const [name, setName] = useState(profile?.name || "");
+  const [photoUrl, setPhotoUrl] = useState(profile?.photo_url || "");
+  const [uploading, setUploading] = useState(false);
+
+  // Query to get handle changes in the last year
+  const { data: handleChangesThisYear = [] } = useQuery({
+    queryKey: ['handle-changes', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      
+      const { data, error } = await supabase
+        .from('handle_changes' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('changed_at', oneYearAgo.toISOString())
+        .order('changed_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user && open,
+  });
+
+  const remainingHandleChanges = 2 - handleChangesThisYear.length;
+  const canChangeHandle = remainingHandleChanges > 0;
+  const handleChanged = handle !== profile?.handle;
+
+  // Reset form when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && profile) {
+      setHandle(profile.handle);
+      setBio(profile.bio || "");
+      setName(profile.name || "");
+      setPhotoUrl(profile.photo_url || "");
+    }
+    onOpenChange(newOpen);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor selecciona una imagen");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen debe ser menor a 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(fileName);
+
+      setPhotoUrl(publicUrl);
+      toast.success("Foto subida correctamente");
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error("Error al subir la foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("No user");
+
+      // Check if handle is being changed
+      if (handleChanged) {
+        if (!canChangeHandle) {
+          throw new Error("Has alcanzado el límite de cambios de nombre de usuario este año");
+        }
+
+        // Check if handle is already taken
+        const { data: existingHandle } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('handle', handle)
+          .neq('user_id', user.id)
+          .single();
+
+        if (existingHandle) {
+          throw new Error("Este nombre de usuario ya está en uso");
+        }
+
+        // Record the handle change
+        const { error: changeError } = await supabase
+          .from('handle_changes' as any)
+          .insert({
+            user_id: user.id,
+            old_handle: profile?.handle || '',
+            new_handle: handle,
+          });
+
+        if (changeError) throw changeError;
+      }
+
+      // Update profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          handle,
+          bio,
+          name,
+          photo_url: photoUrl,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['handle-changes', user?.id] });
+      toast.success("Perfil actualizado");
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Error al actualizar el perfil");
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Perfil</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center gap-4">
+            <div 
+              className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {photoUrl ? (
+                <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl">🌿</span>
+              )}
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6 text-white" />
+                )}
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoUpload}
+              disabled={uploading}
+            />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Subiendo..." : "Cambiar foto"}
+            </Button>
+          </div>
+
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tu nombre"
+              maxLength={50}
+            />
+          </div>
+
+          {/* Handle/Username */}
+          <div className="space-y-2">
+            <Label htmlFor="handle">Nombre de usuario</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+              <Input
+                id="handle"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                placeholder="username"
+                className="pl-8"
+                maxLength={30}
+                disabled={!canChangeHandle && handleChanged}
+              />
+            </div>
+            {handleChanged && (
+              <Alert variant={canChangeHandle ? "default" : "destructive"} className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {canChangeHandle 
+                    ? `Te quedan ${remainingHandleChanges} cambio${remainingHandleChanges === 1 ? '' : 's'} de nombre de usuario este año`
+                    : "Has alcanzado el límite de 2 cambios de nombre de usuario por año"
+                  }
+                </AlertDescription>
+              </Alert>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Solo puedes cambiar tu nombre de usuario 2 veces al año
+            </p>
+          </div>
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Cuéntanos sobre ti..."
+              maxLength={150}
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {bio.length}/150
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              className="flex-1"
+              onClick={() => updateProfileMutation.mutate()}
+              disabled={updateProfileMutation.isPending || uploading || (handleChanged && !canChangeHandle)}
+            >
+              {updateProfileMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
