@@ -164,28 +164,28 @@ const Profile = () => {
                   <button
                     key={i}
                     onClick={() => handleDayClick(i)}
-                    className={`aspect-square rounded transition-all hover:ring-2 hover:ring-primary cursor-pointer ${
+                    className={`aspect-square rounded-sm transition-all hover:ring-2 hover:ring-primary/50 cursor-pointer ${
                       hasPhotos
                         ? intensity === 0
-                          ? 'bg-primary/20'
+                          ? 'bg-emerald-400/30 dark:bg-emerald-500/30'
                           : intensity === 1
-                          ? 'bg-primary/50'
-                          : 'bg-primary'
-                        : 'bg-muted'
+                          ? 'bg-emerald-500/60 dark:bg-emerald-400/60'
+                          : 'bg-emerald-600 dark:bg-emerald-400'
+                        : 'bg-muted/60 dark:bg-muted'
                     }`}
                   />
                 );
               })}
             </div>
-            <div className="flex justify-end gap-2 mt-2 text-xs text-muted-foreground">
-              <span>Less</span>
+            <div className="flex justify-end gap-2 mt-3 text-xs text-muted-foreground">
+              <span>Menos</span>
               <div className="flex gap-1">
-                <div className="w-3 h-3 rounded bg-muted" />
-                <div className="w-3 h-3 rounded bg-primary/20" />
-                <div className="w-3 h-3 rounded bg-primary/50" />
-                <div className="w-3 h-3 rounded bg-primary" />
+                <div className="w-3 h-3 rounded-sm bg-muted/60 dark:bg-muted" />
+                <div className="w-3 h-3 rounded-sm bg-emerald-400/30 dark:bg-emerald-500/30" />
+                <div className="w-3 h-3 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
+                <div className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-400" />
               </div>
-              <span>More</span>
+              <span>Más</span>
             </div>
           </CardContent>
         </Card>
