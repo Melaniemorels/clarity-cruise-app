@@ -82,12 +82,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
     setIsUploading(true);
     try {
-      const blob = await fetch(capturedImage).then((r) => r.blob());
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
       const fileName = `${user.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("quick-captures")
-        .upload(fileName, blob);
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600',
+        });
 
       if (uploadError) throw uploadError;
 
