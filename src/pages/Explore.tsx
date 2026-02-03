@@ -5,6 +5,7 @@ import { Bookmark } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { useState } from "react";
+import { openInAppBrowser } from "@/lib/browser";
 
 const Explore = () => {
   const [selectedContent, setSelectedContent] = useState<{
@@ -16,9 +17,9 @@ const Explore = () => {
   } | null>(null);
   const [playerOpen, setPlayerOpen] = useState(false);
 
-  const handleContentClick = (item: { url?: string }) => {
+  const handleContentClick = async (item: { url?: string }) => {
     if (item.url) {
-      window.open(item.url, '_blank', 'noopener,noreferrer');
+      await openInAppBrowser(item.url);
     }
   };
   const categories = [
