@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { EventModal } from "@/components/EventModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,13 +12,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Calendar = () => {
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -34,6 +38,24 @@ const Calendar = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch photo entries from database
+  const { data: photoEntries = [] } = useQuery({
+    queryKey: ['calendar-photo-entries', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('photo_url', 'is', null)
+        .order('occurred_at', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
   });
 
   // Create/Update event mutation
@@ -122,6 +144,13 @@ const Calendar = () => {
     );
   };
 
+  // Get photo entries for a specific date
+  const getPhotosForDate = (date: Date) => {
+    return photoEntries.filter(entry => 
+      entry.photo_url && isSameDay(parseISO(entry.occurred_at), date)
+    );
+  };
+
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       trabajo: 'bg-blue-500/20 border-blue-500',
@@ -131,6 +160,39 @@ const Calendar = () => {
       otros: 'bg-secondary/20 border-secondary',
     };
     return colors[category] || colors.otros;
+  };
+
+  // Find nearby events for a photo
+  const getNearbyContext = (photoTime: Date) => {
+    const photoHour = photoTime.getTime();
+    const nearbyEvents = events.filter(event => {
+      const start = new Date(event.starts_at).getTime();
+      const end = new Date(event.ends_at).getTime();
+      // Check if photo was during an event
+      if (photoHour >= start && photoHour <= end) {
+        return true;
+      }
+      // Check if photo was within 1 hour before or after an event
+      const oneHour = 60 * 60 * 1000;
+      if (Math.abs(photoHour - start) <= oneHour || Math.abs(photoHour - end) <= oneHour) {
+        return true;
+      }
+      return false;
+    });
+    
+    if (nearbyEvents.length === 0) return null;
+    
+    const event = nearbyEvents[0];
+    const eventStart = new Date(event.starts_at).getTime();
+    const eventEnd = new Date(event.ends_at).getTime();
+    
+    if (photoHour >= eventStart && photoHour <= eventEnd) {
+      return { event, relation: 'durante' };
+    } else if (photoHour < eventStart) {
+      return { event, relation: 'antes de' };
+    } else {
+      return { event, relation: 'después de' };
+    }
   };
 
   const handleNewEvent = () => {
@@ -166,6 +228,7 @@ const Calendar = () => {
   ];
 
   const dayEvents = getEventsForDate(currentDate);
+  const dayPhotos = getPhotosForDate(currentDate);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -217,12 +280,18 @@ const Calendar = () => {
                         return eventHour === hour;
                       });
                       
+                      const hourPhotos = dayPhotos.filter(p => {
+                        const photoHour = new Date(p.occurred_at).getHours();
+                        return photoHour === hour;
+                      });
+                      
                       return (
                         <div key={hour} className="flex border-b border-border">
                           <div className="w-16 flex-shrink-0 p-2 text-xs text-muted-foreground text-right">
                             {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
                           </div>
                           <div className="flex-1 min-h-[60px] p-2 relative space-y-1">
+                            {/* Regular events */}
                             {hourEvents.map((event) => {
                               const start = new Date(event.starts_at);
                               const end = new Date(event.ends_at);
@@ -240,6 +309,42 @@ const Calendar = () => {
                                   <div className="text-sm font-medium">{event.title}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {format(start, "HH:mm")} - {format(end, "HH:mm")}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            
+                            {/* Photo entries */}
+                            {hourPhotos.map((photo) => {
+                              const photoTime = new Date(photo.occurred_at);
+                              const context = getNearbyContext(photoTime);
+                              
+                              return (
+                                <div
+                                  key={photo.id}
+                                  className="bg-emerald-500/20 border-l-4 border-emerald-500 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start"
+                                  onClick={() => setSelectedPhoto(photo.photo_url)}
+                                >
+                                  <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
+                                    <img 
+                                      src={photo.photo_url} 
+                                      alt="Captura"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium flex items-center gap-1">
+                                      <Camera className="h-3 w-3" />
+                                      Captura instantánea
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {format(photoTime, "HH:mm")}
+                                      {context && (
+                                        <span className="ml-1 text-emerald-600 dark:text-emerald-400">
+                                          • {context.relation} {context.event.title}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -386,6 +491,19 @@ const Calendar = () => {
           onSave={(event) => saveEventMutation.mutateAsync(event)}
           onDelete={(id) => deleteEventMutation.mutateAsync(id)}
         />
+
+        {/* Photo Preview Modal */}
+        <Dialog open={!!selectedPhoto} onOpenChange={(open) => !open && setSelectedPhoto(null)}>
+          <DialogContent className="max-w-lg p-0 overflow-hidden">
+            {selectedPhoto && (
+              <img 
+                src={selectedPhoto} 
+                alt="Captura instantánea"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Focus Mode Section */}
         <div className="space-y-4 mt-8 pt-8 border-t border-border">
