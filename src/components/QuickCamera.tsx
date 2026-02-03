@@ -77,6 +77,30 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     stopCamera();
   };
 
+  const analyzeImage = async (imageUrl: string): Promise<{ emoji: string; label: string; category: string }> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to analyze image");
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Error analyzing image:", error);
+      }
+      return { emoji: "📸", label: "Captura instantánea", category: "otro" };
+    }
+  };
+
   const uploadAndCreate = async () => {
     if (!capturedImage || !user) return;
 
@@ -101,6 +125,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       const now = new Date().toISOString();
 
+      // Analyze the image with AI to get category and label
+      const analysis = await analyzeImage(urlData.publicUrl);
+      const activityTag = `${analysis.emoji} ${analysis.label}`;
+
       // Save to entries (almanac/profile)
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
@@ -117,7 +145,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         user_id: user.id,
         image_url: urlData.publicUrl,
         caption: "",
-        activity_tag: "📸 Captura instantánea",
+        activity_tag: activityTag,
       });
 
       if (postError) throw postError;
@@ -127,7 +155,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       const { error: blockError } = await supabase.from("schedule_blocks").insert({
         user_id: user.id,
-        title: "📸 Captura instantánea",
+        title: activityTag,
         start_at: now,
         end_at: endTime,
         visibility: "public",
