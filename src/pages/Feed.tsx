@@ -34,15 +34,31 @@ const Feed = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const { data: posts = [], isLoading, refetch } = useQuery({
-    queryKey: ["posts"],
+    queryKey: ["posts", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+
+      // First, get the list of users this person follows
+      const { data: followsData } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id);
+
+      const followingIds = (followsData || []).map((f) => f.following_id);
+      
+      // Include the user's own posts + posts from people they follow
+      const relevantUserIds = [...followingIds, user.id];
+
       const { data: postsData, error: postsError } = await supabase
         .from("posts")
         .select("*")
+        .in("user_id", relevantUserIds)
         .order("created_at", { ascending: false })
         .limit(20);
 
       if (postsError) throw postsError;
+
+      if (!postsData || postsData.length === 0) return [];
 
       const userIds = [...new Set(postsData.map((p) => p.user_id))];
       const { data: profilesData } = await supabase
@@ -65,7 +81,7 @@ const Feed = () => {
 
       (likesData || []).forEach((like) => {
         likeCounts.set(like.post_id, (likeCounts.get(like.post_id) || 0) + 1);
-        if (user && like.user_id === user.id) {
+        if (like.user_id === user.id) {
           userLikes.add(like.post_id);
         }
       });
@@ -77,8 +93,9 @@ const Feed = () => {
         user_has_liked: userLikes.has(post.id),
       }));
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes offline
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    enabled: !!user,
   });
 
   const handleRefresh = async () => {
