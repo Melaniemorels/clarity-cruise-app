@@ -194,36 +194,27 @@ const Feed = () => {
               ))}
             </>
           ) : posts.length === 0 ? (
-            <div className="text-center py-12 animate-in fade-in" style={{ animationDuration: '280ms' }}>
-              <div className="flex justify-center mb-4">
-                <Camera size={48} strokeWidth={1.5} style={{ color: '#D9D9D9' }} />
+            <div className="text-center py-16 animate-in fade-in" style={{ animationDuration: '280ms' }}>
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <Camera size={56} strokeWidth={1.2} className="text-muted-foreground/40" />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <Plus size={12} className="text-primary-foreground" strokeWidth={2.5} />
+                  </div>
+                </div>
               </div>
-              <p className="mb-1.5" style={{ 
-                fontSize: '20px', 
-                fontWeight: 500, 
-                letterSpacing: '0.3px',
-                color: 'hsl(var(--foreground))'
-              }}>
-                No hay posts aún
+              <p className="mb-2 text-xl font-medium text-foreground">
+                ¡Bienvenido a VYV!
               </p>
-              <p className="mb-4" style={{ 
-                fontSize: '14px', 
-                color: '#A3A3A3' 
-              }}>
-                Sé el primero en compartir algo
+              <p className="mb-6 text-sm text-muted-foreground max-w-xs mx-auto">
+                Comparte tu primer momento y comienza a conectar con otros
               </p>
               <Button 
                 onClick={() => setIsCreateOpen(true)}
-                style={{
-                  backgroundColor: '#2F7058',
-                  color: '#FFFFFF',
-                  borderRadius: '18px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
-                  padding: '10px 24px'
-                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
               >
                 <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                Crear Post
+                Crear tu primer post
               </Button>
             </div>
           ) : (
