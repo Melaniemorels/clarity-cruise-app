@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity } from "lucide-react";
+import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity, Lock, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Profile = () => {
   const { signOut, user } = useAuth();
@@ -55,6 +56,29 @@ const Profile = () => {
       return data;
     },
     enabled: !!user,
+  });
+
+  const queryClient = useQueryClient();
+
+  // Mutation to update profile privacy
+  const updatePrivacyMutation = useMutation({
+    mutationFn: async (isPrivate: boolean) => {
+      if (!user) throw new Error("No user");
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_private: isPrivate })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return isPrivate;
+    },
+    onSuccess: (isPrivate) => {
+      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
+      toast.success(isPrivate ? "Perfil ahora es privado" : "Perfil ahora es público");
+    },
+    onError: () => {
+      toast.error("Error al actualizar privacidad");
+    },
   });
   
   const healthData = {
@@ -255,6 +279,32 @@ const Profile = () => {
               <Switch
                 checked={theme === "dark"}
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Privacy Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {profile?.is_private ? (
+                  <Lock className="h-5 w-5 text-primary" />
+                ) : (
+                  <Globe className="h-5 w-5 text-primary" />
+                )}
+                <div>
+                  <Label className="text-base">Perfil Privado</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.is_private 
+                      ? "Solo tus seguidores pueden ver tu contenido" 
+                      : "Cualquiera puede ver tu perfil"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={profile?.is_private ?? false}
+                onCheckedChange={(checked) => updatePrivacyMutation.mutate(checked)}
+                disabled={updatePrivacyMutation.isPending}
               />
             </div>
 
