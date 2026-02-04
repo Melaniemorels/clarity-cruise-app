@@ -404,6 +404,7 @@
     "title": "Tu Día Perfecto",
     "subtitle": "Plan sugerido para hoy, basado en tu descanso y nivel de energía.",
     "activities": "actividades",
+    "noActivities": "Sin actividades programadas",
     "error": "No pudimos generar tu día perfecto",
     "tryAgain": "Intentar de nuevo",
     "changeRoutine": "Cambiar rutina",
