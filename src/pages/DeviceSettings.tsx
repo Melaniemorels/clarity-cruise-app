@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Watch, Zap, Apple, Activity, CheckCircle2, ChevronLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 import type { Database } from "@/integrations/supabase/types";
 
 type DeviceProvider = Database['public']['Enums']['device_provider'];
@@ -22,9 +23,14 @@ interface DeviceConnection {
 const DeviceSettings = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { step, completeDevicesStep } = useOnboardingStep();
   const [connections, setConnections] = useState<DeviceConnection[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Check if coming from onboarding flow
+  const isFromOnboarding = step === "devices";
 
   const devices: Array<{
     id: DeviceProvider;
@@ -143,12 +149,24 @@ const DeviceSettings = () => {
     }
   };
 
+  // Handle back navigation - complete onboarding if coming from onboarding flow
+  const handleBack = async () => {
+    if (isFromOnboarding) {
+      const success = await completeDevicesStep();
+      if (success) {
+        window.location.href = "/";
+      }
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl p-4 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={handleBack}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -256,6 +274,16 @@ const DeviceSettings = () => {
             </div>
           </CardContent>
         </Card>
+        {/* Done Button - only show when coming from onboarding */}
+        {isFromOnboarding && (
+          <Button 
+            className="w-full" 
+            size="lg"
+            onClick={handleBack}
+          >
+            {t('common.done')}
+          </Button>
+        )}
       </div>
     </div>
   );
