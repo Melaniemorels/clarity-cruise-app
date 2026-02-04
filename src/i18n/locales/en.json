@@ -468,6 +468,10 @@
   },
   "notifications": {
     "title": "Notifications",
+    "requests": "Requests",
+    "activity": "Activity",
+    "noRequests": "No pending requests",
+    "noActivity": "No activity yet",
     "empty": "No notifications yet",
     "markAllRead": "Mark all read",
     "someone": "Someone",
