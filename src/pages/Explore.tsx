@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { openInAppBrowser } from "@/lib/browser";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -133,7 +134,14 @@ const Explore = () => {
                 <span className={device.isMobile ? "text-xl" : "text-2xl"}>{category.icon}</span>
                 {category.title}
               </h2>
-              <Button variant="ghost" size="sm">{t('common.viewAll')}</Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="min-h-[44px]"
+                onClick={() => toast.info(t('settings.comingSoon'))}
+              >
+                {t('common.viewAll')}
+              </Button>
             </div>
             
             <ScrollArea className="w-full whitespace-nowrap">
@@ -168,10 +176,11 @@ const Explore = () => {
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="h-6 w-6"
+                          className="h-8 w-8 min-w-[44px] min-h-[44px]"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Handle bookmark
+                            // TODO: Implement bookmark functionality
+                            toast.info(t('settings.comingSoon'));
                           }}
                         >
                           <Bookmark className="h-3 w-3" />

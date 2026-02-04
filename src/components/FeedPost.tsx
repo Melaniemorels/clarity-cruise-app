@@ -1,15 +1,19 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Bookmark } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 
 interface FeedPostProps {
   postId: string;
+  userId?: string;
   userHandle: string;
   userPhotoUrl?: string;
+  userName?: string;
   photoUrl?: string;
   caption?: string;
   createdAt: string;
@@ -21,8 +25,10 @@ interface FeedPostProps {
 
 export const FeedPost = ({
   postId,
+  userId,
   userHandle,
   userPhotoUrl,
+  userName,
   photoUrl,
   caption,
   createdAt,
@@ -33,6 +39,7 @@ export const FeedPost = ({
 }: FeedPostProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [inspireCount, setInspireCount] = useState(initialInspireCount);
   const [saveCount, setSaveCount] = useState(initialSaveCount);
   const [hasInspired, setHasInspired] = useState(initialHasInspired);
@@ -50,6 +57,12 @@ export const FeedPost = ({
     if (diffHours > 0) return t('time.hoursAgo', { count: diffHours });
     if (diffMins > 0) return t('time.minutesAgo', { count: diffMins });
     return t('time.justNow');
+  };
+
+  const handleProfileClick = () => {
+    if (userId) {
+      navigate(`/profile/${userId}`);
+    }
   };
 
   const handleReaction = async (type: "INSPIRE" | "SAVE_IDEA") => {
@@ -105,19 +118,22 @@ export const FeedPost = ({
   return (
     <Card className="overflow-hidden">
       {/* User Header */}
-      <div className="flex items-center gap-3 p-4">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg overflow-hidden">
-          {userPhotoUrl ? (
-            <img src={userPhotoUrl} alt={userHandle} className="w-full h-full object-cover" />
-          ) : (
-            "🌿"
-          )}
-        </div>
+      <button
+        onClick={handleProfileClick}
+        className="flex items-center gap-3 p-4 w-full text-left hover:bg-muted/30 transition-colors min-h-[48px]"
+        disabled={!userId}
+      >
+        <ProfileAvatar
+          photoUrl={userPhotoUrl}
+          handle={userHandle}
+          name={userName}
+          size="md"
+        />
         <div className="flex-1">
           <div className="font-semibold text-sm">@{userHandle}</div>
           <div className="text-xs text-muted-foreground">{getTimeAgo(createdAt)}</div>
         </div>
-      </div>
+      </button>
 
       {/* Photo */}
       {photoUrl && (
@@ -133,7 +149,7 @@ export const FeedPost = ({
         <div className="flex items-center gap-4">
           <button
             onClick={() => handleReaction("INSPIRE")}
-            className={`flex items-center gap-1 transition-colors ${
+            className={`flex items-center gap-1 transition-colors min-w-[48px] min-h-[48px] justify-center ${
               hasInspired ? "text-primary" : "text-muted-foreground hover:text-primary"
             }`}
           >
@@ -143,7 +159,7 @@ export const FeedPost = ({
           
           <button
             onClick={() => handleReaction("SAVE_IDEA")}
-            className={`flex items-center gap-1 transition-colors ${
+            className={`flex items-center gap-1 transition-colors min-w-[48px] min-h-[48px] justify-center ${
               hasSaved ? "text-secondary" : "text-muted-foreground hover:text-secondary"
             }`}
           >

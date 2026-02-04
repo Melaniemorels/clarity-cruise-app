@@ -107,7 +107,7 @@ export function FollowButton({ targetUserId, targetIsPrivate, className, size = 
   return (
     <>
       <Button
-        className={className}
+        className={`min-h-[44px] ${className}`}
         variant={getButtonVariant()}
         size={size}
         onClick={handleButtonClick}

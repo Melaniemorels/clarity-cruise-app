@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Compass, Lock, Calendar, User } from "lucide-react";
+import { Home, Compass, Leaf, Calendar, User } from "lucide-react";
 import { NavLink } from "./NavLink";
 import { QuickCamera } from "./QuickCamera";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,7 @@ export const BottomNav = () => {
           <NavLink
             to="/"
             end
-            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
+            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
           >
             <Home className="h-6 w-6" strokeWidth={1.4} />
@@ -29,33 +29,34 @@ export const BottomNav = () => {
           
           <NavLink
             to="/explore"
-            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
+            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
           >
             <Compass className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">{t('nav.explore')}</span>
           </NavLink>
           
-          <button
-            onClick={() => setCameraOpen(true)}
-            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive hover:text-theme-tabIconActive"
+          <NavLink
+            to="/entries"
+            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center transition-colors text-theme-tabIconInactive"
+            activeClassName="!text-theme-tabIconActive"
           >
-            <Lock className="h-6 w-6" strokeWidth={1.4} />
+            <Leaf className="h-6 w-6" strokeWidth={1.4} />
             <span className="text-xs font-medium">{t('nav.focus')}</span>
-          </button>
+          </NavLink>
         
-        <NavLink
-          to="/calendar"
-          className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
-          activeClassName="!text-theme-tabIconActive"
-        >
-          <Calendar className="h-6 w-6" strokeWidth={1.4} />
-          <span className="text-xs font-medium">{t('nav.calendar')}</span>
-        </NavLink>
+          <NavLink
+            to="/calendar"
+            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center transition-colors text-theme-tabIconInactive"
+            activeClassName="!text-theme-tabIconActive"
+          >
+            <Calendar className="h-6 w-6" strokeWidth={1.4} />
+            <span className="text-xs font-medium">{t('nav.calendar')}</span>
+          </NavLink>
         
           <NavLink
             to="/profile"
-            className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
+            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
           >
             <User className="h-6 w-6" strokeWidth={1.4} />

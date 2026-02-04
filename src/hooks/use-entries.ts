@@ -21,6 +21,7 @@ export interface EnrichedEntry extends Entry {
   profiles: {
     handle: string;
     photo_url: string | null;
+    name?: string | null;
   } | null;
   reactions: {
     inspire: number;
@@ -78,7 +79,7 @@ export function usePublicEntriesFeed(limit = 20) {
       const userIds = [...new Set(entriesData.map((e) => e.user_id))];
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("user_id, handle, photo_url")
+        .select("user_id, handle, photo_url, name")
         .in("user_id", userIds);
 
       const profilesMap = new Map(
