@@ -23,6 +23,7 @@ interface EventModalProps {
     ends_at: Date;
     notes: string;
   } | null;
+  initialDate?: Date | null;
   onSave: (event: any) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
@@ -35,7 +36,7 @@ const categories = [
   { value: "otros", label: "Otros", colorClass: "bg-secondary" },
 ];
 
-export const EventModal = ({ open, onOpenChange, event, onSave, onDelete }: EventModalProps) => {
+export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onDelete }: EventModalProps) => {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("otros");
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -58,15 +59,14 @@ export const EventModal = ({ open, onOpenChange, event, onSave, onDelete }: Even
       // Reset form
       setTitle("");
       setCategory("otros");
-      const now = new Date();
-      setStartDate(now);
-      setEndDate(now);
-      setStartTime(format(now, "HH:mm"));
-      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-      setEndTime(format(oneHourLater, "HH:mm"));
+      const baseDate = initialDate || new Date();
+      setStartDate(baseDate);
+      setEndDate(baseDate);
+      setStartTime("09:00");
+      setEndTime("10:00");
       setNotes("");
     }
-  }, [event, open]);
+  }, [event, initialDate, open]);
 
   const handleSave = async () => {
     if (!title.trim()) {
