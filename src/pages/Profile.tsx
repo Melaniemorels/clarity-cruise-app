@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
+import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
@@ -311,6 +312,11 @@ const Profile = () => {
 
             {/* Section Visibility Controls */}
             <SectionVisibilitySettings />
+
+            <Separator />
+
+            {/* Social Budget Settings */}
+            <SocialBudgetSettings />
 
             <Separator />
             <Button

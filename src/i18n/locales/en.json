@@ -385,5 +385,19 @@
       "wellness": "Wellness & Habits",
       "wellnessDescription": "Health data and daily habits"
     }
+  },
+  "socialBudget": {
+    "timeToday": "Social time today",
+    "modalTitle": "Social Time Complete",
+    "modalDescription": "You've reached your daily social time. Want to extend 5 more minutes—consciously?",
+    "extendTime": "+5 minutes",
+    "returnToFocus": "Return to Focus",
+    "extended": "Extended by 5 minutes",
+    "limitReached": "Time's up",
+    "limitReachedDesc": "You've used your social time for today",
+    "settingsTitle": "Daily Social Limit",
+    "settingsDescription": "Set how much time you spend on social daily",
+    "unlimitedHint": "No daily limit is set. Scroll freely.",
+    "limitHint": "You can use up to {{minutes}} minutes per day."
   }
 }
