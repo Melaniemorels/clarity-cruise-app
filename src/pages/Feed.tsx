@@ -189,7 +189,7 @@ const Feed = () => {
                 size="icon"
                 onClick={() => setIsSearchOpen(true)}
               >
-                <Search className="h-5 w-5" strokeWidth={1.4} style={{ color: '#EAEAEA' }} />
+                <Search className="h-5 w-5 text-theme-textSecondary hover:text-theme-textPrimary transition-colors" strokeWidth={1.4} />
               </Button>
               <NotificationCenter />
               <Button
