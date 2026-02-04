@@ -3,7 +3,7 @@ import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
 import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
 import { useDevice, useResponsiveFontSize } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Sparkles } from "lucide-react";
+import { Bookmark, ArrowRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { useState } from "react";
@@ -188,23 +188,17 @@ const Explore = () => {
 
         {/* Perfect Day CTA */}
         <Card 
-          className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 bg-theme-cardBg cursor-pointer hover:scale-[1.01] transition-transform"
+          className="border border-border/50 bg-card cursor-pointer hover:bg-muted/30 transition-all duration-300"
           onClick={() => navigate("/perfect-day")}
         >
-          <CardContent className="p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
+          <CardContent className="p-6 flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-foreground tracking-tight">{t('explore.createTemplateTitle')}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t('explore.createTemplateDescription')}
+              </p>
             </div>
-            <h3 className="font-semibold mb-2 text-theme-textPrimary">{t('explore.createTemplateTitle')}</h3>
-            <p className="text-sm text-theme-textSecondary mb-4">
-              {t('explore.createTemplateDescription')}
-            </p>
-            <Button>
-              <Sparkles className="h-4 w-4 mr-2" />
-              {t('explore.createTemplate')}
-            </Button>
+            <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-4" />
           </CardContent>
         </Card>
       </div>
