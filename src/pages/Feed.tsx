@@ -232,8 +232,12 @@ const Feed = () => {
             onDismiss={() => setShowMotivationalCard(false)}
           />
 
-          {/* Lock overlay when limit reached */}
-          <SocialBudgetLockOverlay visible={isLimitReached} />
+          {/* Calm overlay when limit reached */}
+          <SocialBudgetLockOverlay 
+            visible={isLimitReached} 
+            allowExtensions={allowExtensions}
+            onExtend={handleExtendTime}
+          />
 
           {isLoading ? (
             <>
