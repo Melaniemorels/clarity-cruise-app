@@ -72,7 +72,6 @@
     "title": "Explorar",
     "subtitle": "Descubre contenido de bienestar",
     "guide": "Guía",
-    "comingSoon": "Próximamente",
     "createTemplate": "Crear Plantilla",
     "createTemplateTitle": "Crea Tu Día Perfecto",
     "createTemplateDescription": "Guarda tus actividades favoritas como plantilla y aplícalas a tu calendario con un solo toque",
@@ -91,7 +90,6 @@
       "meditationMusic": "Música de Meditación",
       "mindfulness": "Mindfulness",
       "healthHabits": "Salud y Hábitos",
-      "mindfulLiving": "Vida Consciente",
       "yogaBeginners": "Yoga para Principiantes",
       "coreStrength": "Core y Abdomen",
       "fullBody": "Cuerpo Completo",
@@ -101,9 +99,7 @@
       "stressRelief": "Alivio del Estrés",
       "mealPrep": "Preparación Semanal",
       "healthyRecipes": "Recetas Saludables",
-      "quickMeals": "Comidas Rápidas",
-      "caloricDeficit": "Déficit Calórico",
-      "highProtein": "Alta Proteína"
+      "quickMeals": "Comidas Rápidas"
     }
   },
   "calendar": {

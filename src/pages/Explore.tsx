@@ -25,10 +25,7 @@ const Explore = () => {
   const navPadding = useNavPadding();
   const fonts = useResponsiveFontSize();
 
-  const handleContentClick = async (item: { url?: string; comingSoon?: boolean }) => {
-    if (item.comingSoon) {
-      return; // Don't open anything for coming soon items
-    }
+  const handleContentClick = async (item: { url?: string }) => {
     if (item.url) {
       await openInAppBrowser(item.url);
     }
@@ -39,18 +36,18 @@ const Explore = () => {
       title: t('explore.categories.music'),
       icon: "🎵",
       items: [
-        { title: "Lofi Girl", duration: "24/7", color: "from-purple-500/20 to-pink-500/20", url: "https://open.spotify.com/playlist/0vvXsWCC9xrXsKd4FyS8kM" },
-        { title: t('explore.items.natureSounds'), duration: "10h", color: "from-green-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=L8t9D9N4L08" },
-        { title: t('explore.items.meditationMusic'), duration: "∞", color: "from-blue-500/20 to-indigo-500/20", url: "https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn" },
+        { title: "Lo-Fi Beats", duration: "60 min", color: "from-purple-500/20 to-pink-500/20", url: "https://open.spotify.com/playlist/0vvXsWCC9xrXsKd4FyS8kM" },
+        { title: t('explore.items.natureSounds'), duration: "45 min", color: "from-green-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=L8t9D9N4L08" },
+        { title: t('explore.items.meditationMusic'), duration: "30 min", color: "from-blue-500/20 to-indigo-500/20", url: "https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn" },
       ],
     },
     {
       title: t('explore.categories.audiobooks'),
       icon: "🎧",
       items: [
-        { title: "The Power of Now", duration: t('explore.comingSoon'), color: "from-amber-500/20 to-orange-500/20", comingSoon: true },
-        { title: "Atomic Habits", duration: t('explore.comingSoon'), color: "from-red-500/20 to-rose-500/20", comingSoon: true },
-        { title: t('explore.items.mindfulness'), duration: t('explore.comingSoon'), color: "from-cyan-500/20 to-sky-500/20", comingSoon: true },
+        { title: "The Power of Now", duration: "7h 37m", color: "from-amber-500/20 to-orange-500/20", url: "https://www.audible.com/pd/The-Power-of-Now-Audiobook/B002V0PN36" },
+        { title: "Atomic Habits", duration: "5h 35m", color: "from-red-500/20 to-rose-500/20", url: "https://open.spotify.com/show/40ygvasZaqVMMBkgYoUy8C" },
+        { title: t('explore.items.mindfulness'), duration: "4h 20m", color: "from-cyan-500/20 to-sky-500/20", url: "https://www.youtube.com/watch?v=QwaDvbC04mI" },
       ],
     },
     {
@@ -58,53 +55,53 @@ const Explore = () => {
       icon: "🎙️",
       items: [
         { title: "Huberman Lab", duration: "2h", color: "from-emerald-500/20 to-green-500/20", url: "https://www.hubermanlab.com/podcast" },
-        { title: t('explore.items.healthHabits'), duration: t('explore.comingSoon'), color: "from-violet-500/20 to-purple-500/20", comingSoon: true },
-        { title: t('explore.items.mindfulLiving'), duration: t('explore.comingSoon'), color: "from-fuchsia-500/20 to-pink-500/20", comingSoon: true },
+        { title: "The Liz Moody Podcast", duration: "45 min", color: "from-violet-500/20 to-purple-500/20", url: "https://podcasts.apple.com/rs/podcast/the-liz-moody-podcast/id1398442165" },
+        { title: t('explore.items.healthHabits'), duration: "40 min", color: "from-fuchsia-500/20 to-pink-500/20", url: "https://newsroom.spotify.com/2025-01-10/health-wellness-tips-podcasts/" },
       ],
     },
     {
       title: t('explore.categories.yoga'),
       icon: "🧘",
       items: [
-        { title: "Yoga With Adriene", duration: "∞", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/@yogawithadriene" },
-        { title: "Yoga With Tim", duration: "∞", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/@YogaWithTim" },
-        { title: t('explore.items.yogaBeginners'), duration: "∞", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/playlist?list=PLui6Eyny-UzzWwB4h9y7jAzLbeuCUczAl" },
+        { title: "Yoga With Adriene", duration: "30 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/channel/UCFKE7WVJfvaHW5q283SxchA" },
+        { title: "Yoga With Tim", duration: "45 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/c/yogawithtim" },
+        { title: t('explore.items.yogaBeginners'), duration: "20 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/playlist?list=PLui6Eyny-UzzWwB4h9y7jAzLbeuCUczAl" },
       ],
     },
     {
       title: t('explore.categories.pilates'),
       icon: "🤸",
       items: [
-        { title: "Move With Nicole", duration: "25 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/@MoveWithNicole" },
-        { title: t('explore.items.coreStrength'), duration: t('explore.comingSoon'), color: "from-secondary/20 to-secondary/10", comingSoon: true },
-        { title: t('explore.items.fullBody'), duration: t('explore.comingSoon'), color: "from-secondary/20 to-secondary/10", comingSoon: true },
+        { title: t('explore.items.coreStrength'), duration: "25 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=OJxXA4EwTf0" },
+        { title: t('explore.items.fullBody'), duration: "40 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=dYcNLMwwlMA" },
+        { title: t('explore.items.beginnerFlow'), duration: "15 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=_w8s0DZQkrY" },
       ],
     },
     {
       title: t('explore.categories.meditation'),
       icon: "🧘‍♀️",
       items: [
-        { title: "Great Meditation", duration: "10 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/@GreatMeditation" },
-        { title: t('explore.items.sleepMeditation'), duration: t('explore.comingSoon'), color: "from-accent/20 to-accent/10", comingSoon: true },
-        { title: t('explore.items.stressRelief'), duration: t('explore.comingSoon'), color: "from-accent/20 to-accent/10", comingSoon: true },
+        { title: t('explore.items.morningCalm'), duration: "10 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=tNDJKITApEI" },
+        { title: t('explore.items.sleepMeditation'), duration: "20 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=ILwkKLkWJWU" },
+        { title: t('explore.items.stressRelief'), duration: "15 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=3r0YscOXAlI" },
       ],
     },
     {
       title: t('explore.categories.nutrition'),
       icon: "🥗",
       items: [
-        { title: "Pick Up Limes", duration: "∞", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/@PickUpLimes" },
-        { title: t('explore.items.healthyRecipes'), duration: t('explore.comingSoon'), color: "from-orange-500/20 to-amber-500/20", comingSoon: true },
-        { title: t('explore.items.quickMeals'), duration: t('explore.comingSoon'), color: "from-pink-500/20 to-rose-500/20", comingSoon: true },
+        { title: "Jamie Oliver", duration: "15 min", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/watch?v=2Fi65gBAToo" },
+        { title: "HealthNut Nutrition", duration: "30 min", color: "from-orange-500/20 to-amber-500/20", url: "https://www.youtube.com/c/HealthNutNutrition" },
+        { title: "Minimalist Baker", duration: "10 min", color: "from-pink-500/20 to-rose-500/20", url: "https://www.youtube.com/c/Minimalistbaker" },
       ],
     },
     {
       title: t('explore.categories.mealPlans'),
       icon: "📋",
       items: [
-        { title: t('explore.items.mealPrep'), duration: t('explore.comingSoon'), color: "from-teal-500/20 to-cyan-500/20", comingSoon: true },
-        { title: t('explore.items.caloricDeficit'), duration: t('explore.comingSoon'), color: "from-red-500/20 to-orange-500/20", comingSoon: true },
-        { title: t('explore.items.highProtein'), duration: t('explore.comingSoon'), color: "from-violet-500/20 to-indigo-500/20", comingSoon: true },
+        { title: t('explore.items.mealPrep'), duration: t('explore.guide'), color: "from-teal-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=LzWb_P4lYgA" },
+        { title: t('explore.items.healthyRecipes'), duration: t('explore.guide'), color: "from-red-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=9UIWc4vUMQ0" },
+        { title: t('explore.items.quickMeals'), duration: t('explore.guide'), color: "from-violet-500/20 to-indigo-500/20", url: "https://www.youtube.com/watch?v=2Fi65gBAToo" },
       ],
     },
   ];
@@ -143,9 +140,8 @@ const Explore = () => {
                   <Card 
                     key={i} 
                     className={cn(
-                      "flex-shrink-0 overflow-hidden transition-all bg-theme-cardBg",
-                      device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56",
-                      item.comingSoon ? "opacity-60 cursor-default" : "cursor-pointer hover:scale-[1.02]"
+                      "flex-shrink-0 overflow-hidden cursor-pointer transition-all hover:scale-[1.02] bg-theme-cardBg",
+                      device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56"
                     )}
                     style={{
                       borderRadius: '18px',

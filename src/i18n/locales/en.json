@@ -72,7 +72,6 @@
     "title": "Explore",
     "subtitle": "Discover wellness content",
     "guide": "Guide",
-    "comingSoon": "Coming Soon",
     "createTemplate": "Create Template",
     "createTemplateTitle": "Create Your Perfect Day",
     "createTemplateDescription": "Save your favorite activities as a template and apply them to your calendar in one tap",
@@ -91,7 +90,6 @@
       "meditationMusic": "Meditation Music",
       "mindfulness": "Mindfulness",
       "healthHabits": "Health & Habits",
-      "mindfulLiving": "Mindful Living",
       "yogaBeginners": "Yoga for Beginners",
       "coreStrength": "Core Strength",
       "fullBody": "Full Body",
@@ -101,9 +99,7 @@
       "stressRelief": "Stress Relief",
       "mealPrep": "Weekly Meal Prep",
       "healthyRecipes": "Healthy Recipes",
-      "quickMeals": "Quick Meals",
-      "caloricDeficit": "Caloric Deficit",
-      "highProtein": "High Protein"
+      "quickMeals": "Quick Meals"
     }
   },
   "calendar": {
