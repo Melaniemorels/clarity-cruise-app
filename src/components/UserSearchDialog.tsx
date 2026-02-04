@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sheet,
@@ -12,93 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, UserPlus, UserCheck, X } from "lucide-react";
-import { toast } from "sonner";
+import { useSearchProfiles, useFollow } from "@/hooks/use-profile";
 
 interface UserSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface SearchUser {
-  id: string;
-  user_id: string;
-  handle: string;
-  name: string | null;
-  photo_url: string | null;
-  bio: string | null;
-  is_following: boolean;
-}
-
 export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["user-search", searchQuery],
-    queryFn: async () => {
-      if (!searchQuery.trim() || !user) return [];
+  const { data: users = [], isLoading } = useSearchProfiles(searchQuery, open);
+  const followMutation = useFollow();
 
-      const { data: profilesData, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, handle, name, photo_url, bio")
-        .ilike("handle", `%${searchQuery}%`)
-        .neq("user_id", user.id)
-        .limit(20);
-
-      if (error) throw error;
-
-      const { data: followsData } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", user.id);
-
-      const followingIds = new Set(
-        (followsData || []).map((f) => f.following_id)
-      );
-
-      return (profilesData || []).map((profile) => ({
-        ...profile,
-        is_following: followingIds.has(profile.user_id),
-      }));
-    },
-    enabled: open && !!user,
-  });
-
-  const followMutation = useMutation({
-    mutationFn: async ({
-      userId,
-      isFollowing,
-    }: {
-      userId: string;
-      isFollowing: boolean;
-    }) => {
-      if (!user) throw new Error("No user");
-
-      if (isFollowing) {
-        const { error } = await supabase
-          .from("follows")
-          .delete()
-          .eq("follower_id", user.id)
-          .eq("following_id", userId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("follows")
-          .insert({ follower_id: user.id, following_id: userId });
-        if (error) throw error;
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["user-search"] });
-      toast.success(
-        variables.isFollowing ? "Dejaste de seguir" : "Siguiendo"
-      );
-    },
-    onError: () => {
-      toast.error("Error al actualizar");
-    },
-  });
+  const handleFollow = (userId: string, isFollowing: boolean) => {
+    followMutation.mutate({ targetUserId: userId, isFollowing });
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -173,12 +101,7 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
                   <Button
                     size="sm"
                     variant={searchUser.is_following ? "outline" : "default"}
-                    onClick={() =>
-                      followMutation.mutate({
-                        userId: searchUser.user_id,
-                        isFollowing: searchUser.is_following,
-                      })
-                    }
+                    onClick={() => handleFollow(searchUser.user_id, searchUser.is_following)}
                     disabled={followMutation.isPending}
                     className="flex-shrink-0 h-9 px-4"
                   >
