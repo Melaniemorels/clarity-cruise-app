@@ -240,7 +240,7 @@ const Feed = () => {
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
               >
                 <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                Crear tu primer post
+                Captura tu primer vibe
               </Button>
             </div>
           ) : (
