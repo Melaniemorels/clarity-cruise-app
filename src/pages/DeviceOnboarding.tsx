@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -5,17 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Watch, Smartphone, Activity, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 const DeviceOnboarding = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const completeOnboarding = async () => {
-    if (!user) return;
+    if (!user) return false;
 
     try {
+      setIsSubmitting(true);
       // Use type assertion since types may not be synced yet
       const { error } = await supabase
         .from("profiles")
@@ -23,19 +25,27 @@ const DeviceOnboarding = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
+      return true;
     } catch (error) {
       console.error("Error completing onboarding:", error);
+      return false;
     }
   };
 
   const handleConnectNow = async () => {
-    await completeOnboarding();
-    navigate("/device-settings");
+    const success = await completeOnboarding();
+    if (success) {
+      // Force page reload to refresh onboarding state
+      window.location.href = "/device-settings";
+    }
   };
 
   const handleDoItLater = async () => {
-    await completeOnboarding();
-    navigate("/");
+    const success = await completeOnboarding();
+    if (success) {
+      // Force page reload to refresh onboarding state
+      window.location.href = "/";
+    }
   };
 
   const devices = [
@@ -80,7 +90,7 @@ const DeviceOnboarding = () => {
 
         {/* Actions */}
         <div className="space-y-3">
-          <Button className="w-full" size="lg" onClick={handleConnectNow}>
+          <Button className="w-full" size="lg" onClick={handleConnectNow} disabled={isSubmitting}>
             {t("onboarding.devices.connectNow")}
           </Button>
           <Button
@@ -88,6 +98,7 @@ const DeviceOnboarding = () => {
             className="w-full"
             size="lg"
             onClick={handleDoItLater}
+            disabled={isSubmitting}
           >
             {t("onboarding.devices.doItLater")}
           </Button>
