@@ -1,23 +1,24 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Mail, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSecurityOnboarding } from "@/hooks/use-security-onboarding";
+import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const SecurityOnboarding = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { emailVerified, completeSecurityOnboarding, loading } = useSecurityOnboarding();
+  const { completeSecurityStep, loading } = useOnboardingStep();
   const [isResending, setIsResending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  
+  // Check email verification from user object
+  const emailVerified = user?.email_confirmed_at !== null;
 
   // Calculate progress
   const progress = emailVerified ? 100 : 0;
@@ -67,21 +68,23 @@ const SecurityOnboarding = () => {
     }
   };
 
+  // Single action: complete security step and navigate to devices
   const handleContinue = async () => {
     setIsCompleting(true);
-    const success = await completeSecurityOnboarding();
+    const success = await completeSecurityStep();
     if (success) {
-      // Navigate to device onboarding
+      // State is set, now navigate
       window.location.href = "/onboarding";
     }
     setIsCompleting(false);
   };
 
+  // Single action: skip security (mark complete) and navigate to devices
   const handleSkip = async () => {
     setIsCompleting(true);
-    const success = await completeSecurityOnboarding();
+    const success = await completeSecurityStep();
     if (success) {
-      // Skip to device onboarding even without email verification
+      // State is set, now navigate
       window.location.href = "/onboarding";
     }
     setIsCompleting(false);

@@ -1,51 +1,31 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Watch, Smartphone, Activity, Heart } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 
 const DeviceOnboarding = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { completeDevicesStep } = useOnboardingStep();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const completeOnboarding = async () => {
-    if (!user) return false;
-
-    try {
-      setIsSubmitting(true);
-      // Use type assertion since types may not be synced yet
-      const { error } = await supabase
-        .from("profiles")
-        .update({ onboarding_completed: true } as any)
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-      return false;
-    }
+  // Single action: open device settings (does NOT complete onboarding)
+  const handleConnectNow = () => {
+    // Just navigate to device settings - user can connect devices there
+    // Onboarding will be completed when they return or skip
+    window.location.href = "/device-settings";
   };
 
-  const handleConnectNow = async () => {
-    const success = await completeOnboarding();
-    if (success) {
-      // Force page reload to refresh onboarding state
-      window.location.href = "/device-settings";
-    }
-  };
-
+  // Single action: complete devices step and navigate to home
   const handleDoItLater = async () => {
-    const success = await completeOnboarding();
+    setIsSubmitting(true);
+    const success = await completeDevicesStep();
     if (success) {
-      // Force page reload to refresh onboarding state
+      // State is set, now navigate to home
       window.location.href = "/";
     }
+    setIsSubmitting(false);
   };
 
   const devices = [
