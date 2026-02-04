@@ -71,6 +71,7 @@
   "explore": {
     "title": "Explorar",
     "subtitle": "Descubre contenido de bienestar",
+    "guide": "Guía",
     "createTemplate": "Crear Plantilla",
     "createTemplateTitle": "Crea Tu Día Perfecto",
     "createTemplateDescription": "Guarda tus actividades favoritas como plantilla y aplícalas a tu calendario con un solo toque",
@@ -78,11 +79,27 @@
       "music": "Música",
       "audiobooks": "Audiolibros",
       "podcasts": "Podcasts",
-      "yoga": "Clases de Yoga",
+      "yoga": "Yoga",
       "pilates": "Pilates",
       "meditation": "Meditación",
       "nutrition": "Nutrición",
-      "mealPlans": "Planes Alimenticios"
+      "mealPlans": "Planes de Comida"
+    },
+    "items": {
+      "natureSounds": "Sonidos de la Naturaleza",
+      "meditationMusic": "Música de Meditación",
+      "mindfulness": "Mindfulness",
+      "healthHabits": "Salud y Hábitos",
+      "yogaBeginners": "Yoga para Principiantes",
+      "coreStrength": "Core y Abdomen",
+      "fullBody": "Cuerpo Completo",
+      "beginnerFlow": "Flujo para Principiantes",
+      "morningCalm": "Calma Matutina",
+      "sleepMeditation": "Meditación para Dormir",
+      "stressRelief": "Alivio del Estrés",
+      "mealPrep": "Preparación Semanal",
+      "healthyRecipes": "Recetas Saludables",
+      "quickMeals": "Comidas Rápidas"
     }
   },
   "calendar": {
