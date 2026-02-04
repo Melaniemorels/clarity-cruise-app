@@ -399,5 +399,19 @@
     "settingsDescription": "Define cuánto tiempo pasas en social diariamente",
     "unlimitedHint": "Sin límite diario. Navega libremente.",
     "limitHint": "Puedes usar hasta {{minutes}} minutos por día."
+  },
+  "perfectDay": {
+    "title": "Tu Día Perfecto",
+    "activities": "actividades",
+    "error": "No pudimos generar tu día perfecto",
+    "tryAgain": "Intentar de nuevo",
+    "periods": {
+      "morning": "Mañana",
+      "midday": "Mediodía",
+      "afternoon": "Tarde",
+      "evening": "Noche"
+    },
+    "closingReflection": "Reflexión de la noche",
+    "closingAffirmation": "Tu afirmación"
   }
 }

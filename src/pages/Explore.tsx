@@ -3,16 +3,18 @@ import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
 import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
 import { useDevice, useResponsiveFontSize } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Sparkles } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { openInAppBrowser } from "@/lib/browser";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
 const Explore = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [selectedContent, setSelectedContent] = useState<{
     title: string;
     category: string;
@@ -184,14 +186,25 @@ const Explore = () => {
           </div>
         ))}
 
-        {/* Save as Template CTA */}
-        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 bg-theme-cardBg">
+        {/* Perfect Day CTA */}
+        <Card 
+          className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 bg-theme-cardBg cursor-pointer hover:scale-[1.01] transition-transform"
+          onClick={() => navigate("/perfect-day")}
+        >
           <CardContent className="p-6 text-center">
+            <div className="flex justify-center mb-3">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+            </div>
             <h3 className="font-semibold mb-2 text-theme-textPrimary">{t('explore.createTemplateTitle')}</h3>
             <p className="text-sm text-theme-textSecondary mb-4">
               {t('explore.createTemplateDescription')}
             </p>
-            <Button>{t('explore.createTemplate')}</Button>
+            <Button>
+              <Sparkles className="h-4 w-4 mr-2" />
+              {t('explore.createTemplate')}
+            </Button>
           </CardContent>
         </Card>
       </div>
