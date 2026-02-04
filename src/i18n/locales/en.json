@@ -326,5 +326,17 @@
     "generic": "An error occurred. Please try again.",
     "network": "Network error. Please check your connection.",
     "unauthorized": "Please sign in to continue."
+  },
+  "onboarding": {
+    "devices": {
+      "title": "Connect your health & activity devices",
+      "description": "Sync your data from wearables and fitness apps to get personalized insights and track your progress.",
+      "appleHealth": "Apple Health / Apple Watch",
+      "smartwatch": "Any smartwatch or fitness tracker",
+      "fitnessApps": "Your favorite fitness or activity apps",
+      "connectNow": "Connect now",
+      "doItLater": "Do it later",
+      "privacyNote": "Your data stays private. You can manage connections anytime in Settings."
+    }
   }
 }
