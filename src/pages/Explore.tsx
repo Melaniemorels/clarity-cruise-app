@@ -202,7 +202,6 @@ const Explore = () => {
               {t('explore.createTemplateDescription')}
             </p>
             <Button>
-              <Sparkles className="h-4 w-4 mr-2" />
               {t('explore.createTemplate')}
             </Button>
           </CardContent>
