@@ -23,17 +23,17 @@
     --popover: 0 0% 100%;               /* #FFFFFF */
     --popover-foreground: 240 5% 11%;   /* #1C1C1E */
 
-    /* GREEN ONLY FOR: CTAs, active states, progress, success */
-    --primary: 142 40% 59%;             /* #6DBE8B - primary green accent */
-    --primary-foreground: 0 0% 100%;    /* white text on primary */
+    /* OLD MONEY GREEN - ONLY FOR: CTAs, active states, progress, success */
+    --primary: 158 35% 40%;               /* #4A8B7C - deep forest/emerald green */
+    --primary-foreground: 0 0% 100%;      /* white text on primary */
 
-    --secondary: 210 10% 90%;           /* neutral light gray */
+    --secondary: 210 10% 90%;             /* neutral light gray */
     --secondary-foreground: 240 5% 11%;
 
-    --muted: 210 10% 95%;               /* soft muted background */
-    --muted-foreground: 240 2% 57%;     /* #8E8E93 - secondary text */
+    --muted: 210 10% 95%;                 /* soft muted background */
+    --muted-foreground: 240 2% 57%;       /* #8E8E93 - secondary text */
 
-    --accent: 142 40% 59%;              /* #6DBE8B - same green for active states */
+    --accent: 158 35% 40%;                /* #4A8B7C - same old money green for active states */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
@@ -41,7 +41,7 @@
 
     --border: 210 10% 91%;              /* #E6E8EB - subtle borders (NO GREEN) */
     --input: 210 10% 91%;               /* #E6E8EB */
-    --ring: 142 40% 59%;                /* #6DBE8B */
+    --ring: 158 35% 40%;                  /* #4A8B7C */
 
     --radius: 0.75rem;                  /* 12px border radius */
 
@@ -52,18 +52,18 @@
     --theme-text-primary: 240 5% 11%;   /* #1C1C1E - titles */
     --theme-text-secondary: 240 2% 36%; /* #5A5A5E - body text */
     --theme-text-tertiary: 240 2% 57%;  /* #8E8E93 - secondary text */
-    --theme-accent-primary: 142 40% 59%;/* #6DBE8B - green for active only */
-    --theme-accent-highlight: 142 40% 65%;/* lighter green for hover */
-    --theme-border-subtle: 210 10% 91%; /* #E6E8EB - NO GREEN */
-    --theme-tab-bg: 0 0% 100%;          /* #FFFFFF */
-    --theme-tab-icon-active: 142 40% 59%;/* #6DBE8B - green for active tabs */
+    --theme-accent-primary: 158 35% 40%;  /* #4A8B7C - old money green for active only */
+    --theme-accent-highlight: 158 35% 48%;/* lighter variant for hover */
+    --theme-border-subtle: 210 10% 91%;   /* #E6E8EB - NO GREEN */
+    --theme-tab-bg: 0 0% 100%;            /* #FFFFFF */
+    --theme-tab-icon-active: 158 35% 40%; /* #4A8B7C - old money green for active tabs */
     --theme-tab-icon-inactive: 240 2% 57%;/* #8E8E93 - gray for inactive */
 
-    /* ==================== BRAND GREEN (INTENTIONAL USE ONLY) ==================== */
+    /* ==================== OLD MONEY GREEN (INTENTIONAL USE ONLY) ==================== */
     /* Use ONLY for: progress bars, active states, CTAs, success indicators */
-    --brand-green: 142 40% 59%;         /* #6DBE8B */
-    --brand-green-light: 142 40% 70%;   /* lighter variant */
-    --brand-green-dark: 142 40% 45%;    /* darker variant */
+    --brand-green: 158 35% 40%;           /* #4A8B7C - deep forest green */
+    --brand-green-light: 158 35% 50%;     /* lighter variant */
+    --brand-green-dark: 158 35% 32%;      /* darker variant */
 
     /* ==================== CATEGORY COLORS (muted, no strong green) ==================== */
     --category-work: 217 60% 55%;       /* blue */
@@ -75,14 +75,14 @@
     --category-photo: 200 40% 50%;      /* cyan */
     --category-other: 210 15% 55%;      /* neutral gray */
 
-    /* ==================== INTENSITY SCALE (progress/success - GREEN ALLOWED) ==================== */
-    --intensity-none: 210 10% 88%;      /* neutral gray */
-    --intensity-low: 142 40% 59% / 0.3; /* #6DBE8B at 30% */
-    --intensity-medium: 142 40% 59% / 0.6;/* #6DBE8B at 60% */
-    --intensity-high: 142 40% 59%;      /* #6DBE8B full */
+    /* ==================== INTENSITY SCALE (progress/success - OLD MONEY GREEN) ==================== */
+    --intensity-none: 210 10% 88%;        /* neutral gray */
+    --intensity-low: 158 35% 40% / 0.3;   /* old money green at 30% */
+    --intensity-medium: 158 35% 40% / 0.6;/* old money green at 60% */
+    --intensity-high: 158 35% 40%;        /* old money green full */
 
     /* ==================== STATE COLORS ==================== */
-    --state-success: 142 40% 59%;       /* #6DBE8B - THE green */
+    --state-success: 158 35% 40%;         /* #4A8B7C - THE old money green */
     --state-warning: 38 92% 50%;
     --state-error: 0 70% 55%;
     --state-info: 217 60% 55%;
@@ -91,8 +91,8 @@
     --overlay-dark: 0 0% 0% / 0.6;
     --overlay-light: 0 0% 100% / 0.1;
 
-    /* ==================== GRADIENTS (GREEN ONLY FOR CTAs) ==================== */
-    --gradient-button-primary: linear-gradient(180deg, hsl(142 45% 62%) 0%, hsl(142 40% 52%) 100%);
+    /* ==================== GRADIENTS (OLD MONEY GREEN ONLY FOR CTAs) ==================== */
+    --gradient-button-primary: linear-gradient(180deg, hsl(158 35% 45%) 0%, hsl(158 35% 35%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -109,8 +109,8 @@
     --popover: 215 25% 10%;               /* #151A21 - modal background */
     --popover-foreground: 210 20% 92%;    /* #E8EBED */
 
-    /* GREEN ONLY FOR: CTAs, active states, progress, success */
-    --primary: 142 40% 59%;               /* #6DBE8B - primary green accent */
+    /* OLD MONEY GREEN - ONLY FOR: CTAs, active states, progress, success */
+    --primary: 158 40% 48%;               /* #4FB3A2 - elegant teal-green for dark mode */
     --primary-foreground: 216 28% 6%;     /* dark text on primary */
 
     --secondary: 215 20% 15%;             /* #1F2933 - neutral elevated surfaces */
@@ -119,7 +119,7 @@
     --muted: 216 28% 6%;                  /* #0B0F14 - input background */
     --muted-foreground: 210 10% 55%;      /* #838B93 - secondary text */
 
-    --accent: 142 40% 59%;                /* #6DBE8B - green for active states only */
+    --accent: 158 40% 48%;                /* #4FB3A2 - old money green for active states only */
     --accent-foreground: 216 28% 6%;
 
     --destructive: 0 65% 50%;
@@ -127,7 +127,7 @@
 
     --border: 215 20% 15%;                /* #1F2933 - neutral gray border (NO GREEN) */
     --input: 215 18% 18%;                 /* #252D38 - input border (NO GREEN) */
-    --ring: 142 40% 59%;                  /* #6DBE8B */
+    --ring: 158 40% 48%;                  /* #4FB3A2 */
     
     /* ==================== SEMANTIC THEME TOKENS - DARK ==================== */
     --theme-bg: 216 28% 6%;               /* #0B0F14 */
@@ -136,20 +136,20 @@
     --theme-text-primary: 210 20% 92%;    /* #E8EBED */
     --theme-text-secondary: 210 10% 55%;  /* #838B93 */
     --theme-text-tertiary: 210 10% 45%;   /* muted text */
-    --theme-accent-primary: 142 40% 59%;  /* #6DBE8B - green for active only */
-    --theme-accent-highlight: 142 40% 65%;/* lighter green for hover */
+    --theme-accent-primary: 158 40% 48%;  /* #4FB3A2 - old money green for active only */
+    --theme-accent-highlight: 158 40% 55%;/* lighter variant for hover */
     --theme-border-subtle: 215 20% 15%;   /* #1F2933 - NO GREEN */
     --theme-tab-bg: 216 28% 6%;           /* #0B0F14 */
-    --theme-tab-icon-active: 142 40% 59%; /* #6DBE8B - green for active tabs */
+    --theme-tab-icon-active: 158 40% 48%; /* #4FB3A2 - old money green for active tabs */
     --theme-tab-icon-inactive: 210 10% 45%;/* gray for inactive */
     --theme-input-bg: 216 28% 6%;         /* #0B0F14 - input background */
     --theme-input-border: 215 18% 18%;    /* #252D38 - input border (NO GREEN) */
 
-    /* ==================== BRAND GREEN (INTENTIONAL USE ONLY) ==================== */
+    /* ==================== OLD MONEY GREEN (INTENTIONAL USE ONLY) ==================== */
     /* Use ONLY for: progress bars, active states, CTAs, success indicators */
-    --brand-green: 142 40% 59%;           /* #6DBE8B */
-    --brand-green-light: 142 40% 70%;     /* lighter variant */
-    --brand-green-dark: 142 40% 45%;      /* darker variant */
+    --brand-green: 158 40% 48%;           /* #4FB3A2 - elegant teal-green */
+    --brand-green-light: 158 40% 58%;     /* lighter variant */
+    --brand-green-dark: 158 40% 38%;      /* darker variant */
 
     /* ==================== CATEGORY COLORS - DARK (muted, no strong green) ==================== */
     --category-work: 210 50% 55%;         /* muted blue */
@@ -161,11 +161,11 @@
     --category-photo: 200 30% 50%;        /* muted cyan */
     --category-other: 210 15% 45%;        /* neutral gray */
 
-    /* ==================== INTENSITY SCALE - DARK (progress/success - GREEN ALLOWED) ==================== */
+    /* ==================== INTENSITY SCALE - DARK (progress/success - OLD MONEY GREEN) ==================== */
     --intensity-none: 215 15% 18%;        /* #2A2F36 - neutral gray */
-    --intensity-low: 142 40% 59% / 0.3;   /* #6DBE8B at 30% */
-    --intensity-medium: 142 40% 59% / 0.6;/* #6DBE8B at 60% */
-    --intensity-high: 142 40% 59%;        /* #6DBE8B full */
+    --intensity-low: 158 40% 48% / 0.3;   /* old money green at 30% */
+    --intensity-medium: 158 40% 48% / 0.6;/* old money green at 60% */
+    --intensity-high: 158 40% 48%;        /* old money green full */
 
     /* ==================== OVERLAY COLORS - DARK (NO GREEN) ==================== */
     --overlay-dark: 216 28% 4% / 0.9;
