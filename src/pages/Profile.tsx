@@ -15,6 +15,7 @@ import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
 import { FollowRequestsSection } from "@/components/FollowRequestsSection";
+import { FollowListModal } from "@/components/FollowListModal";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
@@ -39,6 +40,7 @@ const Profile = () => {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
+  const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
 
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
@@ -109,8 +111,18 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground">{profile?.bio || t('profile.defaultBio')}</p>
                 <div className="flex gap-4 mt-2 text-sm">
                   <span><strong>{stats?.postsCount || 0}</strong> {t('profile.posts')}</span>
-                  <span><strong>{stats?.followersCount || 0}</strong> {t('profile.followers')}</span>
-                  <span><strong>{stats?.followingCount || 0}</strong> {t('profile.following')}</span>
+                  <button 
+                    onClick={() => setFollowListType("followers")}
+                    className="hover:underline"
+                  >
+                    <strong>{stats?.followersCount || 0}</strong> {t('profile.followers')}
+                  </button>
+                  <button 
+                    onClick={() => setFollowListType("following")}
+                    className="hover:underline"
+                  >
+                    <strong>{stats?.followingCount || 0}</strong> {t('profile.following')}
+                  </button>
                 </div>
               </div>
             </div>
@@ -418,6 +430,15 @@ const Profile = () => {
         onOpenChange={setEditProfileOpen}
         profile={profile}
       />
+
+      {user && (
+        <FollowListModal
+          open={followListType !== null}
+          onOpenChange={(open) => !open && setFollowListType(null)}
+          userId={user.id}
+          type={followListType || "followers"}
+        />
+      )}
 
       <BottomNav />
     </div>
