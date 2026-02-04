@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
+import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
@@ -10,7 +12,7 @@ import { CreatePostDialog } from "@/components/CreatePostDialog";
 import { Plus, RefreshCw, Search, Hexagon, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
-
+import { cn } from "@/lib/utils";
 interface Post {
   id: string;
   user_id: string;
@@ -32,7 +34,8 @@ const Feed = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-
+  const device = useDevice();
+  const navPadding = useNavPadding();
   const { data: posts = [], isLoading, refetch } = useQuery({
     queryKey: ["posts", user?.id],
     queryFn: async () => {
@@ -143,21 +146,27 @@ const Feed = () => {
   }, [refetch]);
 
   return (
-    <div className="min-h-screen pb-20 relative bg-theme-bg">
+    <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
       {/* Watermark */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
         <Hexagon 
-          size={400} 
+          size={device.isDesktop ? 500 : device.isTablet ? 400 : 300} 
           strokeWidth={0.5}
           className="text-theme-borderSubtle opacity-12"
         />
       </div>
 
-      <div className="mx-auto max-w-2xl relative z-10">
+      <div className={cn(
+        "mx-auto relative z-10 transition-all duration-300",
+        device.isDesktop ? "max-w-3xl" : device.isTablet ? "max-w-2xl" : "max-w-full"
+      )}>
         <div className="sticky top-0 z-10 backdrop-blur bg-theme-bgElevated/80 border-b border-theme-borderSubtle">
-          <div className="flex items-center justify-between p-4">
-            <h1 className="text-2xl font-bold text-foreground">VYV</h1>
-            <div className="flex items-center gap-5">
+          <div className={cn(
+            "flex items-center justify-between transition-all",
+            device.isMobile ? "p-4" : "p-5"
+          )}>
+            <AdaptiveHeading level={1}>VYV</AdaptiveHeading>
+            <div className={cn("flex items-center", device.isMobile ? "gap-3" : "gap-5")}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -255,7 +264,7 @@ const Feed = () => {
         onOpenChange={setIsSearchOpen}
       />
 
-      <BottomNav />
+      <ResponsiveNav onCreatePost={() => setIsCreateOpen(true)} />
     </div>
   );
 };
