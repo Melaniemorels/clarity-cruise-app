@@ -14,6 +14,7 @@ import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
+import { FollowRequestsSection } from "@/components/FollowRequestsSection";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
@@ -118,6 +119,9 @@ const Profile = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Follow Requests Section - Only visible for private accounts */}
+        {profile?.is_private && <FollowRequestsSection />}
 
         {/* Today's Stats */}
         <div className="space-y-3">

@@ -460,5 +460,24 @@
       "blocks": "bloques",
       "generating": "Generando opciones..."
     }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "someone": "Alguien",
+    "newFollower": "{{name}} comenzó a seguirte",
+    "followRequest": "{{name}} quiere seguirte",
+    "requestAccepted": "{{name}} aceptó tu solicitud",
+    "requestRejected": "{{name}} rechazó tu solicitud",
+    "likedPost": "{{name}} le dio me gusta a tu publicación",
+    "commented": "{{name}} comentó tu publicación"
+  },
+  "followRequests": {
+    "title": "Solicitudes",
+    "empty": "No tienes solicitudes pendientes",
+    "accepted": "Solicitud aceptada",
+    "rejected": "Solicitud rechazada",
+    "error": "Error al procesar la solicitud"
   }
 }

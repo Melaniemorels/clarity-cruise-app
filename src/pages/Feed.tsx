@@ -12,6 +12,7 @@ import { PostItem } from "@/components/PostItem";
 import { QuickCamera } from "@/components/QuickCamera";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
@@ -148,7 +149,8 @@ const Feed = () => {
             device.isMobile ? "p-4" : "p-5"
           )}>
             <AdaptiveHeading level={1}>VYV</AdaptiveHeading>
-            <div className={cn("flex items-center", device.isMobile ? "gap-3" : "gap-5")}>
+            <div className={cn("flex items-center", device.isMobile ? "gap-2" : "gap-4")}>
+              <NotificationCenter />
               <Button
                 variant="ghost"
                 size="icon"
