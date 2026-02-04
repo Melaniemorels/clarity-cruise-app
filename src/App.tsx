@@ -19,7 +19,30 @@ import NotFound from "./pages/NotFound";
 
 import DeviceSettings from "./pages/DeviceSettings";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache data for 5 minutes before considering stale
+      staleTime: 1000 * 60 * 5,
+      // Keep unused data in cache for 30 minutes
+      gcTime: 1000 * 60 * 30,
+      // Retry failed requests up to 3 times with exponential backoff
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error?.status >= 400 && error?.status < 500) return false;
+        return failureCount < 3;
+      },
+      // Don't refetch on window focus in production for better UX
+      refetchOnWindowFocus: false,
+      // Don't refetch on reconnect automatically
+      refetchOnReconnect: 'always',
+    },
+    mutations: {
+      // Retry mutations once on network errors
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
