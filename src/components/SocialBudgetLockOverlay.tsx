@@ -49,11 +49,11 @@ export function SocialBudgetLockOverlay({
   const subtitleKey = `socialBudget.completedSubtitle${getDailySubtitleKey()}`;
 
   return (
-    <div className="absolute inset-0 z-20 bg-background/95 backdrop-blur-md flex items-center justify-center pointer-events-auto">
-      {/* Safe area padding for iOS */}
-      <div className="text-center p-6 max-w-sm mx-auto pb-safe">
+    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex items-center justify-center pointer-events-auto">
+      {/* Centered content with safe area padding */}
+      <div className="flex flex-col items-center justify-center text-center px-6 py-8 max-w-sm w-full pb-safe">
         {/* Calm icon */}
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="w-16 h-16 mb-6 rounded-full bg-primary/10 flex items-center justify-center">
           <Leaf className="w-7 h-7 text-primary" strokeWidth={1.5} />
         </div>
 
@@ -68,7 +68,7 @@ export function SocialBudgetLockOverlay({
         </p>
 
         {/* Action buttons with 48px min tap targets */}
-        <div className="space-y-3">
+        <div className="space-y-3 w-full">
           {/* Primary action - Return to Focus */}
           <Button
             onClick={handleReturnToFocus}

@@ -24,7 +24,6 @@ import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
-const COOLDOWN_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
 
 const Feed = () => {
@@ -71,6 +70,7 @@ const Feed = () => {
   const {
     isLimitReached,
     allowExtensions,
+    dailyLimitSeconds,
     startTracking,
     stopTracking,
     addExtension,
@@ -111,12 +111,16 @@ const Feed = () => {
     setShowBudgetModal(false);
   }, []);
 
-  // Callback when user returns to focus from overlay - sets 10 min cooldown
+  // Callback when user returns to focus from overlay - cooldown matches user's chosen limit
   const handleOverlayReturnToFocus = useCallback(() => {
-    const cooldownEnd = Date.now() + COOLDOWN_DURATION;
+    // Use the user's daily limit as cooldown duration (in ms)
+    const cooldownDuration = dailyLimitSeconds === Infinity 
+      ? 15 * 60 * 1000  // Default 15 min if unlimited
+      : dailyLimitSeconds * 1000;
+    const cooldownEnd = Date.now() + cooldownDuration;
     localStorage.setItem(COOLDOWN_STORAGE_KEY, cooldownEnd.toString());
     setIsInCooldown(true);
-  }, []);
+  }, [dailyLimitSeconds]);
 
   const { 
     data, 
