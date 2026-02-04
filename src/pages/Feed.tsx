@@ -24,6 +24,8 @@ import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const COOLDOWN_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
 
 const Feed = () => {
   const { t } = useTranslation();
@@ -35,9 +37,35 @@ const Feed = () => {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [showMotivationalCard, setShowMotivationalCard] = useState(false);
   const [hasReachedLimitThisSession, setHasReachedLimitThisSession] = useState(false);
+  const [isInCooldown, setIsInCooldown] = useState(false);
   const device = useDevice();
   const navPadding = useNavPadding();
   const lastRefreshRef = useRef<number>(Date.now());
+
+  // Check and manage cooldown state
+  useEffect(() => {
+    const checkCooldown = () => {
+      const cooldownEnd = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+      if (cooldownEnd) {
+        const endTime = parseInt(cooldownEnd, 10);
+        if (Date.now() < endTime) {
+          setIsInCooldown(true);
+          // Set timeout to clear cooldown when it expires
+          const remainingTime = endTime - Date.now();
+          const timeoutId = setTimeout(() => {
+            setIsInCooldown(false);
+            localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+          }, remainingTime);
+          return () => clearTimeout(timeoutId);
+        } else {
+          // Cooldown has expired
+          localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+          setIsInCooldown(false);
+        }
+      }
+    };
+    checkCooldown();
+  }, []);
 
   // Social budget tracking
   const {
@@ -56,14 +84,14 @@ const Feed = () => {
     };
   }, [startTracking, stopTracking]);
 
-  // Show modal when limit is reached
+  // Show modal when limit is reached (but respect cooldown)
   useEffect(() => {
-    if (isLimitReached && !showBudgetModal && !hasReachedLimitThisSession) {
+    if (isLimitReached && !showBudgetModal && !hasReachedLimitThisSession && !isInCooldown) {
       setShowBudgetModal(true);
       setHasReachedLimitThisSession(true);
       setShowMotivationalCard(true);
     }
-  }, [isLimitReached, showBudgetModal, hasReachedLimitThisSession]);
+  }, [isLimitReached, showBudgetModal, hasReachedLimitThisSession, isInCooldown]);
 
   // Reset motivational card flag when extending time
   useEffect(() => {
@@ -81,8 +109,14 @@ const Feed = () => {
 
   const handleReturnToFocus = useCallback(() => {
     setShowBudgetModal(false);
-    navigate("/");
-  }, [navigate]);
+  }, []);
+
+  // Callback when user returns to focus from overlay - sets 10 min cooldown
+  const handleOverlayReturnToFocus = useCallback(() => {
+    const cooldownEnd = Date.now() + COOLDOWN_DURATION;
+    localStorage.setItem(COOLDOWN_STORAGE_KEY, cooldownEnd.toString());
+    setIsInCooldown(true);
+  }, []);
 
   const { 
     data, 
@@ -234,11 +268,12 @@ const Feed = () => {
             onDismiss={() => setShowMotivationalCard(false)}
           />
 
-          {/* Calm overlay when limit reached */}
+          {/* Calm overlay when limit reached (respect cooldown) */}
           <SocialBudgetLockOverlay 
-            visible={isLimitReached} 
+            visible={isLimitReached && !isInCooldown} 
             allowExtensions={allowExtensions}
             onExtend={handleExtendTime}
+            onReturnToFocus={handleOverlayReturnToFocus}
           />
 
           {/* Only show feed content when not locked */}
