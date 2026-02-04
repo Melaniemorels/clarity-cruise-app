@@ -92,6 +92,7 @@ export default {
           cardBg: "hsl(var(--theme-card-bg))",
           textPrimary: "hsl(var(--theme-text-primary))",
           textSecondary: "hsl(var(--theme-text-secondary))",
+          textTertiary: "hsl(var(--theme-text-tertiary))",
           accentPrimary: "hsl(var(--theme-accent-primary))",
           accentHighlight: "hsl(var(--theme-accent-highlight))",
           borderSubtle: "hsl(var(--theme-border-subtle))",
