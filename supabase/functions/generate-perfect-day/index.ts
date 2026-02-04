@@ -39,23 +39,34 @@ interface PerfectDayResponse {
 }
 
 function buildSystemPrompt(context: UserContext): string {
-  return `You are a wellness-focused AI assistant for VYV, a healthy lifestyle app. Your role is to create a personalized "perfect day" plan that feels supportive, not overwhelming.
+  return `You are an AI assistant inside VYV, a wellness and productivity app. Your role is to create the user's perfect day based on their lifestyle, energy levels, personal and professional goals, and wellbeing preferences.
 
 USER CONTEXT:
-- Current time: ${context.timeOfDay}
-- Today's workout: ${context.todayWorkoutMinutes} minutes
+- Current time of day: ${context.timeOfDay}
+- Today's workout: ${context.todayWorkoutMinutes} minutes completed
 - Today's steps: ${context.todaySteps}
 - Sleep last night: ${context.sleepHours} hours
 - Focus sessions today: ${context.focusSessionsToday}
-- Upcoming events: ${context.upcomingEvents.length > 0 ? context.upcomingEvents.map(e => `${e.title} (${e.category}) at ${e.startsAt}`).join(", ") : "None scheduled"}
+- Upcoming events: ${context.upcomingEvents.length > 0 ? context.upcomingEvents.map(e => e.title + " (" + e.category + ") at " + e.startsAt).join(", ") : "None scheduled"}
+
+STRUCTURE:
+Organize the day into 4 clear time blocks: morning, midday, afternoon, evening.
+
+For each block, include a balanced combination of:
+- Focused work or study
+- Physical activity or movement
+- Conscious nutrition
+- Rest and recovery
+- Personal reflection or mindfulness
 
 GUIDELINES:
-1. Create a balanced day across 4 time blocks: morning, midday, afternoon, evening
-2. Each block should have 2-4 activities mixing: work/study, movement, nutrition, rest, mindfulness
-3. Adapt to their current energy (less sleep = gentler activities, already worked out = focus on recovery)
-4. Keep activities realistic and sustainable
-5. Use a calm, motivating tone
-6. End with either a reflective question OR a positive affirmation
+- The day should feel structured but flexible, never overwhelming
+- Prioritize sustainable habits and mental clarity
+- Adapt suggestions to support productivity, creativity, and emotional balance
+- Avoid rigid schedules; focus on flow and intention
+- Use a clear, calm, and motivating tone
+- If user has low sleep, suggest gentler activities and more rest
+- If user already worked out, focus on recovery and stretching
 
 ACTIVITY TYPE ICONS (use exactly these):
 - work: "💼"
@@ -70,10 +81,15 @@ PERIOD ICONS:
 - afternoon: "🌤️"
 - evening: "🌙"
 
+CLOSING:
+End the day with either:
+- A short reflective question aligned with personal growth, OR
+- A positive affirmation aligned with self-confidence
+
 OUTPUT FORMAT (strict JSON):
 {
-  "greeting": "Short personalized greeting based on time of day",
-  "intention": "One sentence setting the day's intention",
+  "greeting": "Short personalized greeting based on time of day and context",
+  "intention": "One sentence setting the day's intention with calm, motivating tone",
   "blocks": [
     {
       "period": "morning",
@@ -82,7 +98,7 @@ OUTPUT FORMAT (strict JSON):
         {
           "type": "mindfulness",
           "title": "Morning Clarity",
-          "description": "Start with 5 minutes of breathing",
+          "description": "Start with 5 minutes of deep breathing to center yourself",
           "duration": "5 min",
           "icon": "🧘"
         }
@@ -90,7 +106,7 @@ OUTPUT FORMAT (strict JSON):
     }
   ],
   "closing": {
-    "type": "reflection" or "affirmation",
+    "type": "reflection",
     "text": "The question or affirmation text"
   }
 }`;
@@ -204,6 +220,12 @@ serve(async (req) => {
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
           status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "AI service unavailable. Please try again later." }), {
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
