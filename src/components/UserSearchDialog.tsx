@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sheet,
@@ -21,13 +22,20 @@ interface UserSearchDialogProps {
 export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: users = [], isLoading } = useSearchProfiles(searchQuery, open);
   const followMutation = useFollow();
 
-  const handleFollow = (userId: string, isFollowing: boolean) => {
+  const handleFollow = (e: React.MouseEvent, userId: string, isFollowing: boolean) => {
+    e.stopPropagation(); // Prevent navigation when clicking follow button
     followMutation.mutate({ targetUserId: userId, isFollowing });
+  };
+
+  const handleNavigateToProfile = (userId: string) => {
+    onOpenChange(false);
+    navigate(`/profile/${userId}`);
   };
 
   return (
@@ -80,7 +88,8 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
               {users.map((searchUser) => (
                 <div
                   key={searchUser.id}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors active:scale-[0.98]"
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors active:scale-[0.98] cursor-pointer"
+                  onClick={() => handleNavigateToProfile(searchUser.user_id)}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-12 w-12 flex-shrink-0">
@@ -90,7 +99,7 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate text-base">
+                      <p className="font-semibold truncate text-base hover:underline">
                         @{searchUser.handle}
                       </p>
                       {searchUser.name && (
@@ -103,7 +112,7 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
                   <Button
                     size="sm"
                     variant={searchUser.is_following ? "outline" : "default"}
-                    onClick={() => handleFollow(searchUser.user_id, searchUser.is_following)}
+                    onClick={(e) => handleFollow(e, searchUser.user_id, searchUser.is_following)}
                     disabled={followMutation.isPending}
                     className="flex-shrink-0 h-9 px-4"
                   >
