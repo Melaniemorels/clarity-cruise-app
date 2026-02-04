@@ -103,79 +103,79 @@
 
   .dark {
     /* ==================== CORE PALETTE - DARK ==================== */
-    /* VYV Dark Mode: Calm – luxury wellness – cohesive dark surfaces */
-    --background: 170 33% 8%;             /* #0F1A1A - main dark background */
-    --foreground: 168 33% 93%;            /* #E6F2F1 - primary text */
+    /* VYV Dark Mode: Old money – elegant – deep black – zero green tint */
+    --background: 216 28% 6%;             /* #0B0F14 - deep black */
+    --foreground: 210 20% 92%;            /* #E8EBED - primary text */
 
-    --card: 170 27% 11%;                  /* #162424 - modal/card background */
-    --card-foreground: 168 33% 93%;       /* #E6F2F1 */
+    --card: 215 25% 10%;                  /* #151A21 - card/modal background */
+    --card-foreground: 210 20% 92%;       /* #E8EBED */
 
-    --popover: 170 27% 11%;               /* #162424 - modal background */
-    --popover-foreground: 168 33% 93%;    /* #E6F2F1 */
+    --popover: 215 25% 10%;               /* #151A21 - modal background */
+    --popover-foreground: 210 20% 92%;    /* #E8EBED */
 
-    --primary: 168 38% 51%;               /* #4FB3A2 - accent green */
-    --primary-foreground: 170 33% 8%;     /* dark text on primary */
+    --primary: 210 15% 55%;               /* #7A8A99 - muted accent */
+    --primary-foreground: 216 28% 6%;     /* dark text on primary */
 
-    --secondary: 170 27% 17%;             /* #1F3A38 - elevated surfaces */
-    --secondary-foreground: 168 33% 93%;  /* #E6F2F1 */
+    --secondary: 215 20% 15%;             /* #1F2933 - elevated surfaces */
+    --secondary-foreground: 210 20% 92%;  /* #E8EBED */
 
-    --muted: 170 33% 8%;                  /* #0F1A1A - input background */
-    --muted-foreground: 168 15% 62%;      /* #8FAEAA - secondary text */
+    --muted: 216 28% 6%;                  /* #0B0F14 - input background */
+    --muted-foreground: 210 10% 55%;      /* #838B93 - secondary text */
 
-    --accent: 168 38% 51%;                /* #4FB3A2 */
-    --accent-foreground: 170 33% 8%;
+    --accent: 210 15% 55%;                /* #7A8A99 */
+    --accent-foreground: 216 28% 6%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 170 30% 17%;                /* #1F3A38 - modal border */
-    --input: 169 29% 24%;                 /* #2C4F4A - input border */
-    --ring: 168 38% 51%;                  /* #4FB3A2 */
+    --border: 215 20% 15%;                /* #1F2933 - neutral gray border */
+    --input: 215 18% 18%;                 /* #252D38 - input border */
+    --ring: 210 15% 55%;                  /* #7A8A99 */
     
     /* ==================== SEMANTIC THEME TOKENS - DARK ==================== */
-    --theme-bg: 170 33% 8%;               /* #0F1A1A */
-    --theme-bg-elevated: 170 27% 11%;     /* #162424 */
-    --theme-card-bg: 170 27% 11%;         /* #162424 */
-    --theme-text-primary: 168 33% 93%;    /* #E6F2F1 */
-    --theme-text-secondary: 168 15% 62%;  /* #8FAEAA */
-    --theme-text-tertiary: 168 15% 50%;   /* muted text */
-    --theme-accent-primary: 168 38% 51%;  /* #4FB3A2 */
-    --theme-accent-highlight: 168 38% 51%;/* #4FB3A2 */
-    --theme-border-subtle: 170 30% 17%;   /* #1F3A38 */
-    --theme-tab-bg: 170 33% 8%;           /* #0F1A1A */
-    --theme-tab-icon-active: 168 38% 51%; /* #4FB3A2 */
-    --theme-tab-icon-inactive: 168 15% 50%;/* muted */
-    --theme-input-bg: 170 33% 8%;         /* #0F1A1A - input background */
-    --theme-input-border: 169 29% 24%;    /* #2C4F4A - input border */
+    --theme-bg: 216 28% 6%;               /* #0B0F14 */
+    --theme-bg-elevated: 215 25% 10%;     /* #151A21 */
+    --theme-card-bg: 215 25% 10%;         /* #151A21 */
+    --theme-text-primary: 210 20% 92%;    /* #E8EBED */
+    --theme-text-secondary: 210 10% 55%;  /* #838B93 */
+    --theme-text-tertiary: 210 10% 45%;   /* muted text */
+    --theme-accent-primary: 210 15% 55%;  /* #7A8A99 */
+    --theme-accent-highlight: 210 20% 65%;/* lighter accent */
+    --theme-border-subtle: 215 20% 15%;   /* #1F2933 */
+    --theme-tab-bg: 216 28% 6%;           /* #0B0F14 */
+    --theme-tab-icon-active: 210 20% 92%; /* #E8EBED */
+    --theme-tab-icon-inactive: 210 10% 45%;/* muted */
+    --theme-input-bg: 216 28% 6%;         /* #0B0F14 - input background */
+    --theme-input-border: 215 18% 18%;    /* #252D38 - input border */
 
     /* ==================== BRAND COLORS - DARK ==================== */
-    --luxury-emerald: 168 38% 51%;        /* #4FB3A2 */
-    --luxury-emerald-light: 168 38% 60%;
-    --luxury-emerald-dark: 168 38% 40%;
-    --luxury-chocolate: 25 80% 30%;
-    --luxury-navy: 220 100% 30%;
-    --luxury-white: 168 33% 93%;          /* #E6F2F1 */
-    --luxury-black: 170 33% 8%;           /* #0F1A1A */
+    --luxury-emerald: 210 15% 55%;        /* muted silver-gray */
+    --luxury-emerald-light: 210 15% 65%;
+    --luxury-emerald-dark: 210 15% 45%;
+    --luxury-chocolate: 25 20% 25%;
+    --luxury-navy: 216 28% 6%;            /* #0B0F14 */
+    --luxury-white: 210 20% 92%;          /* #E8EBED */
+    --luxury-black: 216 28% 6%;           /* #0B0F14 */
 
     /* ==================== CATEGORY COLORS - DARK ==================== */
-    --category-work: 217 91% 65%;
-    --category-sport: 142 71% 50%;
-    --category-health: 168 38% 51%;       /* #4FB3A2 */
-    --category-study: 262 83% 65%;
-    --category-reading: 25 95% 60%;
-    --category-social: 330 81% 65%;
-    --category-photo: 168 38% 51%;        /* #4FB3A2 */
-    --category-other: 168 30% 40%;
+    --category-work: 210 50% 55%;         /* muted blue */
+    --category-sport: 150 30% 45%;        /* muted green */
+    --category-health: 210 15% 55%;       /* silver-gray */
+    --category-study: 260 40% 55%;        /* muted purple */
+    --category-reading: 30 50% 50%;       /* muted orange */
+    --category-social: 330 40% 55%;       /* muted pink */
+    --category-photo: 200 30% 50%;        /* muted cyan */
+    --category-other: 210 15% 45%;        /* gray */
 
     /* ==================== INTENSITY SCALE - DARK ==================== */
-    --intensity-none: 170 20% 20%;        /* muted gray for progress bg */
-    --intensity-low: 168 38% 51% / 0.3;
-    --intensity-medium: 168 38% 51% / 0.6;
-    --intensity-high: 168 38% 51%;
+    --intensity-none: 215 15% 18%;        /* #2A2F36 - muted gray */
+    --intensity-low: 210 15% 55% / 0.3;
+    --intensity-medium: 210 15% 55% / 0.6;
+    --intensity-high: 210 15% 55%;
 
     /* ==================== OVERLAY COLORS - DARK ==================== */
-    --overlay-dark: 170 33% 5% / 0.9;
-    --overlay-light: 168 33% 93% / 0.05;
+    --overlay-dark: 216 28% 4% / 0.9;
+    --overlay-light: 210 20% 92% / 0.05;
   }
 }
 
@@ -184,8 +184,12 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    @apply bg-background min-h-screen;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: 'Poppins', system-ui, sans-serif;
     letter-spacing: 0.025em;
   }
@@ -198,6 +202,31 @@
   p, span, div {
     font-weight: 400;
     letter-spacing: 0.025em;
+  }
+
+  /* ==================== SCROLLBAR STYLING ==================== */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--background));
   }
 }
 
