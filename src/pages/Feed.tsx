@@ -14,7 +14,7 @@ import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import { Plus, Search, Camera, Loader2 } from "lucide-react";
+import { Plus, Search, Camera, Loader2, Hexagon } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
 import { useInfinitePosts } from "@/hooks/use-posts";
@@ -216,15 +216,22 @@ const Feed = () => {
 
   return (
     <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
-      {/* Watermark - subtle old money logo behind posts */}
+      {/* Watermark - subtle old money: hexagon + logo behind posts */}
       {!isLimitReached && !isLoading && posts.length > 0 && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+          {/* Hexagon outline */}
+          <Hexagon 
+            size={device.isDesktop ? 500 : device.isTablet ? 400 : 300} 
+            strokeWidth={0.5}
+            className="text-theme-borderSubtle opacity-[0.08] absolute"
+          />
+          {/* Logo centered inside */}
           <img 
             src={vyvIcon} 
             alt="" 
-            className="opacity-[0.04] grayscale"
+            className="opacity-[0.04] grayscale absolute"
             style={{
-              width: device.isDesktop ? '400px' : device.isTablet ? '320px' : '240px',
+              width: device.isDesktop ? '120px' : device.isTablet ? '100px' : '80px',
               height: 'auto',
             }}
           />
