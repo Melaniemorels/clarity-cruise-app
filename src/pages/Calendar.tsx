@@ -12,10 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, getDaysInMonth, getDay, setDate, isToday, isFuture } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const Calendar = () => {
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [eventModalOpen, setEventModalOpen] = useState(false);
@@ -27,8 +29,16 @@ const Calendar = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en';
+  const dateLocale = lang === 'es' ? es : enUS;
+  
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const daysShort = lang === 'es' 
+    ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayLetters = lang === 'es'
+    ? ['D', 'L', 'M', 'M', 'J', 'V', 'S']
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   // Fetch events from database
   const { data: events = [], isLoading } = useQuery({
@@ -100,10 +110,10 @@ const Calendar = () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
       setEventModalOpen(false);
       setSelectedEvent(null);
-      toast.success(selectedEvent ? "Evento actualizado" : "Evento creado");
+      toast.success(selectedEvent ? t('event.eventUpdated') : t('event.eventCreated'));
     },
     onError: (error: any) => {
-      toast.error(error.message || "Error al guardar evento");
+      toast.error(error.message || t('event.errors.saveError'));
     },
   });
 
@@ -119,10 +129,10 @@ const Calendar = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      toast.success("Evento eliminado");
+      toast.success(t('event.eventDeleted'));
     },
     onError: (error: any) => {
-      toast.error(error.message || "Error al eliminar evento");
+      toast.error(error.message || t('event.errors.deleteError'));
     },
   });
 
@@ -191,11 +201,11 @@ const Calendar = () => {
     const eventEnd = new Date(event.ends_at).getTime();
     
     if (photoHour >= eventStart && photoHour <= eventEnd) {
-      return { event, relation: 'durante' };
+      return { event, relation: t('calendar.during') };
     } else if (photoHour < eventStart) {
-      return { event, relation: 'antes de' };
+      return { event, relation: t('calendar.before') };
     } else {
-      return { event, relation: 'después de' };
+      return { event, relation: t('calendar.after') };
     }
   };
 
@@ -253,9 +263,9 @@ const Calendar = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Calendario</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('calendar.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              {format(currentDate, "d 'de' MMMM, yyyy", { locale: es })}
+              {format(currentDate, lang === 'es' ? "d 'de' MMMM, yyyy" : "MMMM d, yyyy", { locale: dateLocale })}
             </p>
           </div>
           <Button size="icon" onClick={() => handleNewEvent()}>
@@ -266,9 +276,9 @@ const Calendar = () => {
         {/* View Tabs */}
         <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="day">Día</TabsTrigger>
-            <TabsTrigger value="week">Semana</TabsTrigger>
-            <TabsTrigger value="month">Mes</TabsTrigger>
+            <TabsTrigger value="day">{t('calendar.day')}</TabsTrigger>
+            <TabsTrigger value="week">{t('calendar.week')}</TabsTrigger>
+            <TabsTrigger value="month">{t('calendar.month')}</TabsTrigger>
           </TabsList>
 
           {/* Day View */}
@@ -278,7 +288,7 @@ const Calendar = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="ghost" onClick={goToToday} className="font-semibold">
-                Hoy
+                {t('common.today')}
               </Button>
               <Button variant="outline" size="icon" onClick={goToNext}>
                 <ChevronRight className="h-4 w-4" />
@@ -288,7 +298,7 @@ const Calendar = () => {
             <Card>
               <CardContent className="p-0">
                 {isLoading ? (
-                  <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+                  <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
                   <div className="max-h-[60vh] overflow-y-auto">
                     {hours.map((hour) => {
@@ -305,7 +315,7 @@ const Calendar = () => {
                       return (
                         <div key={hour} className="flex border-b border-border">
                           <div className="w-16 flex-shrink-0 p-2 text-xs text-muted-foreground text-right">
-                            {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                            {hour === 0 ? `12 ${t('time.am')}` : hour < 12 ? `${hour} ${t('time.am')}` : hour === 12 ? `12 ${t('time.pm')}` : `${hour - 12} ${t('time.pm')}`}
                           </div>
                           <div className="flex-1 min-h-[60px] p-2 relative space-y-1">
                             {/* Regular events */}
@@ -345,14 +355,14 @@ const Calendar = () => {
                                   <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
                                     <img 
                                       src={photo.photo_url} 
-                                      alt="Captura"
+                                      alt={t('calendar.capture')}
                                       className="w-full h-full object-cover"
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium flex items-center gap-1">
                                       <Camera className="h-3 w-3" />
-                                      Captura instantánea
+                                      {t('calendar.instantCapture')}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                       {format(photoTime, "HH:mm")}
@@ -378,14 +388,14 @@ const Calendar = () => {
             {/* Health Overlay */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-3">Today's Activity</h3>
+                <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Steps</span>
+                    <span className="text-muted-foreground">{t('calendar.steps')}</span>
                     <span className="font-semibold">8,432 / 10,000</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Workout</span>
+                    <span className="text-muted-foreground">{t('calendar.workout')}</span>
                     <span className="font-semibold">45 / 60 min</span>
                   </div>
                 </div>
@@ -400,7 +410,7 @@ const Calendar = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="font-semibold">
-                Semana del {format(startOfWeek(currentDate, { weekStartsOn: 1 }), "d MMM", { locale: es })}
+                {t('calendar.weekOf', { date: format(startOfWeek(currentDate, { weekStartsOn: 1 }), lang === 'es' ? "d MMM" : "MMM d", { locale: dateLocale }) })}
               </span>
               <Button variant="outline" size="icon" onClick={goToNext}>
                 <ChevronRight className="h-4 w-4" />
@@ -411,7 +421,7 @@ const Calendar = () => {
               <CardContent className="p-0">
                 <div className="grid grid-cols-8 border-b border-border">
                   <div className="p-2" />
-                  {days.map((day, i) => (
+                  {daysShort.map((day, i) => (
                     <div key={i} className="p-2 text-center text-xs font-medium">
                       <div className="text-muted-foreground">{day}</div>
                       <div className={`mt-1 ${i === 4 ? 'text-primary font-bold' : ''}`}>
@@ -425,9 +435,9 @@ const Calendar = () => {
                   {Array.from({ length: 12 }, (_, i) => i + 7).map((hour) => (
                     <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[60px]">
                       <div className="p-2 text-xs text-muted-foreground text-right">
-                        {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
+                        {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
                       </div>
-                      {days.map((_, i) => (
+                      {daysShort.map((_, i) => (
                         <div key={i} className="border-l border-border p-1">
                           {i === 4 && hour === 7 && (
                             <div className="bg-primary/20 border-l-2 border-primary rounded text-xs p-1">
@@ -450,7 +460,7 @@ const Calendar = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="font-semibold">
-                {format(currentDate, "MMMM yyyy", { locale: es })}
+                {format(currentDate, "MMMM yyyy", { locale: dateLocale })}
               </span>
               <Button variant="outline" size="icon" onClick={goToNext}>
                 <ChevronRight className="h-4 w-4" />
@@ -460,7 +470,7 @@ const Calendar = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
+                  {dayLetters.map((day, i) => (
                     <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
                       {day}
                     </div>
@@ -532,7 +542,7 @@ const Calendar = () => {
         {/* Quick Add Button */}
         <Button className="w-full" size="lg" onClick={() => handleNewEvent()}>
           <Plus className="h-5 w-5 mr-2" />
-          Agregar Evento
+          {t('daySummary.addEvent')}
         </Button>
 
         {/* Day Summary Modal */}
@@ -565,7 +575,7 @@ const Calendar = () => {
             {selectedPhoto && (
               <img 
                 src={selectedPhoto} 
-                alt="Captura instantánea"
+                alt={t('calendar.instantCapture')}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
             )}
@@ -579,8 +589,8 @@ const Calendar = () => {
               <Lock className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">Focus Mode</h2>
-              <p className="text-xs text-muted-foreground">Time well spent</p>
+              <h2 className="text-xl font-bold text-foreground">{t('calendar.focusMode')}</h2>
+              <p className="text-xs text-muted-foreground">{t('calendar.timeWellSpent')}</p>
             </div>
           </div>
 
@@ -591,31 +601,31 @@ const Calendar = () => {
                 <div className="text-4xl font-bold text-foreground mb-2">
                   {dailyMinutes - usedMinutes} min
                 </div>
-                <p className="text-sm text-muted-foreground">Remaining today</p>
+                <p className="text-sm text-muted-foreground">{t('calendar.remainingToday')}</p>
               </div>
               
               <Progress value={(usedMinutes / dailyMinutes) * 100} className="h-2 mb-2" />
               
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{usedMinutes} min used</span>
-                <span>{dailyMinutes} min daily</span>
+                <span>{usedMinutes} {t('calendar.minUsed')}</span>
+                <span>{dailyMinutes} {t('calendar.minDaily')}</span>
               </div>
               
               <Button className="w-full mt-4" variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
-                Extend Time (+5 min)
+                {t('calendar.extendTime')}
               </Button>
             </CardContent>
           </Card>
 
           {/* Module Breakdown */}
           <div className="space-y-3">
-            <h3 className="font-semibold">Module Time</h3>
+            <h3 className="font-semibold">{t('calendar.moduleTime')}</h3>
             
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Feed</span>
+                  <span className="font-medium">{t('nav.feed')}</span>
                   <span className="text-sm text-muted-foreground">{feedUsed}/{feedMinutes} min</span>
                 </div>
                 <Progress value={(feedUsed / feedMinutes) * 100} className="h-2" />
@@ -625,7 +635,7 @@ const Calendar = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Explore</span>
+                  <span className="font-medium">{t('nav.explore')}</span>
                   <span className="text-sm text-muted-foreground">{exploreUsed}/{exploreMinutes} min</span>
                 </div>
                 <Progress value={(exploreUsed / exploreMinutes) * 100} className="h-2" />
@@ -635,8 +645,8 @@ const Calendar = () => {
             <Card className="bg-muted/30">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">Calendar & Profile</span>
-                  <span className="text-sm text-primary font-semibold">Unlimited</span>
+                  <span className="font-medium">{t('calendar.calendarAndProfile')}</span>
+                  <span className="text-sm text-primary font-semibold">{t('calendar.unlimited')}</span>
                 </div>
               </CardContent>
             </Card>
@@ -645,7 +655,7 @@ const Calendar = () => {
           {/* Weekly Time Saved */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="font-semibold mb-4">Time Saved This Week</h3>
+              <h3 className="font-semibold mb-4">{t('calendar.timeSavedThisWeek')}</h3>
               
               <div className="flex items-end justify-between gap-2 h-48 mb-4">
                 {weeklyData.map((data, i) => (
@@ -656,7 +666,7 @@ const Calendar = () => {
                         style={{ height: `${(data.saved / data.goal) * 100}%` }}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground">{data.day}</div>
+                    <div className="text-xs text-muted-foreground">{daysShort[i]}</div>
                   </div>
                 ))}
               </div>
@@ -665,7 +675,7 @@ const Calendar = () => {
                 <div className="text-2xl font-bold text-primary mb-1">
                   {weeklyData.reduce((acc, d) => acc + d.saved, 0)} min
                 </div>
-                <p className="text-sm text-muted-foreground">Total time saved</p>
+                <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
               </div>
             </CardContent>
           </Card>
@@ -673,19 +683,19 @@ const Calendar = () => {
           {/* Settings */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-3">Settings</h3>
+              <h3 className="font-semibold mb-3">{t('settings.title')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>Daily Cap</span>
-                  <span className="text-muted-foreground">{dailyMinutes} minutes</span>
+                  <span>{t('calendar.dailyCap')}</span>
+                  <span className="text-muted-foreground">{dailyMinutes} {t('calendar.minutes')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>Feed Cap</span>
-                  <span className="text-muted-foreground">{feedMinutes} minutes</span>
+                  <span>{t('calendar.feedCap')}</span>
+                  <span className="text-muted-foreground">{feedMinutes} {t('calendar.minutes')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>Explore Cap</span>
-                  <span className="text-muted-foreground">{exploreMinutes} minutes</span>
+                  <span>{t('calendar.exploreCap')}</span>
+                  <span className="text-muted-foreground">{exploreMinutes} {t('calendar.minutes')}</span>
                 </div>
               </div>
             </CardContent>

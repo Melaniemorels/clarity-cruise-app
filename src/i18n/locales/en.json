@@ -107,7 +107,20 @@
     "during": "during",
     "before": "before",
     "after": "after",
-    "noEvents": "No events"
+    "noEvents": "No events",
+    "timeWellSpent": "Time well spent",
+    "remainingToday": "Remaining today",
+    "minUsed": "min used",
+    "minDaily": "min daily",
+    "extendTime": "Extend time (+5 min)",
+    "moduleTime": "Module time",
+    "calendarAndProfile": "Calendar & Profile",
+    "unlimited": "Unlimited",
+    "totalTimeSaved": "Total time saved",
+    "dailyCap": "Daily cap",
+    "feedCap": "Feed cap",
+    "exploreCap": "Explore cap",
+    "minutes": "minutes"
   },
   "profile": {
     "title": "Profile",
