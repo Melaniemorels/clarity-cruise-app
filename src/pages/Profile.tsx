@@ -2,40 +2,20 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity, Lock, Globe, Languages } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/components/ThemeProvider";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { useNavigate } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
-import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
-import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
-
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { FollowListModal } from "@/components/FollowListModal";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
-import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
+import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
 import { useTranslation } from "react-i18next";
-import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { currentLanguage, changeLanguage } = useLanguage();
-  const { signOut, user } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -46,7 +26,6 @@ const Profile = () => {
   const { data: entries = [] } = useUserEntries();
   const { data: profile } = useProfile();
   const { data: stats } = useProfileStats();
-  const updateProfileMutation = useUpdateProfile();
 
   const healthData = {
     steps: { value: 8432, goal: 10000, label: t('calendar.steps') },
@@ -78,10 +57,6 @@ const Profile = () => {
     const date = subDays(new Date(), 27 - dayIndex);
     setSelectedDate(date);
     setActivityModalOpen(true);
-  };
-
-  const handlePrivacyChange = (isPrivate: boolean) => {
-    updateProfileMutation.mutate({ is_private: isPrivate });
   };
 
   return (
@@ -239,174 +214,11 @@ const Profile = () => {
       </div>
 
       {/* Settings Dialog */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>{t('settings.title')}</DialogTitle>
-          </DialogHeader>
-          
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
-            {/* Theme Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {theme === "dark" ? (
-                  <Moon className="h-5 w-5 text-primary" />
-                ) : (
-                  <Sun className="h-5 w-5 text-primary" />
-                )}
-                <div>
-                  <Label className="text-base">{t('settings.darkMode')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {theme === "dark" ? t('settings.nightModeActive') : t('settings.dayModeActive')}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              />
-            </div>
-
-            <Separator />
-
-            {/* Language Selector */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Languages className="h-5 w-5 text-primary" />
-                <div>
-                  <Label className="text-base">{t('settings.language')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('settings.languageDesc')}
-                  </p>
-                </div>
-              </div>
-              <Select value={currentLanguage} onValueChange={changeLanguage}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUPPORTED_LANGUAGES.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.nativeName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Separator />
-
-            {/* Privacy Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {profile?.is_private ? (
-                  <Lock className="h-5 w-5 text-primary" />
-                ) : (
-                  <Globe className="h-5 w-5 text-primary" />
-                )}
-                <div>
-                  <Label className="text-base">{t('settings.privateProfile')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {profile?.is_private 
-                      ? t('settings.privateProfileDesc')
-                      : t('settings.publicProfileDesc')}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={profile?.is_private ?? false}
-                onCheckedChange={handlePrivacyChange}
-                disabled={updateProfileMutation.isPending}
-              />
-            </div>
-
-            <Separator />
-
-            {/* Section Visibility Controls */}
-            <SectionVisibilitySettings />
-
-            <Separator />
-
-            {/* Social Budget Settings */}
-            <SocialBudgetSettings />
-
-            <Separator />
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-3"
-              onClick={() => {
-                setSettingsOpen(false);
-                navigate("/device-settings");
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <Activity className="h-5 w-5 text-primary" />
-                <div className="text-left">
-                  <div className="text-base">{t('settings.healthDevices')}</div>
-                  <div className="text-sm text-muted-foreground">{t('settings.healthDevicesDesc')}</div>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </Button>
-
-            <Separator />
-
-            {/* Legal Section */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">{t('settings.legal')}</h3>
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-between h-auto py-3"
-                  onClick={() => {
-                    setSettingsOpen(false);
-                    navigate("/privacy-policy");
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <div className="text-left">
-                      <div className="text-base">{t('auth.privacyPolicy')}</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full justify-between h-auto py-3"
-                  onClick={() => {
-                    setSettingsOpen(false);
-                    navigate("/terms-of-use");
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Scale className="h-5 w-5 text-primary" />
-                    <div className="text-left">
-                      <div className="text-base">{t('auth.termsOfUse')}</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Button>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Sign Out */}
-            <Button 
-              variant="destructive" 
-              className="w-full"
-              onClick={signOut}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {t('auth.signOut')}
-            </Button>
-          </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        onEditProfile={() => setEditProfileOpen(true)}
+      />
 
       <DailyActivityModal 
         open={activityModalOpen}
