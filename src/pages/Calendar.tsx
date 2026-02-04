@@ -7,10 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { EventModal } from "@/components/EventModal";
+import { DaySummaryModal } from "@/components/DaySummaryModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
+import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, getDaysInMonth, getDay, setDate, isToday, isFuture } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -21,6 +22,8 @@ const Calendar = () => {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [newEventDate, setNewEventDate] = useState<Date | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [daySummaryOpen, setDaySummaryOpen] = useState(false);
+  const [summaryDate, setSummaryDate] = useState<Date | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
@@ -204,7 +207,14 @@ const Calendar = () => {
 
   const handleDayClick = (dayNumber: number) => {
     const clickedDate = setDate(currentDate, dayNumber);
-    handleNewEvent(clickedDate);
+    setSummaryDate(clickedDate);
+    setDaySummaryOpen(true);
+  };
+
+  const handleAddEventFromSummary = () => {
+    if (summaryDate) {
+      handleNewEvent(summaryDate);
+    }
   };
 
   const handleEditEvent = (event: any) => {
@@ -524,6 +534,17 @@ const Calendar = () => {
           <Plus className="h-5 w-5 mr-2" />
           Agregar Evento
         </Button>
+
+        {/* Day Summary Modal */}
+        <DaySummaryModal
+          open={daySummaryOpen}
+          onOpenChange={setDaySummaryOpen}
+          date={summaryDate}
+          events={summaryDate ? getEventsForDate(summaryDate) : []}
+          photos={summaryDate ? getPhotosForDate(summaryDate) : []}
+          onAddEvent={handleAddEventFromSummary}
+          onPhotoClick={setSelectedPhoto}
+        />
 
         {/* Event Modal */}
         <EventModal
