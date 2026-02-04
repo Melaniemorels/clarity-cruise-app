@@ -9,20 +9,7 @@ interface ResponsiveNavProps {
 }
 
 export function ResponsiveNav({ onCreatePost }: ResponsiveNavProps) {
-  const { isDesktop, isTablet, isLandscape } = useDevice();
-  const location = useLocation();
-
-  // Desktop: No nav (could add top nav if needed)
-  if (isDesktop) {
-    return <BottomNav />;
-  }
-
-  // Tablet in landscape: Side nav
-  if (isTablet && isLandscape) {
-    return <SideNav onCreatePost={onCreatePost} />;
-  }
-
-  // Mobile and tablet portrait: Bottom nav
+  // Always use bottom nav regardless of device
   return <BottomNav />;
 }
 
@@ -73,11 +60,5 @@ function SideNav({ onCreatePost }: { onCreatePost?: () => void }) {
 
 // Hook to get content padding based on nav type
 export function useNavPadding() {
-  const { isDesktop, isTablet, isLandscape } = useDevice();
-  
-  if (isTablet && isLandscape) {
-    return "pl-24"; // Side nav padding
-  }
-  
-  return "pb-20"; // Bottom nav padding
+  return "pb-20"; // Always bottom nav padding
 }
