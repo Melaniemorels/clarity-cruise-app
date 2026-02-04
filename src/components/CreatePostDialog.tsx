@@ -16,10 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Camera, RotateCcw } from "lucide-react";
+import { Loader2, Camera, RotateCcw, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface CreatePostDialogProps {
@@ -108,12 +115,21 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     }
   };
 
-  // Retry camera
-  const retryCamera = () => {
+  // Clear photo and go back to camera
+  const clearPhotoAndRetry = () => {
     setCapturedImage(null);
     setImageFile(null);
     setImagePreview(null);
     startCamera();
+  };
+
+  // Just clear photo without restarting camera
+  const clearPhoto = () => {
+    setCapturedImage(null);
+    setImageFile(null);
+    setImagePreview(null);
+    stopCamera();
+    toast.success("Foto eliminada");
   };
 
   // Cleanup on unmount
@@ -295,7 +311,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
           {/* Captured Image Preview */}
           {capturedImage && (
-            <div className="relative">
+            <div className="relative group">
               <img
                 src={capturedImage}
                 alt="Captured"
@@ -307,16 +323,43 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                   backgroundColor: '#1F1F1F'
                 }}
               />
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={retryCamera}
-                disabled={createPostMutation.isPending}
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
+              
+              {/* Instagram-style options menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 border-0 backdrop-blur-sm"
+                    disabled={createPostMutation.isPending}
+                  >
+                    <MoreHorizontal className="w-5 h-5 text-white" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-48 rounded-xl border-border/50 shadow-xl"
+                >
+                  <DropdownMenuItem 
+                    onClick={clearPhotoAndRetry}
+                    className="py-3 cursor-pointer focus:bg-muted"
+                  >
+                    <RefreshCw className="mr-3 h-4 w-4 text-primary" />
+                    <span className="font-medium">Tomar otra foto</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem 
+                    onClick={clearPhoto}
+                    className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="mr-3 h-4 w-4" />
+                    <span className="font-medium">Eliminar foto</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
 
