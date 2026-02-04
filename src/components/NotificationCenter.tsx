@@ -5,7 +5,6 @@ import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loade
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { 
   useNotifications, 
   useUnreadCount, 
@@ -175,12 +175,12 @@ export function NotificationCenter() {
                         className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                         onClick={() => handleNavigateToProfile(request.follower_id)}
                       >
-                        <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarImage src={request.requester?.photo_url || undefined} />
-                          <AvatarFallback>
-                            {request.requester?.handle?.charAt(0).toUpperCase() || "?"}
-                          </AvatarFallback>
-                        </Avatar>
+                        <ProfileAvatar
+                          photoUrl={request.requester?.photo_url}
+                          handle={request.requester?.handle}
+                          name={request.requester?.name}
+                          size="md"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate hover:underline">
                             @{request.requester?.handle || "unknown"}
@@ -269,12 +269,12 @@ export function NotificationCenter() {
                         !notification.is_read && "bg-primary/5"
                       )}
                     >
-                      <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage src={notification.actor?.photo_url || undefined} />
-                        <AvatarFallback>
-                          {notification.actor?.handle?.charAt(0).toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <ProfileAvatar
+                        photoUrl={notification.actor?.photo_url}
+                        handle={notification.actor?.handle}
+                        size="md"
+                        className="flex-shrink-0"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           {notificationIcons[notification.type]}

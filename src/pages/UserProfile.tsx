@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { FollowButton } from "@/components/FollowButton";
 import { PrivateProfilePlaceholder } from "@/components/PrivateProfilePlaceholder";
 import { FollowListModal } from "@/components/FollowListModal";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { useViewerAccess } from "@/hooks/use-viewer-access";
 import { useFollowStatus } from "@/hooks/use-follow-status";
 
@@ -172,17 +173,13 @@ const UserProfile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl overflow-hidden">
-                {profile.photo_url ? (
-                  <img 
-                    src={profile.photo_url} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  "🌿"
-                )}
-              </div>
+              <ProfileAvatar
+                photoUrl={profile.photo_url}
+                handle={profile.handle}
+                name={profile.name}
+                size="xl"
+                className="ring-2 ring-border"
+              />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold">@{profile.handle}</h2>

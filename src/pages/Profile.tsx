@@ -8,6 +8,7 @@ import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { FollowListModal } from "@/components/FollowListModal";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
@@ -74,13 +75,13 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl overflow-hidden">
-                {profile?.photo_url ? (
-                  <img src={profile.photo_url} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  "🌿"
-                )}
-              </div>
+              <ProfileAvatar
+                photoUrl={profile?.photo_url}
+                handle={profile?.handle}
+                name={profile?.name}
+                size="xl"
+                className="ring-2 ring-border"
+              />
               <div className="flex-1">
                 <h2 className="text-xl font-bold">@{profile?.handle || 'user'}</h2>
                 <p className="text-sm text-muted-foreground">{profile?.bio || t('profile.defaultBio')}</p>
