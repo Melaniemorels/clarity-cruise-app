@@ -16,6 +16,7 @@ import Explore from "./pages/Explore";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Recommendations from "./pages/Recommendations";
+import PerfectDay from "./pages/PerfectDay";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
@@ -67,6 +68,7 @@ const App = () => (
                   <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
+                  <Route path="/perfect-day" element={<ProtectedRoute><PerfectDay /></ProtectedRoute>} />
                   <Route path="/device-settings" element={<ProtectedRoute skipOnboardingCheck><DeviceSettings /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute skipOnboardingCheck><DeviceOnboarding /></ProtectedRoute>} />
                   <Route path="/security-onboarding" element={<ProtectedRoute skipOnboardingCheck><SecurityOnboarding /></ProtectedRoute>} />

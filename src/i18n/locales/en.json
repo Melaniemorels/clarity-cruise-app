@@ -399,5 +399,19 @@
     "settingsDescription": "Set how much time you spend on social daily",
     "unlimitedHint": "No daily limit is set. Scroll freely.",
     "limitHint": "You can use up to {{minutes}} minutes per day."
+  },
+  "perfectDay": {
+    "title": "Your Perfect Day",
+    "activities": "activities",
+    "error": "Couldn't generate your perfect day",
+    "tryAgain": "Try again",
+    "periods": {
+      "morning": "Morning",
+      "midday": "Midday",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "closingReflection": "Tonight's reflection",
+    "closingAffirmation": "Your affirmation"
   }
 }
