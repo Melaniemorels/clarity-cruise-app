@@ -402,16 +402,62 @@
   },
   "perfectDay": {
     "title": "Your Perfect Day",
+    "subtitle": "Suggested plan for today based on your sleep and energy.",
     "activities": "activities",
     "error": "Couldn't generate your perfect day",
     "tryAgain": "Try again",
+    "changeRoutine": "Change routine",
     "periods": {
       "morning": "Morning",
       "midday": "Midday",
       "afternoon": "Afternoon",
       "evening": "Evening"
     },
+    "badges": {
+      "sleep": "Sleep",
+      "energy": "Energy",
+      "goal": "Goal",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "balance": "Balance",
+      "focus": "Focus",
+      "wellbeing": "Wellbeing"
+    },
+    "activityTypes": {
+      "work": "Work",
+      "movement": "Movement",
+      "nutrition": "Nutrition",
+      "rest": "Rest",
+      "mindfulness": "Mindfulness"
+    },
     "closingReflection": "Tonight's reflection",
-    "closingAffirmation": "Your affirmation"
+    "closingAffirmation": "Your affirmation",
+    "modal": {
+      "title": "Change Routine",
+      "manual": "Manual",
+      "manualDesc": "Edit activities and schedules",
+      "templates": "My Templates",
+      "templatesDesc": "Apply a saved routine",
+      "aiRecommended": "AI Recommended",
+      "aiRecommendedDesc": "Generate 3 personalized options",
+      "select": "Select",
+      "noTemplates": "No saved templates yet",
+      "comingSoon": "Coming soon"
+    },
+    "aiOptions": {
+      "title": "Choose Your Routine",
+      "subtitle": "3 options based on your profile and preferences",
+      "optionBalance": "Balance",
+      "optionBalanceDesc": "Balanced distribution of activities",
+      "optionFocus": "Focus",
+      "optionFocusDesc": "Prioritize deep work and productivity",
+      "optionWellbeing": "Wellbeing",
+      "optionWellbeingDesc": "Emphasis on rest and recovery",
+      "apply": "Apply this routine",
+      "viewDetails": "View details",
+      "blocks": "blocks",
+      "generating": "Generating options..."
+    }
   }
 }

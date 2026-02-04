@@ -2,34 +2,59 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RefreshCw, Sparkles, Sun, Cloud, Moon, Sunrise, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  ArrowLeft, 
+  RefreshCw, 
+  Sunrise, 
+  Sun, 
+  CloudSun, 
+  Moon,
+  ChevronDown, 
+  ChevronUp,
+  Briefcase,
+  Dumbbell,
+  Utensils,
+  BedDouble,
+  Brain,
+  Settings2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePerfectDay, TimeBlock, Activity, Period } from "@/hooks/use-perfect-day";
+import { Badge } from "@/components/ui/badge";
+import { usePerfectDay, TimeBlock, Activity, Period, ActivityType, EnergyLevel } from "@/hooks/use-perfect-day";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { ChangeRoutineModal } from "@/components/ChangeRoutineModal";
 
 const periodIcons: Record<Period, React.ReactNode> = {
-  morning: <Sunrise className="h-5 w-5" />,
-  midday: <Sun className="h-5 w-5" />,
-  afternoon: <Cloud className="h-5 w-5" />,
-  evening: <Moon className="h-5 w-5" />,
+  morning: <Sunrise className="h-4 w-4" />,
+  midday: <Sun className="h-4 w-4" />,
+  afternoon: <CloudSun className="h-4 w-4" />,
+  evening: <Moon className="h-4 w-4" />,
+};
+
+const activityTypeIcons: Record<ActivityType, React.ReactNode> = {
+  work: <Briefcase className="h-4 w-4" />,
+  movement: <Dumbbell className="h-4 w-4" />,
+  nutrition: <Utensils className="h-4 w-4" />,
+  rest: <BedDouble className="h-4 w-4" />,
+  mindfulness: <Brain className="h-4 w-4" />,
 };
 
 const periodColors: Record<Period, string> = {
-  morning: "from-amber-500/20 to-orange-500/20 border-amber-500/30",
-  midday: "from-yellow-500/20 to-amber-500/20 border-yellow-500/30",
-  afternoon: "from-blue-500/20 to-purple-500/20 border-blue-500/30",
-  evening: "from-indigo-500/20 to-violet-500/20 border-indigo-500/30",
+  morning: "border-amber-500/20 bg-amber-500/5",
+  midday: "border-yellow-500/20 bg-yellow-500/5",
+  afternoon: "border-blue-500/20 bg-blue-500/5",
+  evening: "border-indigo-500/20 bg-indigo-500/5",
 };
 
-const activityTypeColors: Record<string, string> = {
-  work: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  movement: "bg-green-500/10 text-green-600 dark:text-green-400",
-  nutrition: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  rest: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  mindfulness: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+const activityTypeColors: Record<ActivityType, string> = {
+  work: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  movement: "bg-green-500/10 text-green-700 dark:text-green-400",
+  nutrition: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
+  rest: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
+  mindfulness: "bg-teal-500/10 text-teal-700 dark:text-teal-400",
 };
 
 function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
@@ -49,24 +74,26 @@ function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
     >
-      <Card className={`overflow-hidden border bg-gradient-to-br ${periodColors[block.period]}`}>
+      <Card className={`overflow-hidden border ${periodColors[block.period]}`}>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full p-4 flex items-center justify-between text-left"
         >
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{block.icon}</span>
+            <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border">
+              {periodIcons[block.period]}
+            </div>
             <div>
-              <h3 className="font-semibold text-base">{periodLabels[block.period]}</h3>
+              <h3 className="font-medium text-sm">{periodLabels[block.period]}</h3>
               <p className="text-xs text-muted-foreground">
                 {block.activities.length} {t("perfectDay.activities")}
               </p>
             </div>
           </div>
           {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
 
@@ -78,7 +105,7 @@ function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <CardContent className="pt-0 pb-4 space-y-3">
+              <CardContent className="pt-0 pb-4 space-y-2">
                 {block.activities.map((activity, actIndex) => (
                   <ActivityItem key={actIndex} activity={activity} />
                 ))}
@@ -92,9 +119,21 @@ function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
 }
 
 function ActivityItem({ activity }: { activity: Activity }) {
+  const { t } = useTranslation();
+  
+  const activityLabels: Record<ActivityType, string> = {
+    work: t("perfectDay.activityTypes.work"),
+    movement: t("perfectDay.activityTypes.movement"),
+    nutrition: t("perfectDay.activityTypes.nutrition"),
+    rest: t("perfectDay.activityTypes.rest"),
+    mindfulness: t("perfectDay.activityTypes.mindfulness"),
+  };
+
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/60 backdrop-blur-sm">
-      <span className="text-xl mt-0.5">{activity.icon}</span>
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/80 border">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activityTypeColors[activity.type]}`}>
+        {activityTypeIcons[activity.type]}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h4 className="font-medium text-sm">{activity.title}</h4>
@@ -106,9 +145,9 @@ function ActivityItem({ activity }: { activity: Activity }) {
         </div>
         <p className="text-xs text-muted-foreground mt-1">{activity.description}</p>
       </div>
-      <span className={`text-xs px-2 py-1 rounded-full ${activityTypeColors[activity.type]}`}>
-        {activity.type}
-      </span>
+      <Badge variant="secondary" className="text-xs flex-shrink-0">
+        {activityLabels[activity.type]}
+      </Badge>
     </div>
   );
 }
@@ -123,15 +162,12 @@ function ClosingCard({ closing }: { closing: { type: "reflection" | "affirmation
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.5 }}
     >
-      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+      <Card className="border-2 border-primary/10 bg-primary/5">
         <CardContent className="p-6 text-center space-y-3">
-          <div className="flex justify-center">
-            <span className="text-3xl">{isReflection ? "💭" : "✨"}</span>
-          </div>
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             {isReflection ? t("perfectDay.closingReflection") : t("perfectDay.closingAffirmation")}
           </p>
-          <p className="text-lg font-medium italic text-foreground">"{closing.text}"</p>
+          <p className="text-base font-medium italic text-foreground">"{closing.text}"</p>
         </CardContent>
       </Card>
     </motion.div>
@@ -141,13 +177,42 @@ function ClosingCard({ closing }: { closing: { type: "reflection" | "affirmation
 function LoadingSkeleton() {
   return (
     <div className="space-y-4 p-4">
-      <Skeleton className="h-8 w-3/4" />
-      <Skeleton className="h-5 w-full" />
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-4 w-full" />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-20 rounded-full" />
+        <Skeleton className="h-6 w-24 rounded-full" />
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
       <div className="space-y-3 mt-6">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-32 w-full rounded-xl" />
+          <Skeleton key={i} className="h-28 w-full rounded-xl" />
         ))}
       </div>
+    </div>
+  );
+}
+
+function EnergyBadge({ level, sleepHours }: { level: EnergyLevel; sleepHours: number }) {
+  const { t } = useTranslation();
+  
+  const energyLabels: Record<EnergyLevel, string> = {
+    low: t("perfectDay.badges.low"),
+    medium: t("perfectDay.badges.medium"),
+    high: t("perfectDay.badges.high"),
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="outline" className="text-xs font-normal">
+        {t("perfectDay.badges.sleep")}: {sleepHours}h
+      </Badge>
+      <Badge variant="outline" className="text-xs font-normal">
+        {t("perfectDay.badges.energy")}: {energyLabels[level]}
+      </Badge>
+      <Badge variant="outline" className="text-xs font-normal">
+        {t("perfectDay.badges.goal")}: {t("perfectDay.badges.balance")}
+      </Badge>
     </div>
   );
 }
@@ -158,16 +223,22 @@ export default function PerfectDay() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data, isLoading, error, refetch, isFetching } = usePerfectDay();
+  const [showChangeModal, setShowChangeModal] = useState(false);
 
   const handleRefresh = () => {
     queryClient.removeQueries({ queryKey: ["perfect-day", user?.id] });
     refetch();
   };
 
+  const handleSelectRoutineOption = (option: "manual" | "templates" | "ai") => {
+    // Handle option selection - to be implemented
+    console.log("Selected option:", option);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button
@@ -178,20 +249,28 @@ export default function PerfectDay() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-semibold">{t("perfectDay.title")}</h1>
-            </div>
+            <h1 className="text-lg font-semibold">{t("perfectDay.title")}</h1>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isFetching}
-            className="rounded-full"
-          >
-            <RefreshCw className={`h-5 w-5 ${isFetching ? "animate-spin" : ""}`} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowChangeModal(true)}
+              className="gap-2"
+            >
+              <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("perfectDay.changeRoutine")}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="rounded-full"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -208,18 +287,20 @@ export default function PerfectDay() {
           </div>
         ) : data ? (
           <div className="p-4 space-y-6">
-            {/* Greeting & Intention */}
+            {/* Header Section */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-2"
+              className="space-y-3"
             >
-              <h2 className="text-2xl font-bold">{data.greeting}</h2>
-              <p className="text-muted-foreground">{data.intention}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("perfectDay.subtitle")}
+              </p>
+              <EnergyBadge level={data.energyLevel} sleepHours={data.sleepHours} />
             </motion.div>
 
             {/* Time Blocks */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {data.blocks.map((block, index) => (
                 <TimeBlockCard key={block.period} block={block} index={index} />
               ))}
@@ -230,6 +311,13 @@ export default function PerfectDay() {
           </div>
         ) : null}
       </div>
+
+      {/* Change Routine Modal */}
+      <ChangeRoutineModal
+        open={showChangeModal}
+        onOpenChange={setShowChangeModal}
+        onSelectOption={handleSelectRoutineOption}
+      />
     </div>
   );
 }

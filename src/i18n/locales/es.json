@@ -402,16 +402,62 @@
   },
   "perfectDay": {
     "title": "Tu Día Perfecto",
+    "subtitle": "Plan sugerido para hoy, basado en tu descanso y nivel de energía.",
     "activities": "actividades",
     "error": "No pudimos generar tu día perfecto",
     "tryAgain": "Intentar de nuevo",
+    "changeRoutine": "Cambiar rutina",
     "periods": {
       "morning": "Mañana",
       "midday": "Mediodía",
       "afternoon": "Tarde",
       "evening": "Noche"
     },
+    "badges": {
+      "sleep": "Sueño",
+      "energy": "Energía",
+      "goal": "Objetivo",
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "balance": "Balance",
+      "focus": "Enfoque",
+      "wellbeing": "Bienestar"
+    },
+    "activityTypes": {
+      "work": "Trabajo",
+      "movement": "Movimiento",
+      "nutrition": "Nutrición",
+      "rest": "Descanso",
+      "mindfulness": "Mindfulness"
+    },
     "closingReflection": "Reflexión de la noche",
-    "closingAffirmation": "Tu afirmación"
+    "closingAffirmation": "Tu afirmación",
+    "modal": {
+      "title": "Cambiar Rutina",
+      "manual": "Manual",
+      "manualDesc": "Editar actividades y horarios",
+      "templates": "Mis Plantillas",
+      "templatesDesc": "Aplicar una rutina guardada",
+      "aiRecommended": "IA Recomendada",
+      "aiRecommendedDesc": "Genera 3 opciones personalizadas",
+      "select": "Elegir",
+      "noTemplates": "Aún no hay plantillas guardadas",
+      "comingSoon": "Próximamente"
+    },
+    "aiOptions": {
+      "title": "Elige Tu Rutina",
+      "subtitle": "3 opciones basadas en tu perfil y preferencias",
+      "optionBalance": "Balance",
+      "optionBalanceDesc": "Distribución equilibrada de actividades",
+      "optionFocus": "Enfoque",
+      "optionFocusDesc": "Prioriza trabajo profundo y productividad",
+      "optionWellbeing": "Bienestar",
+      "optionWellbeingDesc": "Énfasis en descanso y recuperación",
+      "apply": "Aplicar esta rutina",
+      "viewDetails": "Ver detalles",
+      "blocks": "bloques",
+      "generating": "Generando opciones..."
+    }
   }
 }
