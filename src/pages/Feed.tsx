@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
 import { QuickCamera } from "@/components/QuickCamera";
-import { SocialBudgetIndicator } from "@/components/SocialBudgetIndicator";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
@@ -35,12 +34,8 @@ const Feed = () => {
 
   // Social budget tracking
   const {
-    localSecondsUsed,
-    dailyLimitSeconds,
-    progressPercent,
     isLimitReached,
     allowExtensions,
-    isUnlimited,
     startTracking,
     stopTracking,
     addExtension,
@@ -187,18 +182,6 @@ const Feed = () => {
               </Button>
             </div>
           </div>
-
-          {/* Social Budget Indicator */}
-          {!isUnlimited && (
-            <div className="px-4 pb-3">
-              <SocialBudgetIndicator
-                secondsUsed={localSecondsUsed}
-                dailyLimitSeconds={dailyLimitSeconds}
-                progressPercent={progressPercent}
-                isUnlimited={isUnlimited}
-              />
-            </div>
-          )}
         </div>
 
         <div className="p-4 space-y-4 relative">
