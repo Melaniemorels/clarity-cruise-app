@@ -437,7 +437,14 @@
     "settingsTitle": "Daily Social Limit",
     "settingsDescription": "Set how much time you spend on social daily",
     "unlimitedHint": "No daily limit is set. Scroll freely.",
-    "limitHint": "You can use up to {{minutes}} minutes per day."
+    "limitHint": "You can use up to {{minutes}} minutes per day.",
+    "motivational": {
+      "message1": "Taking a pause is also progress.",
+      "message2": "You chose focus. That already matters.",
+      "message3": "Focus isn't restriction, it's clarity.",
+      "message4": "Less noise now, more energy later.",
+      "message5": "Your attention matters. Thanks for protecting it."
+    }
   },
   "perfectDay": {
     "title": "Your Perfect Day",

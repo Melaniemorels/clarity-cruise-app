@@ -437,7 +437,14 @@
     "settingsTitle": "Límite Social Diario",
     "settingsDescription": "Define cuánto tiempo pasas en social diariamente",
     "unlimitedHint": "Sin límite diario. Navega libremente.",
-    "limitHint": "Puedes usar hasta {{minutes}} minutos por día."
+    "limitHint": "Puedes usar hasta {{minutes}} minutos por día.",
+    "motivational": {
+      "message1": "Tomarte una pausa también es avanzar.",
+      "message2": "Elegiste volver al enfoque. Eso ya es un logro.",
+      "message3": "El foco no es rigidez, es claridad.",
+      "message4": "Menos ruido ahora, más energía después.",
+      "message5": "Tu atención es valiosa. Gracias por cuidarla."
+    }
   },
   "perfectDay": {
     "title": "Tu Día Perfecto",
