@@ -10,7 +10,7 @@ import { EventModal } from "@/components/EventModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
+import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -19,6 +19,7 @@ const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [newEventDate, setNewEventDate] = useState<Date | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -195,9 +196,15 @@ const Calendar = () => {
     }
   };
 
-  const handleNewEvent = () => {
+  const handleNewEvent = (date?: Date) => {
     setSelectedEvent(null);
+    setNewEventDate(date || null);
     setEventModalOpen(true);
+  };
+
+  const handleDayClick = (dayNumber: number) => {
+    const clickedDate = setDate(currentDate, dayNumber);
+    handleNewEvent(clickedDate);
   };
 
   const handleEditEvent = (event: any) => {
@@ -241,7 +248,7 @@ const Calendar = () => {
               {format(currentDate, "d 'de' MMMM, yyyy", { locale: es })}
             </p>
           </div>
-          <Button size="icon" onClick={handleNewEvent}>
+          <Button size="icon" onClick={() => handleNewEvent()}>
             <Plus className="h-5 w-5" />
           </Button>
         </div>
@@ -443,7 +450,7 @@ const Calendar = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
                     <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
                       {day}
                     </div>
@@ -451,26 +458,61 @@ const Calendar = () => {
                 </div>
                 
                 <div className="grid grid-cols-7 gap-1">
-                  {Array.from({ length: 35 }, (_, i) => i + 1).map((day) => (
-                    <div
-                      key={day}
-                      className={`aspect-square flex flex-col items-center justify-center rounded-md border transition-colors ${
-                        day === 11
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : day > 31
-                          ? 'text-muted-foreground/30 border-transparent'
-                          : 'border-border hover:bg-muted/50'
-                      }`}
-                    >
-                      <span className="text-sm">{day <= 31 ? day : ''}</span>
-                      {day <= 31 && day % 3 === 0 && (
-                        <div className="flex gap-0.5 mt-1">
-                          <div className="w-1 h-1 rounded-full bg-primary" />
-                          <div className="w-1 h-1 rounded-full bg-secondary" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {(() => {
+                    const daysInMonth = getDaysInMonth(currentDate);
+                    const firstDayOfMonth = getDay(startOfMonth(currentDate));
+                    const today = new Date();
+                    const isCurrentMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+                    
+                    // Create array with empty slots for days before the month starts
+                    const slots = [];
+                    
+                    // Add empty slots for days before the 1st
+                    for (let i = 0; i < firstDayOfMonth; i++) {
+                      slots.push(
+                        <div key={`empty-${i}`} className="aspect-square" />
+                      );
+                    }
+                    
+                    // Add actual days
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const dayDate = setDate(currentDate, day);
+                      const dayEvents = getEventsForDate(dayDate);
+                      const isToday = isCurrentMonth && day === today.getDate();
+                      
+                      slots.push(
+                        <button
+                          key={day}
+                          onClick={() => handleDayClick(day)}
+                          className={`aspect-square flex flex-col items-center justify-center rounded-md border transition-colors cursor-pointer ${
+                            isToday
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'border-border hover:bg-muted/50 hover:border-primary/50'
+                          }`}
+                        >
+                          <span className="text-sm">{day}</span>
+                          {dayEvents.length > 0 && (
+                            <div className="flex gap-0.5 mt-1">
+                              {dayEvents.slice(0, 3).map((event, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className={`w-1 h-1 rounded-full ${
+                                    event.category === 'trabajo' ? 'bg-category-work' :
+                                    event.category === 'deporte' ? 'bg-category-sport' :
+                                    event.category === 'salud' ? 'bg-primary' :
+                                    event.category === 'estudio' ? 'bg-category-study' :
+                                    'bg-secondary'
+                                  }`} 
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    }
+                    
+                    return slots;
+                  })()}
                 </div>
               </CardContent>
             </Card>
@@ -478,7 +520,7 @@ const Calendar = () => {
         </Tabs>
 
         {/* Quick Add Button */}
-        <Button className="w-full" size="lg" onClick={handleNewEvent}>
+        <Button className="w-full" size="lg" onClick={() => handleNewEvent()}>
           <Plus className="h-5 w-5 mr-2" />
           Agregar Evento
         </Button>
@@ -486,8 +528,12 @@ const Calendar = () => {
         {/* Event Modal */}
         <EventModal
           open={eventModalOpen}
-          onOpenChange={setEventModalOpen}
+          onOpenChange={(open) => {
+            setEventModalOpen(open);
+            if (!open) setNewEventDate(null);
+          }}
           event={selectedEvent}
+          initialDate={newEventDate}
           onSave={(event) => saveEventMutation.mutateAsync(event)}
           onDelete={(id) => deleteEventMutation.mutateAsync(id)}
         />
