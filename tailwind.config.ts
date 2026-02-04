@@ -61,29 +61,25 @@ export default {
           photo: "hsl(var(--category-photo))",
           other: "hsl(var(--category-other))",
         },
-        // Intensity scale for heatmaps
+        // Intensity scale for heatmaps/progress (GREEN ALLOWED)
         intensity: {
           none: "hsl(var(--intensity-none))",
           low: "hsl(var(--intensity-low))",
           medium: "hsl(var(--intensity-medium))",
           high: "hsl(var(--intensity-high))",
         },
-        // State colors
+        // State colors (success uses brand green)
         state: {
           success: "hsl(var(--state-success))",
           warning: "hsl(var(--state-warning))",
           error: "hsl(var(--state-error))",
           info: "hsl(var(--state-info))",
         },
-        // Legacy luxury tokens (kept for backward compatibility)
-        luxury: {
-          emerald: "hsl(var(--luxury-emerald))",
-          emeraldLight: "hsl(var(--luxury-emerald-light))",
-          emeraldDark: "hsl(var(--luxury-emerald-dark))",
-          chocolate: "hsl(var(--luxury-chocolate))",
-          navy: "hsl(var(--luxury-navy))",
-          white: "hsl(var(--luxury-white))",
-          black: "hsl(var(--luxury-black))",
+        // Brand green - ONLY for intentional use: CTAs, progress, active states
+        brand: {
+          green: "hsl(var(--brand-green))",
+          greenLight: "hsl(var(--brand-green-light))",
+          greenDark: "hsl(var(--brand-green-dark))",
         },
         // Semantic theme tokens
         theme: {
