@@ -12,6 +12,7 @@ import { PostItem } from "@/components/PostItem";
 import { QuickCamera } from "@/components/QuickCamera";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
+import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { Plus, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +33,8 @@ const Feed = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [showMotivationalCard, setShowMotivationalCard] = useState(false);
+  const [hasReachedLimitThisSession, setHasReachedLimitThisSession] = useState(false);
   const device = useDevice();
   const navPadding = useNavPadding();
   const lastRefreshRef = useRef<number>(Date.now());
@@ -55,10 +58,20 @@ const Feed = () => {
 
   // Show modal when limit is reached
   useEffect(() => {
-    if (isLimitReached && !showBudgetModal) {
+    if (isLimitReached && !showBudgetModal && !hasReachedLimitThisSession) {
       setShowBudgetModal(true);
+      setHasReachedLimitThisSession(true);
+      setShowMotivationalCard(true);
     }
-  }, [isLimitReached, showBudgetModal]);
+  }, [isLimitReached, showBudgetModal, hasReachedLimitThisSession]);
+
+  // Reset motivational card flag when extending time
+  useEffect(() => {
+    if (!isLimitReached && hasReachedLimitThisSession) {
+      // User extended time, reset the session flag so message shows again when new limit is reached
+      setHasReachedLimitThisSession(false);
+    }
+  }, [isLimitReached, hasReachedLimitThisSession]);
 
   const handleExtendTime = useCallback(() => {
     addExtension(5);
@@ -213,6 +226,12 @@ const Feed = () => {
         </div>
 
         <div className="p-4 space-y-4 relative">
+          {/* Motivational card when limit was reached */}
+          <FeedMotivationalCard 
+            visible={showMotivationalCard && !showBudgetModal}
+            onDismiss={() => setShowMotivationalCard(false)}
+          />
+
           {/* Lock overlay when limit reached */}
           <SocialBudgetLockOverlay visible={isLimitReached} />
 
