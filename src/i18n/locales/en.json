@@ -354,5 +354,22 @@
     "verifyWarning": "You must verify your email to continue. Check your inbox or spam folder.",
     "continue": "Continue",
     "accountSecured": "Your account is verified and protected"
+  },
+  "recommendations": {
+    "title": "For You",
+    "selectGoal": "What do you need right now?",
+    "contextDetected": "Context detected",
+    "cached": "Cached",
+    "refreshed": "Recommendations refreshed",
+    "empty": "No recommendations yet. Try selecting a goal.",
+    "dataControls": "Data Controls",
+    "dataControlsDescription": "Choose what data the AI can use to personalize your recommendations",
+    "healthData": "Health & Activity",
+    "healthDataDescription": "Steps, workouts, sleep patterns",
+    "calendarData": "Calendar Patterns",
+    "calendarDataDescription": "Your schedule and focus sessions",
+    "mediaPreferences": "Media Preferences",
+    "mediaPreferencesDescription": "Connected music services (Spotify)",
+    "privacyNotice": "Your data is used only to personalize recommendations and is never shared."
   }
 }
