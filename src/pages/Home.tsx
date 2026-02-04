@@ -3,8 +3,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { FeedPost } from "@/components/FeedPost";
 import { usePublicEntriesFeed } from "@/hooks/use-entries";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Home = () => {
+  const { t } = useTranslation();
   const { data: entries = [], isLoading, error } = usePublicEntriesFeed();
 
   if (error) {
@@ -14,9 +16,9 @@ const Home = () => {
           <Card>
             <CardContent className="p-12 text-center">
               <div className="text-4xl mb-4">⚠️</div>
-              <p className="text-destructive">Error al cargar el feed</p>
+              <p className="text-destructive">{t('feed.errorLoading')}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Por favor intenta recargar la página
+                {t('feed.tryReloading')}
               </p>
             </CardContent>
           </Card>
@@ -32,7 +34,7 @@ const Home = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">VYV</h1>
-          <div className="text-sm text-muted-foreground">Feed</div>
+          <div className="text-sm text-muted-foreground">{t('nav.feed')}</div>
         </div>
 
         {isLoading ? (
@@ -43,9 +45,9 @@ const Home = () => {
           <Card>
             <CardContent className="p-12 text-center">
               <div className="text-4xl mb-4">🌿</div>
-              <p className="text-muted-foreground">No hay publicaciones aún</p>
+              <p className="text-muted-foreground">{t('feed.emptyTitle')}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Captura tu primera foto desde Focus
+                {t('feed.emptyDescription')}
               </p>
             </CardContent>
           </Card>

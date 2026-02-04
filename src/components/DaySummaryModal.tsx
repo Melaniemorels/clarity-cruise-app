@@ -2,30 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { format, isToday, isFuture } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { Briefcase, Dumbbell, Footprints, Camera, CalendarPlus, Clock } from "lucide-react";
-
-// Simple language detection
-const getUserLanguage = () => {
-  const lang = navigator.language || 'en';
-  return lang.startsWith('es') ? 'es' : 'en';
-};
-
-const translations = {
-  en: {
-    activityFlow: 'Activity Flow',
-    captures: 'Captures',
-    noEvents: 'No events for this day',
-    noActivity: 'No activity recorded for this day',
-    addEvent: 'Add Event',
-  },
-  es: {
-    activityFlow: 'Tu Actividad',
-    captures: 'Capturas',
-    noEvents: 'No hay eventos para este día',
-    noActivity: 'No hay actividad registrada para este día',
-    addEvent: 'Agregar Evento',
-  },
-};
+import { Camera, CalendarPlus, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Event {
   id: string;
@@ -72,10 +50,11 @@ export const DaySummaryModal = ({
   onAddEvent,
   onPhotoClick 
 }: DaySummaryModalProps) => {
+  const { t, i18n } = useTranslation();
+  
   if (!date) return null;
 
-  const lang = getUserLanguage();
-  const t = translations[lang];
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en';
   const dateLocale = lang === 'es' ? es : enUS;
 
   const isPastDay = !isToday(date) && !isFuture(date);
@@ -95,7 +74,7 @@ export const DaySummaryModal = ({
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t.activityFlow} ({events.length})
+              {t('daySummary.activityFlow')} ({events.length})
             </h3>
             
             {events.length > 0 ? (
@@ -119,7 +98,7 @@ export const DaySummaryModal = ({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-2">
-                {t.noEvents}
+                {t('daySummary.noEvents')}
               </p>
             )}
           </div>
@@ -129,7 +108,7 @@ export const DaySummaryModal = ({
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                 <Camera className="h-4 w-4" />
-                {t.captures} ({photos.length})
+                {t('daySummary.captures')} ({photos.length})
               </h3>
               
               <div className="grid grid-cols-3 gap-2">
@@ -141,7 +120,7 @@ export const DaySummaryModal = ({
                   >
                     <img 
                       src={photo.photo_url} 
-                      alt="Captura"
+                      alt={t('daySummary.captures')}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -153,7 +132,7 @@ export const DaySummaryModal = ({
           {/* Empty state for past days */}
           {isPastDay && events.length === 0 && photos.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">{t.noActivity}</p>
+              <p className="text-sm">{t('daySummary.noActivity')}</p>
             </div>
           )}
 
@@ -167,7 +146,7 @@ export const DaySummaryModal = ({
               }}
             >
               <CalendarPlus className="h-4 w-4 mr-2" />
-              {t.addEvent}
+              {t('daySummary.addEvent')}
             </Button>
           )}
         </div>

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Heart, MoreHorizontal, Pencil, Archive, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface Post {
   id: string;
@@ -55,6 +56,7 @@ interface PostItemProps {
 }
 
 export const PostItem = ({ post }: PostItemProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [optimisticLike, setOptimisticLike] = useState<boolean | null>(null);
@@ -72,9 +74,22 @@ export const PostItem = ({ post }: PostItemProps) => {
   const likesCount = optimisticCount !== null ? optimisticCount : post.likes_count;
   const isOwner = user?.id === post.user_id;
 
+  const getTimeAgo = (date: string) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diffMs = now.getTime() - past.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    return `${diffDays}d`;
+  };
+
   const likeMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(t('errors.unauthorized'));
 
       if (hasLiked) {
         const { error } = await supabase
@@ -99,7 +114,7 @@ export const PostItem = ({ post }: PostItemProps) => {
     onError: (error) => {
       setOptimisticLike(null);
       setOptimisticCount(null);
-      toast.error("Error al dar like");
+      toast.error(t('post.errors.likeError'));
       console.error(error);
     },
     onSuccess: () => {
@@ -111,7 +126,7 @@ export const PostItem = ({ post }: PostItemProps) => {
 
   const editMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("posts")
@@ -125,19 +140,19 @@ export const PostItem = ({ post }: PostItemProps) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Post actualizado");
+      toast.success(t('post.postUpdated'));
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       setIsEditOpen(false);
     },
     onError: (error) => {
-      toast.error("Error al actualizar el post");
+      toast.error(t('post.errors.updateError'));
       console.error(error);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("posts")
@@ -148,19 +163,19 @@ export const PostItem = ({ post }: PostItemProps) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Post eliminado");
+      toast.success(t('post.postDeleted'));
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       setIsDeleteOpen(false);
     },
     onError: (error) => {
-      toast.error("Error al eliminar el post");
+      toast.error(t('post.errors.deleteError'));
       console.error(error);
     },
   });
 
   const handleLike = () => {
     if (!user) {
-      toast.error("Inicia sesión para dar like");
+      toast.error(t('post.errors.loginToLike'));
       return;
     }
     likeMutation.mutate();
@@ -173,21 +188,7 @@ export const PostItem = ({ post }: PostItemProps) => {
   };
 
   const handleArchive = () => {
-    // For now, archive works as a soft delete - we'll show a toast
-    toast.info("Función de archivar próximamente disponible");
-  };
-
-  const getTimeAgo = (date: string) => {
-    const now = new Date();
-    const past = new Date(date);
-    const diffMs = now.getTime() - past.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    return `${diffDays}d`;
+    toast.info(t('post.archiveComingSoon'));
   };
 
   return (
@@ -203,7 +204,7 @@ export const PostItem = ({ post }: PostItemProps) => {
             </Avatar>
             <div className="flex-1">
               <p className="font-semibold text-sm text-foreground">
-                {post.profiles?.handle || "usuario"}
+                {post.profiles?.handle || "user"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {getTimeAgo(post.created_at)}
@@ -231,7 +232,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                     className="py-3 cursor-pointer focus:bg-muted"
                   >
                     <Pencil className="mr-3 h-4 w-4 text-primary" />
-                    <span className="font-medium">Editar</span>
+                    <span className="font-medium">{t('common.edit')}</span>
                   </DropdownMenuItem>
                   
                   <DropdownMenuItem 
@@ -239,7 +240,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                     className="py-3 cursor-pointer focus:bg-muted"
                   >
                     <Archive className="mr-3 h-4 w-4 text-amber-500" />
-                    <span className="font-medium">Archivar</span>
+                    <span className="font-medium">{t('post.archive')}</span>
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
@@ -249,7 +250,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                     className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                   >
                     <Trash2 className="mr-3 h-4 w-4" />
-                    <span className="font-medium">Eliminar</span>
+                    <span className="font-medium">{t('common.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -299,21 +300,21 @@ export const PostItem = ({ post }: PostItemProps) => {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar post</DialogTitle>
+            <DialogTitle>{t('common.edit')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-caption">Descripción</Label>
+              <Label htmlFor="edit-caption">{t('post.caption')}</Label>
               <Textarea
                 id="edit-caption"
                 value={editCaption}
                 onChange={(e) => setEditCaption(e.target.value)}
-                placeholder="Escribe una descripción..."
+                placeholder={t('post.captionPlaceholder')}
                 className="min-h-[100px] resize-none"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-activity">Actividad</Label>
+              <Label htmlFor="edit-activity">{t('post.activityTag')}</Label>
               <Input
                 id="edit-activity"
                 value={editActivityTag}
@@ -328,7 +329,7 @@ export const PostItem = ({ post }: PostItemProps) => {
               onClick={() => setIsEditOpen(false)}
               disabled={editMutation.isPending}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={() => editMutation.mutate()}
@@ -337,10 +338,10 @@ export const PostItem = ({ post }: PostItemProps) => {
               {editMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Guardando...
+                  {t('common.save')}...
                 </>
               ) : (
-                "Guardar"
+                t('common.save')
               )}
             </Button>
           </DialogFooter>
@@ -351,14 +352,14 @@ export const PostItem = ({ post }: PostItemProps) => {
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este post?</AlertDialogTitle>
+            <AlertDialogTitle>{t('post.deletePost')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El post será eliminado permanentemente.
+              {t('post.deletePostDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>
-              Cancelar
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteMutation.mutate()}
@@ -368,10 +369,10 @@ export const PostItem = ({ post }: PostItemProps) => {
               {deleteMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Eliminando...
+                  {t('common.delete')}...
                 </>
               ) : (
-                "Eliminar"
+                t('common.delete')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

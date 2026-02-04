@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import type { Database } from "@/integrations/supabase/types";
 
 type DeviceProvider = Database['public']['Enums']['device_provider'];
@@ -18,48 +19,54 @@ interface DeviceConnection {
   last_sync_at: string | null;
 }
 
-const devices: Array<{
-  id: DeviceProvider;
-  name: string;
-  icon: any;
-  description: string;
-  colorClass: string;
-}> = [
-  {
-    id: 'APPLE_HEALTH',
-    name: 'Apple Health',
-    icon: Apple,
-    description: 'Sincroniza pasos, actividad y métricas de salud',
-    colorClass: 'text-foreground',
-  },
-  {
-    id: 'OURA',
-    name: 'Oura Ring',
-    icon: Zap,
-    description: 'Monitoreo de sueño, frecuencia cardíaca y recuperación',
-    colorClass: 'text-category-work',
-  },
-  {
-    id: 'WHOOP',
-    name: 'Whoop',
-    icon: Activity,
-    description: 'Strain, recuperación y análisis de sueño',
-    colorClass: 'text-destructive',
-  },
-  {
-    id: 'APPLE_WATCH',
-    name: 'Apple Watch',
-    icon: Watch,
-    description: 'Actividad, entrenamientos y métricas de fitness',
-    colorClass: 'text-foreground',
-  },
-];
-
 const DeviceSettings = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [connections, setConnections] = useState<DeviceConnection[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const devices: Array<{
+    id: DeviceProvider;
+    name: string;
+    nameKey: string;
+    icon: any;
+    descriptionKey: string;
+    colorClass: string;
+  }> = [
+    {
+      id: 'APPLE_HEALTH',
+      name: 'Apple Health',
+      nameKey: 'devices.appleHealth',
+      icon: Apple,
+      descriptionKey: 'devices.appleHealthDesc',
+      colorClass: 'text-foreground',
+    },
+    {
+      id: 'OURA',
+      name: 'Oura Ring',
+      nameKey: 'devices.ouraRing',
+      icon: Zap,
+      descriptionKey: 'devices.ouraRingDesc',
+      colorClass: 'text-category-work',
+    },
+    {
+      id: 'WHOOP',
+      name: 'Whoop',
+      nameKey: 'devices.whoop',
+      icon: Activity,
+      descriptionKey: 'devices.whoopDesc',
+      colorClass: 'text-destructive',
+    },
+    {
+      id: 'APPLE_WATCH',
+      name: 'Apple Watch',
+      nameKey: 'devices.appleWatch',
+      icon: Watch,
+      descriptionKey: 'devices.appleWatchDesc',
+      colorClass: 'text-foreground',
+    },
+  ];
 
   useEffect(() => {
     fetchConnections();
@@ -80,7 +87,7 @@ const DeviceSettings = () => {
       if (import.meta.env.DEV) {
         console.error("Error fetching device connections:", error);
       }
-      toast.error("Error al cargar dispositivos conectados");
+      toast.error(t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -90,12 +97,10 @@ const DeviceSettings = () => {
     return connections.some(conn => conn.provider === deviceId);
   };
 
-  const handleConnect = async (deviceId: DeviceProvider) => {
+  const handleConnect = async (deviceId: DeviceProvider, deviceName: string) => {
     if (!user) return;
 
     try {
-      // In a real implementation, this would redirect to OAuth flow
-      // For now, we'll simulate a connection
       const { error } = await supabase
         .from('device_connections')
         .insert({
@@ -107,16 +112,16 @@ const DeviceSettings = () => {
       if (error) throw error;
 
       await fetchConnections();
-      toast.success(`${devices.find(d => d.id === deviceId)?.name} conectado exitosamente`);
+      toast.success(t('devices.connectedSuccess', { device: deviceName }));
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error("Error connecting device:", error);
       }
-      toast.error("Error al conectar dispositivo");
+      toast.error(t('errors.generic'));
     }
   };
 
-  const handleDisconnect = async (deviceId: DeviceProvider) => {
+  const handleDisconnect = async (deviceId: DeviceProvider, deviceName: string) => {
     if (!user) return;
 
     try {
@@ -129,12 +134,12 @@ const DeviceSettings = () => {
       if (error) throw error;
 
       await fetchConnections();
-      toast.success(`${devices.find(d => d.id === deviceId)?.name} desconectado exitosamente`);
+      toast.success(t('devices.disconnectedSuccess', { device: deviceName }));
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error("Error disconnecting device:", error);
       }
-      toast.error("Error al desconectar dispositivo");
+      toast.error(t('errors.generic'));
     }
   };
 
@@ -147,8 +152,8 @@ const DeviceSettings = () => {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dispositivos de Salud</h1>
-            <p className="text-sm text-muted-foreground">Conecta tus dispositivos para sincronizar datos</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('devices.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('devices.subtitle')}</p>
           </div>
         </div>
 
@@ -157,7 +162,7 @@ const DeviceSettings = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Dispositivos conectados</p>
+                <p className="text-sm text-muted-foreground">{t('devices.connectedDevices')}</p>
                 <p className="text-2xl font-bold">{connections.length}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -169,7 +174,7 @@ const DeviceSettings = () => {
 
         {/* Available Devices */}
         <div className="space-y-3">
-          <h2 className="font-semibold text-foreground">Dispositivos Disponibles</h2>
+          <h2 className="font-semibold text-foreground">{t('devices.availableDevices')}</h2>
           
           {devices.map((device) => {
             const connected = isConnected(device.id);
@@ -185,16 +190,16 @@ const DeviceSettings = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-base">{device.name}</CardTitle>
+                          <CardTitle className="text-base">{t(device.nameKey)}</CardTitle>
                           {connected && (
                             <Badge variant="secondary" className="gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              Conectado
+                              {t('devices.connected')}
                             </Badge>
                           )}
                         </div>
                         <CardDescription className="text-sm mt-1">
-                          {device.description}
+                          {t(device.descriptionKey)}
                         </CardDescription>
                       </div>
                     </div>
@@ -207,26 +212,26 @@ const DeviceSettings = () => {
                         variant="outline" 
                         size="sm"
                         className="flex-1"
-                        onClick={() => handleDisconnect(device.id)}
+                        onClick={() => handleDisconnect(device.id, t(device.nameKey))}
                       >
-                        Desconectar
+                        {t('devices.disconnect')}
                       </Button>
                       <Button 
                         variant="secondary" 
                         size="sm"
                         className="flex-1"
-                        onClick={() => toast.info('Sincronización iniciada')}
+                        onClick={() => toast.info(t('devices.syncStarted'))}
                       >
-                        Sincronizar
+                        {t('devices.sync')}
                       </Button>
                     </div>
                   ) : (
                     <Button 
                       className="w-full" 
                       size="sm"
-                      onClick={() => handleConnect(device.id)}
+                      onClick={() => handleConnect(device.id, t(device.nameKey))}
                     >
-                      Conectar
+                      {t('devices.connect')}
                     </Button>
                   )}
                 </CardContent>
@@ -243,9 +248,9 @@ const DeviceSettings = () => {
                 <Activity className="h-4 w-4 text-primary" />
               </div>
               <div className="text-sm">
-                <p className="font-medium mb-1">Sincronización automática</p>
+                <p className="font-medium mb-1">{t('devices.autoSync')}</p>
                 <p className="text-muted-foreground text-xs">
-                  Tus datos de salud se sincronizarán automáticamente cada hora cuando tu dispositivo esté conectado.
+                  {t('devices.autoSyncDesc')}
                 </p>
               </div>
             </div>

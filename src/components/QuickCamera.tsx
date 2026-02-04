@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 type FilterType = "natural" | "bw";
 
@@ -14,6 +15,7 @@ interface QuickCameraProps {
 }
 
 export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCameraProps) => {
+  const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = onOpenChange || setInternalOpen;
@@ -37,7 +39,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       if (import.meta.env.DEV) {
         console.error("Failed to start camera:", error);
       }
-      toast.error("No se pudo acceder a la cámara");
+      toast.error(t('camera.cameraError'));
     }
   };
 
@@ -97,7 +99,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       if (import.meta.env.DEV) {
         console.error("Error analyzing image:", error);
       }
-      return { emoji: "📸", label: "Captura instantánea", category: "otro" };
+      return { emoji: "📸", label: t('calendar.instantCapture'), category: "otro" };
     }
   };
 
@@ -164,14 +166,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       if (blockError) throw blockError;
 
-      toast.success("Foto guardada en tu calendario y perfil");
+      toast.success(t('camera.photoSaved'));
       setIsOpen(false);
       setCapturedImage(null);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error("Error uploading photo:", error);
       }
-      toast.error("Error al guardar la foto");
+      toast.error(t('camera.uploadError'));
     } finally {
       setIsUploading(false);
     }
@@ -197,7 +199,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
           className="w-full"
         >
           <Camera className="mr-2 h-5 w-5" />
-          Captura Rápida
+          {t('camera.title')}
         </Button>
       )}
 
@@ -206,7 +208,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
           <div className="flex flex-col items-center justify-center min-h-[500px]">
             <DialogHeader className="text-center pb-4 mb-5">
               <DialogTitle className="text-foreground text-[22px] font-semibold tracking-wide text-center">
-                Captura Rápida
+                {t('camera.title')}
               </DialogTitle>
             </DialogHeader>
             {!capturedImage ? (
@@ -230,14 +232,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     onClick={() => setFilter("natural")}
                     className="rounded-[22px] h-[42px] px-6 font-semibold transition-all duration-150"
                   >
-                    Natural
+                    {t('camera.natural')}
                   </Button>
                   <Button
                     variant={filter === "bw" ? "default" : "outline"}
                     onClick={() => setFilter("bw")}
                     className="rounded-[22px] h-[42px] px-6 font-semibold transition-all duration-150"
                   >
-                    Blanco y Negro
+                    {t('camera.blackAndWhite')}
                   </Button>
                 </div>
 
@@ -247,7 +249,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   className="mt-6 w-[84%] rounded-[30px] h-[54px] text-base font-semibold bg-gradient-to-b from-accent to-primary hover:opacity-90 transition-transform duration-150 hover:scale-[0.98]"
                 >
                   <Camera className="mr-2" size={18} strokeWidth={1.4} />
-                  Capturar
+                  {t('camera.capture')}
                 </Button>
               </>
             ) : (
@@ -272,14 +274,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     className="flex-1"
                   >
                     <X className="mr-2 h-4 w-4" />
-                    Reintentar
+                    {t('camera.retry')}
                   </Button>
                   <Button
                     onClick={uploadAndCreate}
                     disabled={isUploading}
                     className="flex-1"
                   >
-                    {isUploading ? "Guardando..." : "Guardar"}
+                    {isUploading ? t('camera.saving') : t('camera.save')}
                   </Button>
                 </div>
               </>

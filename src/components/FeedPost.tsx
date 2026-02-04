@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface FeedPostProps {
   postId: string;
@@ -30,6 +31,7 @@ export const FeedPost = ({
   hasInspired: initialHasInspired,
   hasSaved: initialHasSaved,
 }: FeedPostProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [inspireCount, setInspireCount] = useState(initialInspireCount);
   const [saveCount, setSaveCount] = useState(initialSaveCount);
@@ -44,10 +46,10 @@ export const FeedPost = ({
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffDays > 0) return `${diffDays}d ago`;
-    if (diffHours > 0) return `${diffHours}h ago`;
-    if (diffMins > 0) return `${diffMins}m ago`;
-    return "just now";
+    if (diffDays > 0) return t('time.daysAgo', { count: diffDays });
+    if (diffHours > 0) return t('time.hoursAgo', { count: diffHours });
+    if (diffMins > 0) return t('time.minutesAgo', { count: diffMins });
+    return t('time.justNow');
   };
 
   const handleReaction = async (type: "INSPIRE" | "SAVE_IDEA") => {
@@ -93,7 +95,7 @@ export const FeedPost = ({
         }
       }
     } catch (error) {
-      toast.error("Error al actualizar reacción");
+      toast.error(t('post.errors.likeError'));
       if (import.meta.env.DEV) {
         console.error("Reaction error:", error);
       }

@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
-import { AdaptiveHeading, AdaptiveText, AdaptiveGrid } from "@/components/AdaptiveLayout";
+import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
 import { useDevice, useResponsiveFontSize } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Bookmark } from "lucide-react";
@@ -9,8 +9,10 @@ import { ContentPlayer } from "@/components/ContentPlayer";
 import { useState } from "react";
 import { openInAppBrowser } from "@/lib/browser";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const Explore = () => {
+  const { t } = useTranslation();
   const [selectedContent, setSelectedContent] = useState<{
     title: string;
     category: string;
@@ -28,9 +30,10 @@ const Explore = () => {
       await openInAppBrowser(item.url);
     }
   };
+
   const categories = [
     {
-      title: "Music",
+      title: t('explore.categories.music'),
       icon: "🎵",
       items: [
         { title: "Lo-Fi Beats", duration: "60 min", color: "from-purple-500/20 to-pink-500/20", url: "https://open.spotify.com/playlist/XXXX" },
@@ -39,7 +42,7 @@ const Explore = () => {
       ],
     },
     {
-      title: "Audiobooks",
+      title: t('explore.categories.audiobooks'),
       icon: "🎧",
       items: [
         { title: "The Power of Now", duration: "7h 37m", color: "from-amber-500/20 to-orange-500/20", url: "https://open.spotify.com/show/XXXX" },
@@ -48,7 +51,7 @@ const Explore = () => {
       ],
     },
     {
-      title: "Podcasts",
+      title: t('explore.categories.podcasts'),
       icon: "🎙️",
       items: [
         { title: "Wellness Daily", duration: "25 min", color: "from-emerald-500/20 to-green-500/20", url: "https://open.spotify.com/show/XXXX" },
@@ -57,7 +60,7 @@ const Explore = () => {
       ],
     },
     {
-      title: "Yoga Classes",
+      title: t('explore.categories.yoga'),
       icon: "🧘",
       items: [
         { title: "Morning Flow", duration: "30 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/watch?v=XXXX" },
@@ -66,7 +69,7 @@ const Explore = () => {
       ],
     },
     {
-      title: "Pilates",
+      title: t('explore.categories.pilates'),
       icon: "🤸",
       items: [
         { title: "Core Strength", duration: "25 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=XXXX" },
@@ -75,7 +78,7 @@ const Explore = () => {
       ],
     },
     {
-      title: "Meditation",
+      title: t('explore.categories.meditation'),
       icon: "🧘‍♀️",
       items: [
         { title: "Morning Calm", duration: "10 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=XXXX" },
@@ -84,21 +87,21 @@ const Explore = () => {
       ],
     },
     {
-      title: "Nutrición",
+      title: t('explore.categories.nutrition'),
       icon: "🥗",
       items: [
-        { title: "Recetas Saludables", duration: "15 min", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
-        { title: "Meal Prep Semanal", duration: "30 min", color: "from-orange-500/20 to-amber-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
-        { title: "Smoothies Energéticos", duration: "10 min", color: "from-pink-500/20 to-rose-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Healthy Recipes", duration: "15 min", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Weekly Meal Prep", duration: "30 min", color: "from-orange-500/20 to-amber-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Energy Smoothies", duration: "10 min", color: "from-pink-500/20 to-rose-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
     {
-      title: "Planes Alimenticios",
+      title: t('explore.categories.mealPlans'),
       icon: "📋",
       items: [
-        { title: "Déficit Calórico", duration: "Guía", color: "from-teal-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
-        { title: "Alto en Proteína", duration: "Guía", color: "from-red-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
-        { title: "Alimentación Intuitiva", duration: "Guía", color: "from-violet-500/20 to-indigo-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Caloric Deficit", duration: "Guide", color: "from-teal-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "High Protein", duration: "Guide", color: "from-red-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Intuitive Eating", duration: "Guide", color: "from-violet-500/20 to-indigo-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
   ];
@@ -112,8 +115,8 @@ const Explore = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <AdaptiveHeading level={1}>Explore</AdaptiveHeading>
-            <AdaptiveText variant="small">Descubre contenido de bienestar</AdaptiveText>
+            <AdaptiveHeading level={1}>{t('explore.title')}</AdaptiveHeading>
+            <AdaptiveText variant="small">{t('explore.subtitle')}</AdaptiveText>
           </div>
         </div>
 
@@ -128,7 +131,7 @@ const Explore = () => {
                 <span className={device.isMobile ? "text-xl" : "text-2xl"}>{category.icon}</span>
                 {category.title}
               </h2>
-              <Button variant="ghost" size="sm">Ver todo</Button>
+              <Button variant="ghost" size="sm">{t('common.viewAll')}</Button>
             </div>
             
             <ScrollArea className="w-full whitespace-nowrap">
@@ -184,11 +187,11 @@ const Explore = () => {
         {/* Save as Template CTA */}
         <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 bg-theme-cardBg">
           <CardContent className="p-6 text-center">
-            <h3 className="font-semibold mb-2 text-theme-textPrimary">Create Your Perfect Day</h3>
+            <h3 className="font-semibold mb-2 text-theme-textPrimary">{t('explore.createTemplateTitle')}</h3>
             <p className="text-sm text-theme-textSecondary mb-4">
-              Save your favorite activities as a template and apply them to your calendar in one tap
+              {t('explore.createTemplateDescription')}
             </p>
-            <Button>Create Template</Button>
+            <Button>{t('explore.createTemplate')}</Button>
           </CardContent>
         </Card>
       </div>

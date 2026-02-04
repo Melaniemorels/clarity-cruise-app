@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Hexagon } from "lucide-react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 const signUpSchema = z.object({
   email: z.string().email("Invalid email address").max(255, "Email too long"),
@@ -30,6 +31,7 @@ const signInSchema = z.object({
 });
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,18 +79,18 @@ const Auth = () => {
         if (error) {
           toast.error(error.message || "Failed to sign up");
         } else {
-          toast.success("Account created successfully!");
+          toast.success(t('auth.accountCreated'));
         }
       } else {
         const { error } = await signIn(email, password);
         if (error) {
           toast.error(error.message || "Failed to sign in");
         } else {
-          toast.success("Welcome back!");
+          toast.success(t('auth.welcomeBackSuccess'));
         }
       }
     } catch (error: any) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -109,14 +111,14 @@ const Auth = () => {
             VYV
           </CardTitle>
           <CardDescription>
-            {isSignUp ? "Create your account" : "Welcome back"}
+            {isSignUp ? t('auth.createAccount') : t('auth.welcomeBack')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="handle">Username</Label>
+                <Label htmlFor="handle">{t('auth.username')}</Label>
                 <Input
                   id="handle"
                   placeholder="yourhandle"
@@ -131,7 +133,7 @@ const Auth = () => {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -146,7 +148,7 @@ const Auth = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -162,37 +164,37 @@ const Auth = () => {
             </div>
             
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Please wait..." : (isSignUp ? "Sign Up" : "Sign In")}
+              {loading ? t('auth.pleaseWait') : (isSignUp ? t('auth.signUp') : t('auth.signIn'))}
             </Button>
           </form>
           
           <div className="mt-4 text-center text-sm">
-            {isSignUp ? "Already have an account? " : "Don't have an account? "}
+            {isSignUp ? t('auth.alreadyHaveAccount') + " " : t('auth.dontHaveAccount') + " "}
             <Button
               variant="link"
               className="p-0"
               onClick={() => setIsSignUp(!isSignUp)}
             >
-              {isSignUp ? "Sign In" : "Sign Up"}
+              {isSignUp ? t('auth.signIn') : t('auth.signUp')}
             </Button>
           </div>
 
           {isSignUp && (
             <div className="mt-6 pt-4 border-t border-border text-center text-xs text-muted-foreground">
-              <p className="mb-2">By signing up, you agree to our</p>
+              <p className="mb-2">{t('auth.signUpAgreement')}</p>
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <Link 
                   to="/privacy-policy" 
                   className="text-primary hover:underline"
                 >
-                  Privacy Policy
+                  {t('auth.privacyPolicy')}
                 </Link>
-                <span>and</span>
+                <span>{t('auth.and')}</span>
                 <Link 
                   to="/terms-of-use" 
                   className="text-primary hover:underline"
                 >
-                  Terms of Use
+                  {t('auth.termsOfUse')}
                 </Link>
               </div>
             </div>

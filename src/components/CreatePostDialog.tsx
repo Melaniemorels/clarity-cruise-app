@@ -28,21 +28,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Camera, RotateCcw, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface CreatePostDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const ACTIVITY_TAGS = [
-  { value: "comida", label: "🍽️ Comida" },
-  { value: "gym", label: "💪 Gym" },
-  { value: "meditación", label: "🧘 Meditación" },
-  { value: "estudio", label: "📚 Estudio" },
-  { value: "otros", label: "✨ Otros" },
-];
-
 export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -57,6 +51,14 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const streamRef = useRef<MediaStream | null>(null);
   const lastSubmitTime = useRef<number>(0);
   const DEBOUNCE_MS = 800;
+
+  const ACTIVITY_TAGS = [
+    { value: "comida", label: t('post.activities.food') },
+    { value: "gym", label: t('post.activities.gym') },
+    { value: "meditación", label: t('post.activities.meditation') },
+    { value: "estudio", label: t('post.activities.study') },
+    { value: "otros", label: t('post.activities.other') },
+  ];
 
   // Start camera
   const startCamera = async () => {
@@ -73,7 +75,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
-      toast.error("No se pudo acceder a la cámara");
+      toast.error(t('camera.cameraError'));
     }
   };
 
@@ -129,7 +131,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     setImageFile(null);
     setImagePreview(null);
     stopCamera();
-    toast.success("Foto eliminada");
+    toast.success(t('editProfile.photoRemoved'));
   };
 
   // Cleanup on unmount
@@ -151,8 +153,8 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Usuario no autenticado");
-      if (!imageFile) throw new Error("Imagen requerida");
+      if (!user) throw new Error(t('event.errors.notAuthenticated'));
+      if (!imageFile) throw new Error(t('post.errors.captureFirst'));
 
       setUploadError(null);
 
@@ -169,7 +171,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           });
 
         if (uploadError) {
-          throw new Error(`Error al subir imagen: ${uploadError.message}`);
+          throw new Error(`Error uploading: ${uploadError.message}`);
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -189,7 +191,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
         if (insertError) {
           // Clean up uploaded image if post creation fails
           await supabase.storage.from("images").remove([fileName]);
-          throw new Error(`Error al crear post: ${insertError.message}`);
+          throw new Error(`Error creating post: ${insertError.message}`);
         }
 
         // Create calendar event
@@ -198,7 +200,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
         
         await (supabase as any).from("calendar_events").insert({
           user_id: user.id,
-          title: "Momento capturado",
+          title: t('post.captureMoment'),
           category: activityTag || "otros",
           starts_at: now.toISOString(),
           ends_at: eventEnd.toISOString(),
@@ -210,21 +212,21 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
         if (error instanceof Error) {
           throw error;
         }
-        throw new Error("Error desconocido al crear post");
+        throw new Error(t('errors.generic'));
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success("Publicado");
+      toast.success(t('post.published'));
       handleClose();
       navigate("/");
     },
     onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : "Error al crear post";
+      const errorMessage = error instanceof Error ? error.message : t('errors.generic');
       setUploadError(errorMessage);
       toast.error(errorMessage, {
         action: {
-          label: "Reintentar",
+          label: t('common.retry'),
           onClick: () => {
             setUploadError(null);
             handleSubmit(new Event("submit") as any);
@@ -259,13 +261,13 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
     // Validate image is required
     if (!imageFile) {
-      toast.error("Debes capturar una foto primero");
+      toast.error(t('post.errors.captureFirst'));
       return;
     }
 
     // Validate caption length
     if (caption.trim() && caption.length > 140) {
-      toast.error("El caption no puede tener más de 140 caracteres");
+      toast.error(t('post.errors.captionTooLong'));
       return;
     }
 
@@ -276,7 +278,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Capturar Momento</DialogTitle>
+          <DialogTitle>{t('post.captureMoment')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -297,7 +299,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                 onClick={capturePhoto}
               >
                 <Camera className="w-5 h-5 mr-2" />
-                Capturar
+                {t('camera.capture')}
               </Button>
             </div>
           )}
@@ -333,7 +335,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                     className="py-3 cursor-pointer focus:bg-muted"
                   >
                     <RefreshCw className="mr-3 h-4 w-4 text-primary" />
-                    <span className="font-medium">Tomar otra foto</span>
+                    <span className="font-medium">{t('camera.retry')}</span>
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
@@ -343,7 +345,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                     className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                   >
                     <Trash2 className="mr-3 h-4 w-4" />
-                    <span className="font-medium">Eliminar foto</span>
+                    <span className="font-medium">{t('common.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -359,13 +361,13 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
               <div className="space-y-2">
                 <Label htmlFor="caption">
-                  Caption <span className="text-muted-foreground text-xs">(opcional, {caption.length}/140)</span>
+                  {t('post.caption')} <span className="text-muted-foreground text-xs">({t('common.optional')}, {caption.length}/140)</span>
                 </Label>
                 <Textarea
                   id="caption"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="¿Qué está pasando?"
+                  placeholder={t('post.captionPlaceholder')}
                   maxLength={140}
                   rows={3}
                   disabled={createPostMutation.isPending}
@@ -374,7 +376,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
               <div className="space-y-2">
                 <Label htmlFor="tag">
-                  Etiqueta de actividad <span className="text-muted-foreground text-xs">(opcional)</span>
+                  {t('post.activityTag')} <span className="text-muted-foreground text-xs">({t('common.optional')})</span>
                 </Label>
                 <Select
                   value={activityTag}
@@ -382,7 +384,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                   disabled={createPostMutation.isPending}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una actividad" />
+                    <SelectValue placeholder={t('post.selectActivity')} />
                   </SelectTrigger>
                   <SelectContent>
                     {ACTIVITY_TAGS.map((tag) => (
@@ -401,7 +403,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                   onClick={handleClose}
                   disabled={createPostMutation.isPending}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -410,10 +412,10 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                   {createPostMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Publicando...
+                      {t('post.publishing')}
                     </>
                   ) : (
-                    "Publicar"
+                    t('post.publish')
                   )}
                 </Button>
               </div>

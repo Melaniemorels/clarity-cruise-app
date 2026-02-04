@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity, Lock, Globe } from "lucide-react";
+import { Settings, Sun, Moon, LogOut, FileText, Scale, ChevronRight, Activity, Lock, Globe, Languages } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,8 +15,19 @@ import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
+import { useTranslation } from "react-i18next";
+import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Profile = () => {
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const { signOut, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -32,8 +43,8 @@ const Profile = () => {
   const updateProfileMutation = useUpdateProfile();
 
   const healthData = {
-    steps: { value: 8432, goal: 10000, label: 'Steps' },
-    workout: { value: 45, goal: 60, label: 'Workout (min)' },
+    steps: { value: 8432, goal: 10000, label: t('calendar.steps') },
+    workout: { value: 45, goal: 60, label: `${t('calendar.workout')} (min)` },
     sleep: { value: 7.5, goal: 8, label: 'Sleep (hrs)' },
     screenTime: { value: 3.2, goal: 4, label: 'Screen Time (hrs)' },
   };
@@ -72,7 +83,7 @@ const Profile = () => {
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('profile.title')}</h1>
           <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
             <Settings className="h-5 w-5" />
           </Button>
@@ -91,23 +102,23 @@ const Profile = () => {
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold">@{profile?.handle || 'user'}</h2>
-                <p className="text-sm text-muted-foreground">{profile?.bio || 'Finding balance through movement'}</p>
+                <p className="text-sm text-muted-foreground">{profile?.bio || t('profile.defaultBio')}</p>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span><strong>{stats?.postsCount || 0}</strong> posts</span>
-                  <span><strong>{stats?.followersCount || 0}</strong> seguidores</span>
-                  <span><strong>{stats?.followingCount || 0}</strong> siguiendo</span>
+                  <span><strong>{stats?.postsCount || 0}</strong> {t('profile.posts')}</span>
+                  <span><strong>{stats?.followersCount || 0}</strong> {t('profile.followers')}</span>
+                  <span><strong>{stats?.followingCount || 0}</strong> {t('profile.following')}</span>
                 </div>
               </div>
             </div>
             <Button className="w-full" variant="outline" onClick={() => setEditProfileOpen(true)}>
-              Editar Perfil
+              {t('profile.editProfile')}
             </Button>
           </CardContent>
         </Card>
 
         {/* Today's Stats */}
         <div className="space-y-3">
-          <h2 className="font-semibold">Today</h2>
+          <h2 className="font-semibold">{t('profile.todayStats')}</h2>
           
           {Object.entries(healthData).map(([key, data]) => (
             <Card key={key}>
@@ -132,7 +143,7 @@ const Profile = () => {
         {/* Mini Calendar */}
         <Card>
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-4">Activity Calendar</h3>
+            <h3 className="font-semibold mb-4">{t('profile.activityCalendar')}</h3>
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: 28 }, (_, i) => {
                 const activities = getActivityData(i);
@@ -159,21 +170,21 @@ const Profile = () => {
               })}
             </div>
             <div className="flex justify-end gap-2 mt-3 text-xs text-muted-foreground">
-              <span>Menos</span>
+              <span>{t('common.less')}</span>
               <div className="flex gap-1">
                 <div className="w-3 h-3 rounded-sm intensity-none" />
                 <div className="w-3 h-3 rounded-sm intensity-low" />
                 <div className="w-3 h-3 rounded-sm intensity-medium" />
                 <div className="w-3 h-3 rounded-sm intensity-high" />
               </div>
-              <span>Más</span>
+              <span>{t('common.more')}</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Latest Posts - Show real entries */}
         <div className="space-y-3">
-          <h2 className="font-semibold">Mis Capturas</h2>
+          <h2 className="font-semibold">{t('profile.myCaptures')}</h2>
           
           <div className="grid grid-cols-3 gap-2">
             {entries.length > 0 ? (
@@ -203,8 +214,8 @@ const Profile = () => {
               ))
             ) : (
               <div className="col-span-3 text-center py-8 text-muted-foreground">
-                <p>No hay capturas aún</p>
-                <p className="text-sm">Usa la cámara rápida para empezar</p>
+                <p>{t('profile.noCapturesYet')}</p>
+                <p className="text-sm">{t('profile.useQuickCamera')}</p>
               </div>
             )}
           </div>
@@ -215,7 +226,7 @@ const Profile = () => {
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
+            <DialogTitle>{t('settings.title')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
@@ -228,9 +239,9 @@ const Profile = () => {
                   <Sun className="h-5 w-5 text-primary" />
                 )}
                 <div>
-                  <Label className="text-base">Modo Oscuro</Label>
+                  <Label className="text-base">{t('settings.darkMode')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    {theme === "dark" ? "Modo noche activo" : "Modo día activo"}
+                    {theme === "dark" ? t('settings.nightModeActive') : t('settings.dayModeActive')}
                   </p>
                 </div>
               </div>
@@ -238,6 +249,33 @@ const Profile = () => {
                 checked={theme === "dark"}
                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
               />
+            </div>
+
+            <Separator />
+
+            {/* Language Selector */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Languages className="h-5 w-5 text-primary" />
+                <div>
+                  <Label className="text-base">{t('settings.language')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.languageDesc')}
+                  </p>
+                </div>
+              </div>
+              <Select value={currentLanguage} onValueChange={changeLanguage}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.nativeName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Separator />
@@ -251,11 +289,11 @@ const Profile = () => {
                   <Globe className="h-5 w-5 text-primary" />
                 )}
                 <div>
-                  <Label className="text-base">Perfil Privado</Label>
+                  <Label className="text-base">{t('settings.privateProfile')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {profile?.is_private 
-                      ? "Solo tus seguidores pueden ver tu contenido" 
-                      : "Cualquiera puede ver tu perfil"}
+                      ? t('settings.privateProfileDesc')
+                      : t('settings.publicProfileDesc')}
                   </p>
                 </div>
               </div>
@@ -280,8 +318,8 @@ const Profile = () => {
               <div className="flex items-center gap-3">
                 <Activity className="h-5 w-5 text-primary" />
                 <div className="text-left">
-                  <div className="text-base">Dispositivos de Salud</div>
-                  <div className="text-sm text-muted-foreground">Conecta relojes, anillos y apps</div>
+                  <div className="text-base">{t('settings.healthDevices')}</div>
+                  <div className="text-sm text-muted-foreground">{t('settings.healthDevicesDesc')}</div>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -291,7 +329,7 @@ const Profile = () => {
 
             {/* Legal Section */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Legal</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{t('settings.legal')}</h3>
               <div className="space-y-1">
                 <Button
                   variant="ghost"
@@ -304,8 +342,7 @@ const Profile = () => {
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-primary" />
                     <div className="text-left">
-                      <div className="text-base">Privacy Policy</div>
-                      <div className="text-sm text-muted-foreground">Política de Privacidad</div>
+                      <div className="text-base">{t('auth.privacyPolicy')}</div>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -322,8 +359,7 @@ const Profile = () => {
                   <div className="flex items-center gap-3">
                     <Scale className="h-5 w-5 text-primary" />
                     <div className="text-left">
-                      <div className="text-base">Terms of Use</div>
-                      <div className="text-sm text-muted-foreground">Términos de Uso</div>
+                      <div className="text-base">{t('auth.termsOfUse')}</div>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -340,7 +376,7 @@ const Profile = () => {
               onClick={signOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
+              {t('auth.signOut')}
             </Button>
           </div>
         </DialogContent>

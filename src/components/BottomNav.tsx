@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Home, Compass, Lock, Calendar, User } from "lucide-react";
 import { NavLink } from "./NavLink";
 import { QuickCamera } from "./QuickCamera";
+import { useTranslation } from "react-i18next";
 
 export const BottomNav = () => {
   const [cameraOpen, setCameraOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <>
@@ -22,7 +24,7 @@ export const BottomNav = () => {
             activeClassName="!text-theme-tabIconActive"
           >
             <Home className="h-6 w-6" strokeWidth={1.4} />
-            <span className="text-xs font-medium">Feed</span>
+            <span className="text-xs font-medium">{t('nav.feed')}</span>
           </NavLink>
           
           <NavLink
@@ -31,7 +33,7 @@ export const BottomNav = () => {
             activeClassName="!text-theme-tabIconActive"
           >
             <Compass className="h-6 w-6" strokeWidth={1.4} />
-            <span className="text-xs font-medium">Explore</span>
+            <span className="text-xs font-medium">{t('nav.explore')}</span>
           </NavLink>
           
           <button
@@ -39,7 +41,7 @@ export const BottomNav = () => {
             className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive hover:text-theme-tabIconActive"
           >
             <Lock className="h-6 w-6" strokeWidth={1.4} />
-            <span className="text-xs font-medium">Focus</span>
+            <span className="text-xs font-medium">{t('nav.focus')}</span>
           </button>
         
         <NavLink
@@ -48,7 +50,7 @@ export const BottomNav = () => {
           activeClassName="!text-theme-tabIconActive"
         >
           <Calendar className="h-6 w-6" strokeWidth={1.4} />
-          <span className="text-xs font-medium">Calendar</span>
+          <span className="text-xs font-medium">{t('nav.calendar')}</span>
         </NavLink>
         
           <NavLink
@@ -57,7 +59,7 @@ export const BottomNav = () => {
             activeClassName="!text-theme-tabIconActive"
           >
             <User className="h-6 w-6" strokeWidth={1.4} />
-            <span className="text-xs font-medium">Profile</span>
+            <span className="text-xs font-medium">{t('nav.profile')}</span>
           </NavLink>
         </div>
       </nav>
