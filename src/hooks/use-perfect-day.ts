@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export type ActivityType = "work" | "movement" | "nutrition" | "rest" | "mindfulness";
 export type Period = "morning" | "midday" | "afternoon" | "evening";
@@ -31,9 +32,10 @@ export interface PerfectDayResponse {
 
 export function usePerfectDay() {
   const { user, session } = useAuth();
+  const { i18n } = useTranslation();
 
   return useQuery({
-    queryKey: ["perfect-day", user?.id],
+    queryKey: ["perfect-day", user?.id, i18n.language],
     queryFn: async (): Promise<PerfectDayResponse> => {
       if (!session?.access_token) {
         throw new Error("Not authenticated");
@@ -47,6 +49,9 @@ export function usePerfectDay() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
           },
+          body: JSON.stringify({
+            userLanguage: i18n.language,
+          }),
         }
       );
 
