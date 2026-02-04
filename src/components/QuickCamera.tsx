@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, X, SwitchCamera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 type FilterType = "natural" | "bw";
+type FacingMode = "environment" | "user";
 
 interface QuickCameraProps {
   isOpen?: boolean;
@@ -21,15 +22,23 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const setIsOpen = onOpenChange || setInternalOpen;
   const [filter, setFilter] = useState<FilterType>("natural");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [capturedTimestamp, setCapturedTimestamp] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [facingMode, setFacingMode] = useState<FacingMode>("environment");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const { user } = useAuth();
 
-  const startCamera = async () => {
+  const startCamera = async (mode: FacingMode = facingMode) => {
+    // Stop existing stream first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: mode },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -50,6 +59,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     }
   };
 
+  const toggleCamera = () => {
+    const newMode: FacingMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(newMode);
+    startCamera(newMode);
+  };
+
   const capturePhoto = () => {
     if (!videoRef.current) return;
 
@@ -60,7 +75,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
     if (!ctx) return;
 
+    // Mirror the image if using front camera
+    if (facingMode === "user") {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+
     ctx.drawImage(videoRef.current, 0, 0);
+
+    // Reset transform
+    if (facingMode === "user") {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
 
     if (filter === "bw") {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -75,7 +101,9 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     }
 
     const imageUrl = canvas.toDataURL("image/jpeg", 0.9);
+    const timestamp = new Date().toISOString();
     setCapturedImage(imageUrl);
+    setCapturedTimestamp(timestamp);
     stopCamera();
   };
 
@@ -125,7 +153,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         .from("quick-captures")
         .getPublicUrl(fileName);
 
-      const now = new Date().toISOString();
+      // Use captured timestamp for accurate timing
+      const timestamp = capturedTimestamp || new Date().toISOString();
 
       // Analyze the image with AI to get category and label
       const analysis = await analyzeImage(urlData.publicUrl);
@@ -136,29 +165,31 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         user_id: user.id,
         photo_url: urlData.publicUrl,
         caption: "",
-        occurred_at: now,
+        occurred_at: timestamp,
         visibility: "public",
       });
 
       if (entryError) throw entryError;
 
-      // Auto-publish to posts (feed)
+      // Auto-publish to posts (feed) with preserved timestamp
       const { error: postError } = await supabase.from("posts").insert({
         user_id: user.id,
         image_url: urlData.publicUrl,
         caption: "",
         activity_tag: activityTag,
+        created_at: timestamp,
       });
 
       if (postError) throw postError;
 
-      // Create calendar block for the capture
-      const endTime = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      // Create calendar block for the capture with preserved timestamp
+      const captureTime = new Date(timestamp);
+      const endTime = new Date(captureTime.getTime() + 30 * 60 * 1000).toISOString();
 
       const { error: blockError } = await supabase.from("schedule_blocks").insert({
         user_id: user.id,
         title: activityTag,
-        start_at: now,
+        start_at: timestamp,
         end_at: endTime,
         visibility: "public",
         note: urlData.publicUrl,
@@ -183,10 +214,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     setIsOpen(open);
     if (open) {
       setCapturedImage(null);
-      startCamera();
+      setCapturedTimestamp(null);
+      startCamera(facingMode);
     } else {
       stopCamera();
       setCapturedImage(null);
+      setCapturedTimestamp(null);
     }
   };
 
@@ -222,8 +255,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     playsInline
                     className={`w-full h-full object-cover ${
                       filter === "bw" ? "grayscale" : ""
-                    }`}
+                    } ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
                   />
+                  
+                  {/* Camera toggle button */}
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={toggleCamera}
+                    className="absolute top-3 right-3 bg-background/60 hover:bg-background/80 backdrop-blur-sm rounded-full"
+                  >
+                    <SwitchCamera className="h-5 w-5" strokeWidth={1.4} />
+                  </Button>
                 </div>
 
                 <div className="flex gap-3 justify-center mt-5 w-[84%]">
@@ -269,7 +312,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     variant="outline"
                     onClick={() => {
                       setCapturedImage(null);
-                      startCamera();
+                      setCapturedTimestamp(null);
+                      startCamera(facingMode);
                     }}
                     className="flex-1"
                   >
