@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { ChevronLeft, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FollowButton } from "@/components/FollowButton";
 import { PrivateProfilePlaceholder } from "@/components/PrivateProfilePlaceholder";
+import { FollowListModal } from "@/components/FollowListModal";
 import { useViewerAccess } from "@/hooks/use-viewer-access";
 import { useFollowStatus } from "@/hooks/use-follow-status";
 
@@ -30,6 +32,7 @@ const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
   
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === userId;
@@ -195,8 +198,18 @@ const UserProfile = () => {
                 </p>
                 <div className="flex gap-4 mt-2 text-sm">
                   <span><strong>{profile.posts_count}</strong> {t("profile.posts")}</span>
-                  <span><strong>{profile.followers_count}</strong> {t("profile.followers")}</span>
-                  <span><strong>{profile.following_count}</strong> {t("profile.following")}</span>
+                  <button 
+                    onClick={() => setFollowListType("followers")}
+                    className="hover:underline"
+                  >
+                    <strong>{profile.followers_count}</strong> {t("profile.followers")}
+                  </button>
+                  <button 
+                    onClick={() => setFollowListType("following")}
+                    className="hover:underline"
+                  >
+                    <strong>{profile.following_count}</strong> {t("profile.following")}
+                  </button>
                 </div>
               </div>
             </div>
@@ -242,6 +255,16 @@ const UserProfile = () => {
           </>
         )}
       </div>
+
+      {userId && (
+        <FollowListModal
+          open={followListType !== null}
+          onOpenChange={(open) => !open && setFollowListType(null)}
+          userId={userId}
+          type={followListType || "followers"}
+          isPrivateLocked={isPrivateLocked}
+        />
+      )}
 
       <BottomNav />
     </div>
