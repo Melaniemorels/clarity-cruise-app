@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Camera, Loader2, AlertTriangle } from "lucide-react";
+import { Camera, Loader2, AlertTriangle, Trash2, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -110,6 +117,11 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
     }
   };
 
+  const handleRemovePhoto = () => {
+    setPhotoUrl("");
+    toast.success("Foto eliminada");
+  };
+
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
@@ -178,23 +190,25 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
         <div className="space-y-6 py-4">
           {/* Profile Photo */}
           <div className="flex flex-col items-center gap-4">
-            <div 
-              className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden cursor-pointer group"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {photoUrl ? (
-                <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-4xl">🌿</span>
-              )}
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {uploading ? (
-                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+            <div className="relative">
+              <div 
+                className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center overflow-hidden ring-2 ring-border"
+              >
+                {photoUrl ? (
+                  <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="h-6 w-6 text-white" />
+                  <span className="text-4xl">🌿</span>
                 )}
               </div>
+              
+              {/* Upload indicator overlay when uploading */}
+              {uploading && (
+                <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+              )}
             </div>
+            
             <input
               ref={fileInputRef}
               type="file"
@@ -203,14 +217,45 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               onChange={handlePhotoUpload}
               disabled={uploading}
             />
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? "Subiendo..." : "Cambiar foto"}
-            </Button>
+            
+            {/* Instagram-style photo options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-primary font-semibold hover:text-primary/80 hover:bg-transparent"
+                  disabled={uploading}
+                >
+                  {uploading ? "Subiendo..." : "Editar foto"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="center" 
+                className="w-56 rounded-xl border-border/50 shadow-xl"
+              >
+                <DropdownMenuItem 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="py-3 cursor-pointer focus:bg-muted"
+                >
+                  <ImagePlus className="mr-3 h-4 w-4 text-primary" />
+                  <span className="font-medium">Subir nueva foto</span>
+                </DropdownMenuItem>
+                
+                {photoUrl && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleRemovePhoto}
+                      className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                    >
+                      <Trash2 className="mr-3 h-4 w-4" />
+                      <span className="font-medium">Eliminar foto actual</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Name */}
