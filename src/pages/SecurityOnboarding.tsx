@@ -77,6 +77,16 @@ const SecurityOnboarding = () => {
     setIsCompleting(false);
   };
 
+  const handleSkip = async () => {
+    setIsCompleting(true);
+    const success = await completeSecurityOnboarding();
+    if (success) {
+      // Skip to device onboarding even without email verification
+      window.location.href = "/onboarding";
+    }
+    setIsCompleting(false);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -175,20 +185,35 @@ const SecurityOnboarding = () => {
             </div>
           )}
 
-          {/* Continue Button */}
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={handleContinue}
-            disabled={!emailVerified || isCompleting}
-          >
-            {isCompleting ? (
-              <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-            ) : null}
-            {t('security.continue')}
-          </Button>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={handleContinue}
+              disabled={!emailVerified || isCompleting}
+            >
+              {isCompleting ? (
+                <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {t('security.continue')}
+            </Button>
 
-          {/* Skip option (only if email is verified) */}
+            {/* Skip option - always show when email not verified */}
+            {!emailVerified && (
+              <Button 
+                variant="ghost"
+                className="w-full" 
+                size="lg"
+                onClick={handleSkip}
+                disabled={isCompleting}
+              >
+                {t('security.doItLater')}
+              </Button>
+            )}
+          </div>
+
+          {/* Success message when verified */}
           {emailVerified && (
             <p className="text-center text-xs text-muted-foreground">
               {t('security.accountSecured')}

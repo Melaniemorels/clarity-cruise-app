@@ -353,6 +353,7 @@
     "checkStatus": "Check status",
     "verifyWarning": "You must verify your email to continue. Check your inbox or spam folder.",
     "continue": "Continue",
+    "doItLater": "Do it later",
     "accountSecured": "Your account is verified and protected"
   },
   "recommendations": {
