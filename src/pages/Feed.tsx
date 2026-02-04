@@ -265,24 +265,24 @@ const Feed = () => {
           </div>
         </div>
 
-        <div className="p-4 space-y-4 relative">
-          {/* Motivational card when limit was reached */}
-          <FeedMotivationalCard 
-            visible={showMotivationalCard && !showBudgetModal && !isLimitReached}
-            onDismiss={() => setShowMotivationalCard(false)}
-          />
+        <div className="relative">
+          {/* Social time completed state - replaces feed content when limit reached */}
+          {isLimitReached && !isInCooldown ? (
+            <SocialBudgetLockOverlay 
+              visible={true} 
+              allowExtensions={allowExtensions}
+              onExtend={handleExtendTime}
+              onReturnToFocus={handleOverlayReturnToFocus}
+            />
+          ) : (
+            <div className="p-4 space-y-4">
+              {/* Motivational card when limit was reached */}
+              <FeedMotivationalCard 
+                visible={showMotivationalCard && !showBudgetModal && !isLimitReached}
+                onDismiss={() => setShowMotivationalCard(false)}
+              />
 
-          {/* Calm overlay when limit reached (respect cooldown) */}
-          <SocialBudgetLockOverlay 
-            visible={isLimitReached && !isInCooldown} 
-            allowExtensions={allowExtensions}
-            onExtend={handleExtendTime}
-            onReturnToFocus={handleOverlayReturnToFocus}
-          />
-
-          {/* Only show feed content when not locked */}
-          {!isLimitReached && (
-            <>
+              {/* Feed content */}
               {isLoading ? (
                 <>
                   {[...Array(3)].map((_, i) => (
@@ -340,11 +340,10 @@ const Feed = () => {
                   </div>
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
-
       {/* Social Budget Modal */}
       <SocialBudgetModal
         open={showBudgetModal}
