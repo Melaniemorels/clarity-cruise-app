@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
@@ -9,23 +10,67 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
 import { QuickCamera } from "@/components/QuickCamera";
+import { SocialBudgetIndicator } from "@/components/SocialBudgetIndicator";
+import { SocialBudgetModal } from "@/components/SocialBudgetModal";
+import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
 import { useInfinitePosts } from "@/hooks/use-posts";
+import { useSocialBudgetTracker } from "@/hooks/use-social-budget";
 import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
-
 const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
   const device = useDevice();
   const navPadding = useNavPadding();
+
+  // Social budget tracking
+  const {
+    localSecondsUsed,
+    dailyLimitSeconds,
+    progressPercent,
+    isLimitReached,
+    allowExtensions,
+    isUnlimited,
+    startTracking,
+    stopTracking,
+    addExtension,
+  } = useSocialBudgetTracker();
+
+  // Start tracking when component mounts, stop when unmounts
+  useEffect(() => {
+    startTracking();
+    return () => {
+      stopTracking();
+    };
+  }, [startTracking, stopTracking]);
+
+  // Show modal when limit is reached
+  useEffect(() => {
+    if (isLimitReached && !showBudgetModal) {
+      setShowBudgetModal(true);
+    }
+  }, [isLimitReached, showBudgetModal]);
+
+  const handleExtendTime = useCallback(() => {
+    addExtension(5);
+    setShowBudgetModal(false);
+    toast.success(t('socialBudget.extended'));
+  }, [addExtension, t]);
+
+  const handleReturnToFocus = useCallback(() => {
+    setShowBudgetModal(false);
+    navigate("/");
+  }, [navigate]);
 
   const { 
     data, 
@@ -142,9 +187,24 @@ const Feed = () => {
               </Button>
             </div>
           </div>
+
+          {/* Social Budget Indicator */}
+          {!isUnlimited && (
+            <div className="px-4 pb-3">
+              <SocialBudgetIndicator
+                secondsUsed={localSecondsUsed}
+                dailyLimitSeconds={dailyLimitSeconds}
+                progressPercent={progressPercent}
+                isUnlimited={isUnlimited}
+              />
+            </div>
+          )}
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 relative">
+          {/* Lock overlay when limit reached */}
+          <SocialBudgetLockOverlay visible={isLimitReached} />
+
           {isLoading ? (
             <>
               {[...Array(3)].map((_, i) => (
@@ -207,6 +267,14 @@ const Feed = () => {
           )}
         </div>
       </div>
+
+      {/* Social Budget Modal */}
+      <SocialBudgetModal
+        open={showBudgetModal}
+        onExtend={handleExtendTime}
+        onReturn={handleReturnToFocus}
+        allowExtensions={allowExtensions}
+      />
 
       <QuickCamera
         isOpen={isCameraOpen}
