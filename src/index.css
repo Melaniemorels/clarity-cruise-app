@@ -13,57 +13,59 @@
 @layer base {
   :root {
     /* ==================== CORE PALETTE ==================== */
-    --background: 0 0% 96%;
-    --foreground: 0 0% 7%;
+    /* VYV Day Mode: Minimal – calm – premium – wellness – tech luxury */
+    --background: 60 20% 97%;           /* #FAFAF8 - warm off-white */
+    --foreground: 240 5% 11%;           /* #1C1C1E - titles color */
 
-    --card: 40 33% 98%;
-    --card-foreground: 0 0% 7%;
+    --card: 0 0% 100%;                  /* #FFFFFF - pure white cards */
+    --card-foreground: 240 5% 11%;      /* #1C1C1E */
 
-    --popover: 40 33% 98%;
-    --popover-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;               /* #FFFFFF */
+    --popover-foreground: 240 5% 11%;   /* #1C1C1E */
 
-    --primary: 163 33% 27%;
-    --primary-foreground: 40 33% 98%;
+    --primary: 169 56% 28%;             /* #1F6F63 - primary accent */
+    --primary-foreground: 0 0% 100%;    /* white text on primary */
 
-    --secondary: 156 48% 51%;
-    --secondary-foreground: 40 33% 98%;
+    --secondary: 169 21% 58%;           /* #7FA7A1 - secondary accent */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 88%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 210 10% 95%;               /* soft muted background */
+    --muted-foreground: 240 2% 57%;     /* #8E8E93 - secondary text */
 
-    --accent: 156 48% 51%;
-    --accent-foreground: 40 33% 98%;
+    --accent: 169 21% 58%;              /* #7FA7A1 */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
-    --destructive-foreground: 40 33% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 163 33% 27%;
+    --border: 210 10% 91%;              /* #E6E8EB - subtle borders */
+    --input: 210 10% 91%;               /* #E6E8EB */
+    --ring: 169 56% 28%;                /* #1F6F63 */
 
-    --radius: 0.75rem;
+    --radius: 0.75rem;                  /* 12px border radius */
 
     /* ==================== SEMANTIC THEME TOKENS ==================== */
-    --theme-bg: 0 0% 96%;
-    --theme-bg-elevated: 40 33% 98%;
-    --theme-card-bg: 40 33% 98%;
-    --theme-text-primary: 0 0% 7%;
-    --theme-text-secondary: 0 0% 35%;
-    --theme-accent-primary: 163 33% 27%;
-    --theme-accent-highlight: 156 48% 51%;
-    --theme-border-subtle: 0 0% 88%;
-    --theme-tab-bg: 40 33% 98%;
-    --theme-tab-icon-active: 163 33% 27%;
-    --theme-tab-icon-inactive: 0 0% 60%;
+    --theme-bg: 60 20% 97%;             /* #FAFAF8 */
+    --theme-bg-elevated: 0 0% 100%;     /* #FFFFFF */
+    --theme-card-bg: 0 0% 100%;         /* #FFFFFF */
+    --theme-text-primary: 240 5% 11%;   /* #1C1C1E - titles */
+    --theme-text-secondary: 240 2% 36%; /* #5A5A5E - body text */
+    --theme-text-tertiary: 240 2% 57%;  /* #8E8E93 - secondary text */
+    --theme-accent-primary: 169 56% 28%;/* #1F6F63 */
+    --theme-accent-highlight: 169 21% 58%;/* #7FA7A1 */
+    --theme-border-subtle: 210 10% 91%; /* #E6E8EB */
+    --theme-tab-bg: 0 0% 100%;          /* #FFFFFF */
+    --theme-tab-icon-active: 169 56% 28%;/* #1F6F63 */
+    --theme-tab-icon-inactive: 240 2% 57%;/* #8E8E93 */
 
     /* ==================== BRAND COLORS ==================== */
-    --luxury-emerald: 163 33% 27%;
-    --luxury-emerald-light: 156 48% 51%;
-    --luxury-emerald-dark: 163 33% 27%;
+    --luxury-emerald: 169 56% 28%;      /* #1F6F63 - primary */
+    --luxury-emerald-light: 169 21% 58%;/* #7FA7A1 - secondary */
+    --luxury-emerald-dark: 169 56% 28%; /* #1F6F63 */
     --luxury-chocolate: 25 75% 25%;
     --luxury-navy: 220 100% 20%;
-    --luxury-white: 40 33% 98%;
-    --luxury-black: 0 0% 7%;
+    --luxury-white: 0 0% 100%;          /* #FFFFFF */
+    --luxury-black: 240 5% 11%;         /* #1C1C1E */
 
     /* ==================== CATEGORY COLORS (for calendar, activities) ==================== */
     --category-work: 217 91% 60%;
