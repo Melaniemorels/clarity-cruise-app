@@ -177,14 +177,16 @@ const Feed = () => {
 
   return (
     <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
-      {/* Watermark */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
-        <Hexagon 
-          size={device.isDesktop ? 500 : device.isTablet ? 400 : 300} 
-          strokeWidth={0.5}
-          className="text-theme-borderSubtle opacity-12"
-        />
-      </div>
+      {/* Watermark - only show when content is visible and not locked */}
+      {!isLimitReached && !isLoading && posts.length > 0 && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+          <Hexagon 
+            size={device.isDesktop ? 500 : device.isTablet ? 400 : 300} 
+            strokeWidth={0.5}
+            className="text-theme-borderSubtle opacity-12"
+          />
+        </div>
+      )}
 
       <div className={cn(
         "mx-auto relative z-10 transition-all duration-300",
@@ -228,7 +230,7 @@ const Feed = () => {
         <div className="p-4 space-y-4 relative">
           {/* Motivational card when limit was reached */}
           <FeedMotivationalCard 
-            visible={showMotivationalCard && !showBudgetModal}
+            visible={showMotivationalCard && !showBudgetModal && !isLimitReached}
             onDismiss={() => setShowMotivationalCard(false)}
           />
 
@@ -239,64 +241,66 @@ const Feed = () => {
             onExtend={handleExtendTime}
           />
 
-          {isLoading ? (
+          {/* Only show feed content when not locked */}
+          {!isLimitReached && (
             <>
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="space-y-3 p-4 border border-border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <Skeleton className="h-4 w-24" />
+              {isLoading ? (
+                <>
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="space-y-3 p-4 border border-border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <Skeleton className="h-64 w-full rounded-lg" />
+                      <Skeleton className="h-4 w-full" />
+                      <div className="flex gap-4">
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-16 animate-in fade-in" style={{ animationDuration: '280ms' }}>
+                  <div className="flex justify-center mb-6">
+                    <div className="relative">
+                      <Camera size={56} strokeWidth={1.2} className="text-muted-foreground/40" />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Plus size={12} className="text-primary-foreground" strokeWidth={2.5} />
+                      </div>
+                    </div>
                   </div>
-                  <Skeleton className="h-64 w-full rounded-lg" />
-                  <Skeleton className="h-4 w-full" />
-                  <div className="flex gap-4">
-                    <Skeleton className="h-8 w-16" />
-                  </div>
+                  <p className="mb-2 text-xl font-medium text-foreground">
+                    {t('feed.emptyTitle')}
+                  </p>
+                  <p className="mb-6 text-sm text-muted-foreground max-w-xs mx-auto">
+                    {t('feed.emptyDescription')}
+                  </p>
+                  <Button 
+                    onClick={() => setIsCameraOpen(true)}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
+                  >
+                    <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                    {t('feed.captureFirstVibe')}
+                  </Button>
                 </div>
-              ))}
-            </>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-16 animate-in fade-in" style={{ animationDuration: '280ms' }}>
-              <div className="flex justify-center mb-6">
-                <div className="relative">
-                  <Camera size={56} strokeWidth={1.2} className="text-muted-foreground/40" />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                    <Plus size={12} className="text-primary-foreground" strokeWidth={2.5} />
+              ) : (
+                <>
+                  {posts.map((post) => (
+                    <PostItem
+                      key={post.id}
+                      post={post}
+                    />
+                  ))}
+                  
+                  {/* Load more trigger - only when actively loading more */}
+                  <div ref={loadMoreRef} className="py-4 flex justify-center">
+                    {isFetchingNextPage && (
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    )}
                   </div>
-                </div>
-              </div>
-              <p className="mb-2 text-xl font-medium text-foreground">
-                {t('feed.emptyTitle')}
-              </p>
-              <p className="mb-6 text-sm text-muted-foreground max-w-xs mx-auto">
-                {t('feed.emptyDescription')}
-              </p>
-              <Button 
-                onClick={() => setIsCameraOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
-              >
-                <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                {t('feed.captureFirstVibe')}
-              </Button>
-            </div>
-          ) : (
-            <>
-              {posts.map((post) => (
-                <PostItem
-                  key={post.id}
-                  post={post}
-                />
-              ))}
-              
-              {/* Load more trigger */}
-              <div ref={loadMoreRef} className="py-4 flex justify-center">
-                {isFetchingNextPage && (
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                )}
-                {!hasNextPage && posts.length > 0 && (
-                  <p className="text-sm text-muted-foreground">{t('feed.noMorePosts')}</p>
-                )}
-              </div>
+                </>
+              )}
             </>
           )}
         </div>
