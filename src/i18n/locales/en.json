@@ -404,6 +404,7 @@
     "title": "Your Perfect Day",
     "subtitle": "Suggested plan for today based on your sleep and energy.",
     "activities": "activities",
+    "noActivities": "No scheduled activities",
     "error": "Couldn't generate your perfect day",
     "tryAgain": "Try again",
     "changeRoutine": "Change routine",

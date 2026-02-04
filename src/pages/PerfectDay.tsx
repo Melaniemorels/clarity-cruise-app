@@ -60,6 +60,7 @@ const activityTypeColors: Record<ActivityType, string> = {
 function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
+  const hasActivities = block.activities.length > 0;
 
   const periodLabels: Record<Period, string> = {
     morning: t("perfectDay.periods.morning"),
@@ -68,6 +69,10 @@ function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
     evening: t("perfectDay.periods.evening"),
   };
 
+  const activityCountText = hasActivities
+    ? `${block.activities.length} ${t("perfectDay.activities")}`
+    : t("perfectDay.noActivities");
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,30 +80,35 @@ function TimeBlockCard({ block, index }: { block: TimeBlock; index: number }) {
       transition={{ delay: index * 0.1 }}
     >
       <Card className={`overflow-hidden border ${periodColors[block.period]}`}>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full p-4 flex items-center justify-between text-left"
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => hasActivities && setIsExpanded(!isExpanded)}
+          onKeyDown={(e) => e.key === "Enter" && hasActivities && setIsExpanded(!isExpanded)}
+          className={`w-full p-4 flex items-center justify-between text-left ${hasActivities ? "cursor-pointer" : "cursor-default"}`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border">
+            <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center border">
               {periodIcons[block.period]}
             </div>
             <div>
-              <h3 className="font-medium text-sm">{periodLabels[block.period]}</h3>
+              <h3 className="font-semibold text-base">{periodLabels[block.period]}</h3>
               <p className="text-xs text-muted-foreground">
-                {block.activities.length} {t("perfectDay.activities")}
+                {activityCountText}
               </p>
             </div>
           </div>
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          {hasActivities && (
+            isExpanded ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )
           )}
-        </button>
+        </div>
 
         <AnimatePresence>
-          {isExpanded && (
+          {isExpanded && hasActivities && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -235,6 +245,22 @@ export default function PerfectDay() {
     console.log("Selected option:", option);
   };
 
+  // Smart back navigation
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
+  // Ensure blocks are in correct order and include all periods
+  const periodOrder: Period[] = ["morning", "midday", "afternoon", "evening"];
+  const orderedBlocks: TimeBlock[] = periodOrder.map((period) => {
+    const existingBlock = data?.blocks.find((b) => b.period === period);
+    return existingBlock || { period, activities: [] };
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -244,8 +270,8 @@ export default function PerfectDay() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
-              className="rounded-full"
+              onClick={handleBack}
+              className="rounded-full h-10 w-10"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -299,9 +325,9 @@ export default function PerfectDay() {
               <EnergyBadge level={data.energyLevel} sleepHours={data.sleepHours} />
             </motion.div>
 
-            {/* Time Blocks */}
+            {/* Time Blocks - Always in order: Morning, Midday, Afternoon, Evening */}
             <div className="space-y-3">
-              {data.blocks.map((block, index) => (
+              {orderedBlocks.map((block, index) => (
                 <TimeBlockCard key={block.period} block={block} index={index} />
               ))}
             </div>
