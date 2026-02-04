@@ -460,5 +460,24 @@
       "blocks": "blocks",
       "generating": "Generating options..."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all read",
+    "someone": "Someone",
+    "newFollower": "{{name}} started following you",
+    "followRequest": "{{name}} wants to follow you",
+    "requestAccepted": "{{name}} accepted your request",
+    "requestRejected": "{{name}} rejected your request",
+    "likedPost": "{{name}} liked your post",
+    "commented": "{{name}} commented on your post"
+  },
+  "followRequests": {
+    "title": "Requests",
+    "empty": "No pending requests",
+    "accepted": "Request accepted",
+    "rejected": "Request rejected",
+    "error": "Error processing request"
   }
 }
