@@ -338,5 +338,21 @@
       "doItLater": "Hacerlo después",
       "privacyNote": "Tus datos permanecen privados. Puedes gestionar conexiones en Configuración."
     }
+  },
+  "security": {
+    "title": "Verifica tu cuenta",
+    "description": "Completa la verificación para proteger tu cuenta y acceder a todas las funciones.",
+    "progress": "Progreso de verificación",
+    "emailVerification": "Verificación de email",
+    "emailVerifiedMessage": "Tu email ha sido verificado correctamente",
+    "emailNotVerifiedMessage": "Revisa tu bandeja de entrada y haz clic en el enlace de verificación",
+    "emailSent": "Email de verificación enviado",
+    "emailVerified": "¡Email verificado correctamente!",
+    "emailNotVerifiedYet": "Tu email aún no ha sido verificado. Revisa tu bandeja de entrada.",
+    "resendEmail": "Reenviar email",
+    "checkStatus": "Actualizar estado",
+    "verifyWarning": "Debes verificar tu email para continuar. Revisa tu bandeja de entrada o spam.",
+    "continue": "Continuar",
+    "accountSecured": "Tu cuenta está verificada y protegida"
   }
 }

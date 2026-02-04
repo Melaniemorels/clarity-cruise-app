@@ -338,5 +338,21 @@
       "doItLater": "Do it later",
       "privacyNote": "Your data stays private. You can manage connections anytime in Settings."
     }
+  },
+  "security": {
+    "title": "Verify your account",
+    "description": "Complete verification to protect your account and access all features.",
+    "progress": "Verification progress",
+    "emailVerification": "Email verification",
+    "emailVerifiedMessage": "Your email has been verified successfully",
+    "emailNotVerifiedMessage": "Check your inbox and click the verification link",
+    "emailSent": "Verification email sent",
+    "emailVerified": "Email verified successfully!",
+    "emailNotVerifiedYet": "Your email hasn't been verified yet. Check your inbox.",
+    "resendEmail": "Resend email",
+    "checkStatus": "Check status",
+    "verifyWarning": "You must verify your email to continue. Check your inbox or spam folder.",
+    "continue": "Continue",
+    "accountSecured": "Your account is verified and protected"
   }
 }
