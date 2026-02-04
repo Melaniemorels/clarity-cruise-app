@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +35,7 @@ import {
 import { Heart, MoreHorizontal, Pencil, Archive, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 
 interface Post {
   id: string;
@@ -202,12 +202,11 @@ export const PostItem = ({ post }: PostItemProps) => {
               className="flex items-center gap-3 flex-1 cursor-pointer"
               onClick={() => navigate(`/profile/${post.user_id}`)}
             >
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={post.profiles?.photo_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {post.profiles?.handle?.[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar
+                photoUrl={post.profiles?.photo_url}
+                handle={post.profiles?.handle}
+                size="md"
+              />
               <div className="flex-1">
                 <p className="font-semibold text-sm text-foreground hover:underline">
                   {post.profiles?.handle || "user"}

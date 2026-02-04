@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FollowButton } from "@/components/FollowButton";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { useFollowers, useFollowing, FollowListUser } from "@/hooks/use-follow-list";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -52,7 +52,7 @@ export function FollowListModal({
     if (targetUserId === currentUser?.id) {
       navigate("/profile");
     } else {
-      navigate(`/user/${targetUserId}`);
+      navigate(`/profile/${targetUserId}`);
     }
   };
 
@@ -140,12 +140,12 @@ function UserListItem({ user, currentUserId, onClick }: UserListItemProps) {
         onClick={onClick}
         className="flex items-center gap-3 flex-1 text-left"
       >
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={user.photo_url || undefined} alt={user.handle} />
-          <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-lg">
-            {user.handle.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <ProfileAvatar
+          photoUrl={user.photo_url}
+          handle={user.handle}
+          name={user.name}
+          size="lg"
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
             <span className="font-medium truncate">@{user.handle}</span>

@@ -293,7 +293,10 @@
     "errors": {
       "uploadError": "Error al subir la foto",
       "imageTooLarge": "La imagen debe ser menor a 5MB",
-      "selectImage": "Por favor selecciona una imagen"
+      "selectImage": "Por favor selecciona una imagen",
+      "handleTooShort": "El nombre de usuario debe tener al menos 3 caracteres",
+      "handleTooLong": "El nombre de usuario debe tener 20 caracteres o menos",
+      "handleInvalidChars": "El nombre de usuario solo puede contener letras, números y guion bajo"
     }
   },
   "userSearch": {

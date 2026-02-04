@@ -1,14 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Camera, Loader2, AlertTriangle, Trash2, ImagePlus } from "lucide-react";
+import { Loader2, AlertTriangle, Trash2, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DropdownMenu,
@@ -18,6 +17,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { 
+  useUpdateCurrentUserProfile, 
+  useUpdateAvatar, 
+  useRemoveAvatar,
+  validateHandle,
+  normalizeHandle 
+} from "@/hooks/use-profile-update";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -40,7 +47,15 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
   const [bio, setBio] = useState(profile?.bio || "");
   const [name, setName] = useState(profile?.name || "");
   const [photoUrl, setPhotoUrl] = useState(profile?.photo_url || "");
-  const [uploading, setUploading] = useState(false);
+  const [handleError, setHandleError] = useState<string | null>(null);
+
+  // Mutations
+  const updateProfile = useUpdateCurrentUserProfile();
+  const updateAvatar = useUpdateAvatar();
+  const removeAvatar = useRemoveAvatar();
+
+  const isUploading = updateAvatar.isPending;
+  const isSaving = updateProfile.isPending;
 
   // Query to get handle changes in the last year
   const { data: handleChangesThisYear = [] } = useQuery({
@@ -68,119 +83,99 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
   const handleChanged = handle !== profile?.handle;
 
   // Reset form when dialog opens
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && profile) {
+  useEffect(() => {
+    if (open && profile) {
       setHandle(profile.handle);
       setBio(profile.bio || "");
       setName(profile.name || "");
       setPhotoUrl(profile.photo_url || "");
+      setHandleError(null);
     }
+  }, [open, profile]);
+
+  const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
+  };
+
+  // Real-time handle validation
+  const handleHandleChange = (value: string) => {
+    const normalized = normalizeHandle(value);
+    setHandle(normalized);
+    
+    if (normalized && normalized !== profile?.handle) {
+      const validation = validateHandle(normalized, t);
+      setHandleError(validation.isValid ? null : validation.error || null);
+    } else {
+      setHandleError(null);
+    }
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error(t('editProfile.errors.selectImage'));
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t('editProfile.errors.imageTooLarge'));
-      return;
-    }
-
-    setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
-
-      setPhotoUrl(publicUrl);
-      toast.success(t('editProfile.photoUploaded'));
-    } catch (error) {
-      console.error("Error uploading photo:", error);
-      toast.error(t('editProfile.errors.uploadError'));
-    } finally {
-      setUploading(false);
+      const newUrl = await updateAvatar.mutateAsync(file);
+      setPhotoUrl(newUrl);
+    } catch {
+      // Error is handled by the mutation
     }
   };
 
-  const handleRemovePhoto = () => {
-    setPhotoUrl("");
-    toast.success(t('editProfile.photoRemoved'));
+  const handleRemovePhoto = async () => {
+    try {
+      await removeAvatar.mutateAsync();
+      setPhotoUrl("");
+    } catch {
+      // Error is handled by the mutation
+    }
   };
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("No user");
+  const handleSave = async () => {
+    if (!user) return;
 
-      // Check if handle is being changed
-      if (handleChanged) {
-        if (!canChangeHandle) {
-          throw new Error(t('editProfile.usernameChangesLimit'));
-        }
-
-        // Check if handle is already taken
-        const { data: existingHandle } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('handle', handle)
-          .neq('user_id', user.id)
-          .single();
-
-        if (existingHandle) {
-          throw new Error(t('editProfile.usernameTaken'));
-        }
-
-        // Record the handle change
-        const { error: changeError } = await supabase
-          .from('handle_changes' as any)
-          .insert({
-            user_id: user.id,
-            old_handle: profile?.handle || '',
-            new_handle: handle,
-          });
-
-        if (changeError) throw changeError;
+    // Validate handle if changed
+    if (handleChanged) {
+      if (!canChangeHandle) {
+        return;
+      }
+      
+      const validation = validateHandle(handle, t);
+      if (!validation.isValid) {
+        setHandleError(validation.error || null);
+        return;
       }
 
-      // Update profile
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          handle,
-          bio,
-          name,
-          photo_url: photoUrl,
-        })
-        .eq('user_id', user.id);
+      // Record the handle change
+      const { error: changeError } = await supabase
+        .from('handle_changes' as any)
+        .insert({
+          user_id: user.id,
+          old_handle: profile?.handle || '',
+          new_handle: handle,
+        });
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['handle-changes', user?.id] });
-      toast.success(t('editProfile.profileUpdated'));
+      if (changeError) {
+        console.error("Error recording handle change:", changeError);
+      }
+    }
+
+    try {
+      await updateProfile.mutateAsync({
+        handle: handleChanged ? handle : undefined,
+        bio: bio.trim() || undefined,
+        name: name.trim() || undefined,
+        photo_url: photoUrl || undefined,
+      });
+      
+      // Invalidate handle changes query
+      queryClient.invalidateQueries({ queryKey: ['handle-changes', user.id] });
+      
       onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errors.generic'));
-    },
-  });
+    } catch {
+      // Error is handled by the mutation
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -193,18 +188,16 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
           {/* Profile Photo */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <div 
-                className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center overflow-hidden ring-2 ring-border"
-              >
-                {photoUrl ? (
-                  <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-4xl">🌿</span>
-                )}
-              </div>
+              <ProfileAvatar
+                photoUrl={photoUrl}
+                handle={handle}
+                name={name}
+                size="xl"
+                className="ring-2 ring-border"
+              />
               
               {/* Upload indicator overlay when uploading */}
-              {uploading && (
+              {isUploading && (
                 <div className="absolute inset-0 rounded-full bg-foreground/50 flex items-center justify-center">
                   <Loader2 className="h-6 w-6 text-background animate-spin" />
                 </div>
@@ -214,22 +207,22 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
               onChange={handlePhotoUpload}
-              disabled={uploading}
+              disabled={isUploading}
             />
             
-            {/* Instagram-style photo options */}
+            {/* Photo options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   className="text-primary font-semibold hover:text-primary/80 hover:bg-transparent"
-                  disabled={uploading}
+                  disabled={isUploading}
                 >
-                  {uploading ? t('editProfile.uploading') : t('editProfile.editPhoto')}
+                  {isUploading ? t('editProfile.uploading') : t('editProfile.editPhoto')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent 
@@ -249,6 +242,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleRemovePhoto}
+                      disabled={removeAvatar.isPending}
                       className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                     >
                       <Trash2 className="mr-3 h-4 w-4" />
@@ -280,14 +274,20 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               <Input
                 id="handle"
                 value={handle}
-                onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                onChange={(e) => handleHandleChange(e.target.value)}
                 placeholder="username"
                 className="pl-8"
-                maxLength={30}
+                maxLength={20}
                 disabled={!canChangeHandle && handleChanged}
               />
             </div>
-            {handleChanged && (
+            
+            {/* Handle validation error */}
+            {handleError && (
+              <p className="text-sm text-destructive">{handleError}</p>
+            )}
+            
+            {handleChanged && !handleError && (
               <Alert variant={canChangeHandle ? "default" : "destructive"} className="mt-2">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
@@ -325,15 +325,16 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               variant="outline" 
               className="flex-1"
               onClick={() => onOpenChange(false)}
+              disabled={isSaving}
             >
               {t('common.cancel')}
             </Button>
             <Button 
               className="flex-1"
-              onClick={() => updateProfileMutation.mutate()}
-              disabled={updateProfileMutation.isPending || uploading || (handleChanged && !canChangeHandle)}
+              onClick={handleSave}
+              disabled={isSaving || isUploading || !!handleError || (handleChanged && !canChangeHandle)}
             >
-              {updateProfileMutation.isPending ? (
+              {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {t('common.save')}...

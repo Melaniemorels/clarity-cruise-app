@@ -293,7 +293,10 @@
     "errors": {
       "uploadError": "Error uploading photo",
       "imageTooLarge": "Image must be less than 5MB",
-      "selectImage": "Please select an image"
+      "selectImage": "Please select an image",
+      "handleTooShort": "Username must be at least 3 characters",
+      "handleTooLong": "Username must be 20 characters or less",
+      "handleInvalidChars": "Username can only contain letters, numbers, and underscores"
     }
   },
   "userSearch": {
