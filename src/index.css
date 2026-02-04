@@ -2,12 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* 
+  ===========================================
+  VYV DESIGN SYSTEM - Centralized Color Tokens
+  ===========================================
+  All colors use HSL format for consistency.
+  Components should ONLY use semantic tokens, never raw colors.
 */
 
 @layer base {
   :root {
+    /* ==================== CORE PALETTE ==================== */
     --background: 0 0% 96%;
     --foreground: 0 0% 7%;
 
@@ -38,7 +43,7 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Theme tokens - Light */
+    /* ==================== SEMANTIC THEME TOKENS ==================== */
     --theme-bg: 0 0% 96%;
     --theme-bg-elevated: 40 33% 98%;
     --theme-card-bg: 40 33% 98%;
@@ -51,6 +56,7 @@ All colors MUST be HSL.
     --theme-tab-icon-active: 163 33% 27%;
     --theme-tab-icon-inactive: 0 0% 60%;
 
+    /* ==================== BRAND COLORS ==================== */
     --luxury-emerald: 163 33% 27%;
     --luxury-emerald-light: 156 48% 51%;
     --luxury-emerald-dark: 163 33% 27%;
@@ -58,14 +64,43 @@ All colors MUST be HSL.
     --luxury-navy: 220 100% 20%;
     --luxury-white: 40 33% 98%;
     --luxury-black: 0 0% 7%;
-    
+
+    /* ==================== CATEGORY COLORS (for calendar, activities) ==================== */
+    --category-work: 217 91% 60%;
+    --category-sport: 142 71% 45%;
+    --category-health: 163 33% 27%;
+    --category-study: 262 83% 58%;
+    --category-reading: 25 95% 53%;
+    --category-social: 330 81% 60%;
+    --category-photo: 156 48% 51%;
+    --category-other: 156 48% 51%;
+
+    /* ==================== INTENSITY SCALE (for activity heatmaps) ==================== */
+    --intensity-none: 0 0% 88%;
+    --intensity-low: 156 48% 51% / 0.3;
+    --intensity-medium: 156 48% 51% / 0.6;
+    --intensity-high: 156 48% 51%;
+
+    /* ==================== STATE COLORS ==================== */
+    --state-success: 142 71% 45%;
+    --state-warning: 38 92% 50%;
+    --state-error: 0 70% 55%;
+    --state-info: 217 91% 60%;
+
+    /* ==================== OVERLAY COLORS ==================== */
+    --overlay-dark: 0 0% 0% / 0.6;
+    --overlay-light: 0 0% 100% / 0.1;
+
+    /* ==================== GRADIENTS ==================== */
     --gradient-emerald: linear-gradient(135deg, hsl(163 33% 27%) 0%, hsl(156 48% 51%) 100%);
     --gradient-emerald-glow: linear-gradient(135deg, hsl(156 48% 51%) 0%, hsl(163 33% 27%) 100%);
+    --gradient-button-primary: linear-gradient(180deg, hsl(156 60% 55%) 0%, hsl(156 50% 45%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
+    /* ==================== CORE PALETTE - DARK ==================== */
     --background: 0 0% 2%;
     --foreground: 0 0% 96%;
 
@@ -94,7 +129,7 @@ All colors MUST be HSL.
     --input: 0 0% 100% / 0.08;
     --ring: 156 48% 51%;
     
-    /* Theme tokens - Dark */
+    /* ==================== SEMANTIC THEME TOKENS - DARK ==================== */
     --theme-bg: 0 0% 2%;
     --theme-bg-elevated: 0 0% 6.3%;
     --theme-card-bg: 0 0% 6.3%;
@@ -107,6 +142,7 @@ All colors MUST be HSL.
     --theme-tab-icon-active: 156 48% 51%;
     --theme-tab-icon-inactive: 0 0% 48%;
 
+    /* ==================== BRAND COLORS - DARK ==================== */
     --luxury-emerald: 156 48% 51%;
     --luxury-emerald-light: 156 48% 51%;
     --luxury-emerald-dark: 163 33% 27%;
@@ -114,6 +150,26 @@ All colors MUST be HSL.
     --luxury-navy: 220 100% 30%;
     --luxury-white: 0 0% 100%;
     --luxury-black: 0 0% 2%;
+
+    /* ==================== CATEGORY COLORS - DARK ==================== */
+    --category-work: 217 91% 65%;
+    --category-sport: 142 71% 50%;
+    --category-health: 156 48% 51%;
+    --category-study: 262 83% 65%;
+    --category-reading: 25 95% 60%;
+    --category-social: 330 81% 65%;
+    --category-photo: 156 48% 51%;
+    --category-other: 163 33% 35%;
+
+    /* ==================== INTENSITY SCALE - DARK ==================== */
+    --intensity-none: 0 0% 15%;
+    --intensity-low: 156 48% 51% / 0.3;
+    --intensity-medium: 156 48% 51% / 0.6;
+    --intensity-high: 156 48% 51%;
+
+    /* ==================== OVERLAY COLORS - DARK ==================== */
+    --overlay-dark: 0 0% 0% / 0.8;
+    --overlay-light: 0 0% 100% / 0.06;
   }
 }
 
@@ -136,5 +192,75 @@ All colors MUST be HSL.
   p, span, div {
     font-weight: 400;
     letter-spacing: 0.025em;
+  }
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+@layer components {
+  /* Overlay utility for dark backgrounds */
+  .overlay-dark {
+    background-color: hsl(var(--overlay-dark));
+  }
+  
+  .overlay-light {
+    background-color: hsl(var(--overlay-light));
+  }
+
+  /* Category background utilities */
+  .category-work {
+    background-color: hsl(var(--category-work) / 0.2);
+    border-color: hsl(var(--category-work));
+  }
+  
+  .category-sport {
+    background-color: hsl(var(--category-sport) / 0.2);
+    border-color: hsl(var(--category-sport));
+  }
+  
+  .category-health {
+    background-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary));
+  }
+  
+  .category-study {
+    background-color: hsl(var(--category-study) / 0.2);
+    border-color: hsl(var(--category-study));
+  }
+  
+  .category-reading {
+    background-color: hsl(var(--category-reading) / 0.2);
+    border-color: hsl(var(--category-reading));
+  }
+  
+  .category-social {
+    background-color: hsl(var(--category-social) / 0.2);
+    border-color: hsl(var(--category-social));
+  }
+  
+  .category-photo {
+    background-color: hsl(var(--category-photo) / 0.2);
+    border-color: hsl(var(--category-photo));
+  }
+  
+  .category-other {
+    background-color: hsl(var(--secondary) / 0.2);
+    border-color: hsl(var(--secondary));
+  }
+
+  /* Intensity utilities for heatmaps */
+  .intensity-none {
+    background-color: hsl(var(--intensity-none));
+  }
+  
+  .intensity-low {
+    background-color: hsl(var(--intensity-low));
+  }
+  
+  .intensity-medium {
+    background-color: hsl(var(--intensity-medium));
+  }
+  
+  .intensity-high {
+    background-color: hsl(var(--intensity-high));
   }
 }

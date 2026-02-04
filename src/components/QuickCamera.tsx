@@ -194,7 +194,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         <Button
           onClick={() => handleOpen(true)}
           size="lg"
-          className="w-full bg-primary hover:bg-primary/90"
+          className="w-full"
         >
           <Camera className="mr-2 h-5 w-5" />
           Captura Rápida
@@ -202,39 +202,17 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       )}
 
       <Dialog open={isOpen} onOpenChange={handleOpen}>
-        <DialogContent 
-          className="max-w-md" 
-          style={{ 
-            paddingTop: '38px',
-            paddingBottom: '36px'
-          }}
-        >
-          <div className="flex flex-col items-center" style={{ justifyContent: 'center', minHeight: '500px' }}>
-            <DialogHeader className="text-center dark:shadow-[0_2px_10px_rgba(0,0,0,0.35)]" style={{
-              paddingBottom: '16px',
-              marginBottom: '20px'
-            }}>
-              <DialogTitle className="text-[#1A1A1A] dark:text-[#F5F5F5]" style={{
-                fontSize: '22px',
-                fontWeight: 600,
-                letterSpacing: '0.2px',
-                textAlign: 'center'
-              }}>
+        <DialogContent className="max-w-md pt-10 pb-9">
+          <div className="flex flex-col items-center justify-center min-h-[500px]">
+            <DialogHeader className="text-center pb-4 mb-5">
+              <DialogTitle className="text-foreground text-[22px] font-semibold tracking-wide text-center">
                 Captura Rápida
               </DialogTitle>
             </DialogHeader>
             {!capturedImage ? (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
-                  style={{
-                    width: '84%',
-                    height: '48%',
-                    minHeight: '280px',
-                    borderRadius: '32px',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
-                  }}
+                  className="relative overflow-hidden bg-card dark:bg-gradient-to-b dark:from-muted dark:to-background border border-border rounded-[32px] shadow-lg w-[84%] min-h-[280px]"
                 >
                   <video
                     ref={videoRef}
@@ -246,50 +224,18 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-3 justify-center" style={{ marginTop: '20px', width: '84%' }}>
+                <div className="flex gap-3 justify-center mt-5 w-[84%]">
                   <Button
-                    variant="ghost"
+                    variant={filter === "natural" ? "default" : "outline"}
                     onClick={() => setFilter("natural")}
-                    className={`transition-all duration-[140ms] ${
-                      filter === "natural" 
-                        ? "dark:!bg-[#2E5C4F] dark:!text-white dark:!border-0 dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]" 
-                        : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
-                    }`}
-                    style={{
-                      borderRadius: '22px',
-                      height: '42px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      paddingLeft: '22px',
-                      paddingRight: '22px',
-                      backgroundColor: filter === "natural" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
-                      color: filter === "natural" ? '#FFFFFF' : '#4A4A4A',
-                      border: filter === "natural" ? 'none' : '1px solid rgba(0,0,0,0.08)',
-                      boxShadow: filter === "natural" ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
-                    }}
+                    className="rounded-[22px] h-[42px] px-6 font-semibold transition-all duration-150"
                   >
                     Natural
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant={filter === "bw" ? "default" : "outline"}
                     onClick={() => setFilter("bw")}
-                    className={`transition-all duration-[140ms] ${
-                      filter === "bw" 
-                        ? "dark:!bg-[#2E5C4F] dark:!text-white dark:!border-0 dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]" 
-                        : "dark:!bg-transparent dark:!text-[#C7C7C7] dark:!border dark:!border-white/[0.18] dark:shadow-none"
-                    }`}
-                    style={{
-                      borderRadius: '22px',
-                      height: '42px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      paddingLeft: '22px',
-                      paddingRight: '22px',
-                      backgroundColor: filter === "bw" ? '#2E5C4F' : 'rgba(255,255,255,0.95)',
-                      color: filter === "bw" ? '#FFFFFF' : '#4A4A4A',
-                      border: filter === "bw" ? 'none' : '1px solid rgba(0,0,0,0.08)',
-                      boxShadow: filter === "bw" ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
-                    }}
+                    className="rounded-[22px] h-[42px] px-6 font-semibold transition-all duration-150"
                   >
                     Blanco y Negro
                   </Button>
@@ -298,35 +244,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <Button 
                   onClick={capturePhoto} 
                   size="lg" 
-                  className="transition-transform duration-[120ms] hover:scale-[0.98] dark:shadow-[0_4px_16px_rgba(0,0,0,0.28),0_0_28px_rgba(70,200,140,0.22)]"
-                  style={{
-                    marginTop: '22px',
-                    width: '84%',
-                    borderRadius: '30px',
-                    height: '54px',
-                    background: 'linear-gradient(180deg, #59D7A1, #3BB986)',
-                    color: '#FFFFFF',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.10)'
-                  }}
+                  className="mt-6 w-[84%] rounded-[30px] h-[54px] text-base font-semibold bg-gradient-to-b from-accent to-primary hover:opacity-90 transition-transform duration-150 hover:scale-[0.98]"
                 >
-                  <Camera className="mr-2" size={18} strokeWidth={1.4} style={{ color: '#FFFFFF' }} />
+                  <Camera className="mr-2" size={18} strokeWidth={1.4} />
                   Capturar
                 </Button>
               </>
             ) : (
               <>
                 <div 
-                  className="relative overflow-hidden bg-[#FAFAF8] dark:bg-gradient-to-b dark:from-[#1C1C1C] dark:to-[#151515] dark:border-white/[0.06] dark:shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
-                  style={{
-                    width: '84%',
-                    height: '48%',
-                    minHeight: '280px',
-                    borderRadius: '32px',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    boxShadow: '0 8px 22px rgba(0,0,0,0.06)'
-                  }}
+                  className="relative overflow-hidden bg-card dark:bg-gradient-to-b dark:from-muted dark:to-background border border-border rounded-[32px] shadow-lg w-[84%] min-h-[280px]"
                 >
                   <img
                     src={capturedImage}
@@ -335,7 +262,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-3" style={{ marginTop: '22px', width: '84%' }}>
+                <div className="flex gap-3 mt-6 w-[84%]">
                   <Button
                     variant="outline"
                     onClick={() => {

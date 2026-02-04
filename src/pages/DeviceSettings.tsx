@@ -23,35 +23,35 @@ const devices: Array<{
   name: string;
   icon: any;
   description: string;
-  color: string;
+  colorClass: string;
 }> = [
   {
     id: 'APPLE_HEALTH',
     name: 'Apple Health',
     icon: Apple,
     description: 'Sincroniza pasos, actividad y métricas de salud',
-    color: 'text-gray-900 dark:text-gray-100',
+    colorClass: 'text-foreground',
   },
   {
     id: 'OURA',
     name: 'Oura Ring',
     icon: Zap,
     description: 'Monitoreo de sueño, frecuencia cardíaca y recuperación',
-    color: 'text-blue-500',
+    colorClass: 'text-category-work',
   },
   {
     id: 'WHOOP',
     name: 'Whoop',
     icon: Activity,
     description: 'Strain, recuperación y análisis de sueño',
-    color: 'text-red-500',
+    colorClass: 'text-destructive',
   },
   {
     id: 'APPLE_WATCH',
     name: 'Apple Watch',
     icon: Watch,
     description: 'Actividad, entrenamientos y métricas de fitness',
-    color: 'text-gray-900 dark:text-gray-100',
+    colorClass: 'text-foreground',
   },
 ];
 
@@ -180,7 +180,7 @@ const DeviceSettings = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
-                      <div className={`h-10 w-10 rounded-lg bg-muted flex items-center justify-center ${device.color}`}>
+                      <div className={`h-10 w-10 rounded-lg bg-muted flex items-center justify-center ${device.colorClass}`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <div>

@@ -148,11 +148,11 @@ const Profile = () => {
                     className={`aspect-square rounded-sm transition-all hover:ring-2 hover:ring-primary/50 cursor-pointer ${
                       hasPhotos
                         ? intensity === 0
-                          ? 'bg-emerald-400/30 dark:bg-emerald-500/30'
+                          ? 'intensity-low'
                           : intensity === 1
-                          ? 'bg-emerald-500/60 dark:bg-emerald-400/60'
-                          : 'bg-emerald-600 dark:bg-emerald-400'
-                        : 'bg-muted/60 dark:bg-muted'
+                          ? 'intensity-medium'
+                          : 'intensity-high'
+                        : 'intensity-none'
                     }`}
                   />
                 );
@@ -161,10 +161,10 @@ const Profile = () => {
             <div className="flex justify-end gap-2 mt-3 text-xs text-muted-foreground">
               <span>Menos</span>
               <div className="flex gap-1">
-                <div className="w-3 h-3 rounded-sm bg-muted/60 dark:bg-muted" />
-                <div className="w-3 h-3 rounded-sm bg-emerald-400/30 dark:bg-emerald-500/30" />
-                <div className="w-3 h-3 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
-                <div className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-400" />
+                <div className="w-3 h-3 rounded-sm intensity-none" />
+                <div className="w-3 h-3 rounded-sm intensity-low" />
+                <div className="w-3 h-3 rounded-sm intensity-medium" />
+                <div className="w-3 h-3 rounded-sm intensity-high" />
               </div>
               <span>Más</span>
             </div>
@@ -194,8 +194,8 @@ const Profile = () => {
                       📸
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-white text-xs">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-background text-xs">
                       {format(parseISO(entry.occurred_at), "d MMM, HH:mm")}
                     </p>
                   </div>
