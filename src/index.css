@@ -23,24 +23,25 @@
     --popover: 0 0% 100%;               /* #FFFFFF */
     --popover-foreground: 240 5% 11%;   /* #1C1C1E */
 
-    --primary: 169 56% 28%;             /* #1F6F63 - primary accent */
+    /* GREEN ONLY FOR: CTAs, active states, progress, success */
+    --primary: 142 40% 59%;             /* #6DBE8B - primary green accent */
     --primary-foreground: 0 0% 100%;    /* white text on primary */
 
-    --secondary: 169 21% 58%;           /* #7FA7A1 - secondary accent */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 210 10% 90%;           /* neutral light gray */
+    --secondary-foreground: 240 5% 11%;
 
     --muted: 210 10% 95%;               /* soft muted background */
     --muted-foreground: 240 2% 57%;     /* #8E8E93 - secondary text */
 
-    --accent: 169 21% 58%;              /* #7FA7A1 */
+    --accent: 142 40% 59%;              /* #6DBE8B - same green for active states */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 10% 91%;              /* #E6E8EB - subtle borders */
+    --border: 210 10% 91%;              /* #E6E8EB - subtle borders (NO GREEN) */
     --input: 210 10% 91%;               /* #E6E8EB */
-    --ring: 169 56% 28%;                /* #1F6F63 */
+    --ring: 142 40% 59%;                /* #6DBE8B */
 
     --radius: 0.75rem;                  /* 12px border radius */
 
@@ -51,59 +52,54 @@
     --theme-text-primary: 240 5% 11%;   /* #1C1C1E - titles */
     --theme-text-secondary: 240 2% 36%; /* #5A5A5E - body text */
     --theme-text-tertiary: 240 2% 57%;  /* #8E8E93 - secondary text */
-    --theme-accent-primary: 169 56% 28%;/* #1F6F63 */
-    --theme-accent-highlight: 169 21% 58%;/* #7FA7A1 */
-    --theme-border-subtle: 210 10% 91%; /* #E6E8EB */
+    --theme-accent-primary: 142 40% 59%;/* #6DBE8B - green for active only */
+    --theme-accent-highlight: 142 40% 65%;/* lighter green for hover */
+    --theme-border-subtle: 210 10% 91%; /* #E6E8EB - NO GREEN */
     --theme-tab-bg: 0 0% 100%;          /* #FFFFFF */
-    --theme-tab-icon-active: 169 56% 28%;/* #1F6F63 */
-    --theme-tab-icon-inactive: 240 2% 57%;/* #8E8E93 */
+    --theme-tab-icon-active: 142 40% 59%;/* #6DBE8B - green for active tabs */
+    --theme-tab-icon-inactive: 240 2% 57%;/* #8E8E93 - gray for inactive */
 
-    /* ==================== BRAND COLORS ==================== */
-    --luxury-emerald: 169 56% 28%;      /* #1F6F63 - primary */
-    --luxury-emerald-light: 169 21% 58%;/* #7FA7A1 - secondary */
-    --luxury-emerald-dark: 169 56% 28%; /* #1F6F63 */
-    --luxury-chocolate: 25 75% 25%;
-    --luxury-navy: 220 100% 20%;
-    --luxury-white: 0 0% 100%;          /* #FFFFFF */
-    --luxury-black: 240 5% 11%;         /* #1C1C1E */
+    /* ==================== BRAND GREEN (INTENTIONAL USE ONLY) ==================== */
+    /* Use ONLY for: progress bars, active states, CTAs, success indicators */
+    --brand-green: 142 40% 59%;         /* #6DBE8B */
+    --brand-green-light: 142 40% 70%;   /* lighter variant */
+    --brand-green-dark: 142 40% 45%;    /* darker variant */
 
-    /* ==================== CATEGORY COLORS (for calendar, activities) ==================== */
-    --category-work: 217 91% 60%;
-    --category-sport: 142 71% 45%;
-    --category-health: 163 33% 27%;
-    --category-study: 262 83% 58%;
-    --category-reading: 25 95% 53%;
-    --category-social: 330 81% 60%;
-    --category-photo: 156 48% 51%;
-    --category-other: 156 48% 51%;
+    /* ==================== CATEGORY COLORS (muted, no strong green) ==================== */
+    --category-work: 217 60% 55%;       /* blue */
+    --category-sport: 142 35% 50%;      /* muted green (intentional for sport) */
+    --category-health: 200 50% 50%;     /* cyan-blue */
+    --category-study: 262 50% 55%;      /* purple */
+    --category-reading: 30 70% 50%;     /* orange */
+    --category-social: 330 50% 55%;     /* pink */
+    --category-photo: 200 40% 50%;      /* cyan */
+    --category-other: 210 15% 55%;      /* neutral gray */
 
-    /* ==================== INTENSITY SCALE (for activity heatmaps) ==================== */
-    --intensity-none: 0 0% 88%;
-    --intensity-low: 156 48% 51% / 0.3;
-    --intensity-medium: 156 48% 51% / 0.6;
-    --intensity-high: 156 48% 51%;
+    /* ==================== INTENSITY SCALE (progress/success - GREEN ALLOWED) ==================== */
+    --intensity-none: 210 10% 88%;      /* neutral gray */
+    --intensity-low: 142 40% 59% / 0.3; /* #6DBE8B at 30% */
+    --intensity-medium: 142 40% 59% / 0.6;/* #6DBE8B at 60% */
+    --intensity-high: 142 40% 59%;      /* #6DBE8B full */
 
     /* ==================== STATE COLORS ==================== */
-    --state-success: 142 71% 45%;
+    --state-success: 142 40% 59%;       /* #6DBE8B - THE green */
     --state-warning: 38 92% 50%;
     --state-error: 0 70% 55%;
-    --state-info: 217 91% 60%;
+    --state-info: 217 60% 55%;
 
-    /* ==================== OVERLAY COLORS ==================== */
+    /* ==================== OVERLAY COLORS (NO GREEN) ==================== */
     --overlay-dark: 0 0% 0% / 0.6;
     --overlay-light: 0 0% 100% / 0.1;
 
-    /* ==================== GRADIENTS ==================== */
-    --gradient-emerald: linear-gradient(135deg, hsl(163 33% 27%) 0%, hsl(156 48% 51%) 100%);
-    --gradient-emerald-glow: linear-gradient(135deg, hsl(156 48% 51%) 0%, hsl(163 33% 27%) 100%);
-    --gradient-button-primary: linear-gradient(180deg, hsl(156 60% 55%) 0%, hsl(156 50% 45%) 100%);
+    /* ==================== GRADIENTS (GREEN ONLY FOR CTAs) ==================== */
+    --gradient-button-primary: linear-gradient(180deg, hsl(142 45% 62%) 0%, hsl(142 40% 52%) 100%);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
     /* ==================== CORE PALETTE - DARK ==================== */
-    /* VYV Dark Mode: Old money – elegant – deep black – zero green tint */
+    /* VYV Dark Mode: Old money – elegant – deep black – ZERO green in backgrounds */
     --background: 216 28% 6%;             /* #0B0F14 - deep black */
     --foreground: 210 20% 92%;            /* #E8EBED - primary text */
 
@@ -113,24 +109,25 @@
     --popover: 215 25% 10%;               /* #151A21 - modal background */
     --popover-foreground: 210 20% 92%;    /* #E8EBED */
 
-    --primary: 210 15% 55%;               /* #7A8A99 - muted accent */
+    /* GREEN ONLY FOR: CTAs, active states, progress, success */
+    --primary: 142 40% 59%;               /* #6DBE8B - primary green accent */
     --primary-foreground: 216 28% 6%;     /* dark text on primary */
 
-    --secondary: 215 20% 15%;             /* #1F2933 - elevated surfaces */
+    --secondary: 215 20% 15%;             /* #1F2933 - neutral elevated surfaces */
     --secondary-foreground: 210 20% 92%;  /* #E8EBED */
 
     --muted: 216 28% 6%;                  /* #0B0F14 - input background */
     --muted-foreground: 210 10% 55%;      /* #838B93 - secondary text */
 
-    --accent: 210 15% 55%;                /* #7A8A99 */
+    --accent: 142 40% 59%;                /* #6DBE8B - green for active states only */
     --accent-foreground: 216 28% 6%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 15%;                /* #1F2933 - neutral gray border */
-    --input: 215 18% 18%;                 /* #252D38 - input border */
-    --ring: 210 15% 55%;                  /* #7A8A99 */
+    --border: 215 20% 15%;                /* #1F2933 - neutral gray border (NO GREEN) */
+    --input: 215 18% 18%;                 /* #252D38 - input border (NO GREEN) */
+    --ring: 142 40% 59%;                  /* #6DBE8B */
     
     /* ==================== SEMANTIC THEME TOKENS - DARK ==================== */
     --theme-bg: 216 28% 6%;               /* #0B0F14 */
@@ -139,41 +136,38 @@
     --theme-text-primary: 210 20% 92%;    /* #E8EBED */
     --theme-text-secondary: 210 10% 55%;  /* #838B93 */
     --theme-text-tertiary: 210 10% 45%;   /* muted text */
-    --theme-accent-primary: 210 15% 55%;  /* #7A8A99 */
-    --theme-accent-highlight: 210 20% 65%;/* lighter accent */
-    --theme-border-subtle: 215 20% 15%;   /* #1F2933 */
+    --theme-accent-primary: 142 40% 59%;  /* #6DBE8B - green for active only */
+    --theme-accent-highlight: 142 40% 65%;/* lighter green for hover */
+    --theme-border-subtle: 215 20% 15%;   /* #1F2933 - NO GREEN */
     --theme-tab-bg: 216 28% 6%;           /* #0B0F14 */
-    --theme-tab-icon-active: 210 20% 92%; /* #E8EBED */
-    --theme-tab-icon-inactive: 210 10% 45%;/* muted */
+    --theme-tab-icon-active: 142 40% 59%; /* #6DBE8B - green for active tabs */
+    --theme-tab-icon-inactive: 210 10% 45%;/* gray for inactive */
     --theme-input-bg: 216 28% 6%;         /* #0B0F14 - input background */
-    --theme-input-border: 215 18% 18%;    /* #252D38 - input border */
+    --theme-input-border: 215 18% 18%;    /* #252D38 - input border (NO GREEN) */
 
-    /* ==================== BRAND COLORS - DARK ==================== */
-    --luxury-emerald: 210 15% 55%;        /* muted silver-gray */
-    --luxury-emerald-light: 210 15% 65%;
-    --luxury-emerald-dark: 210 15% 45%;
-    --luxury-chocolate: 25 20% 25%;
-    --luxury-navy: 216 28% 6%;            /* #0B0F14 */
-    --luxury-white: 210 20% 92%;          /* #E8EBED */
-    --luxury-black: 216 28% 6%;           /* #0B0F14 */
+    /* ==================== BRAND GREEN (INTENTIONAL USE ONLY) ==================== */
+    /* Use ONLY for: progress bars, active states, CTAs, success indicators */
+    --brand-green: 142 40% 59%;           /* #6DBE8B */
+    --brand-green-light: 142 40% 70%;     /* lighter variant */
+    --brand-green-dark: 142 40% 45%;      /* darker variant */
 
-    /* ==================== CATEGORY COLORS - DARK ==================== */
+    /* ==================== CATEGORY COLORS - DARK (muted, no strong green) ==================== */
     --category-work: 210 50% 55%;         /* muted blue */
-    --category-sport: 150 30% 45%;        /* muted green */
-    --category-health: 210 15% 55%;       /* silver-gray */
+    --category-sport: 142 30% 45%;        /* muted green (intentional for sport) */
+    --category-health: 200 40% 50%;       /* cyan-blue */
     --category-study: 260 40% 55%;        /* muted purple */
     --category-reading: 30 50% 50%;       /* muted orange */
     --category-social: 330 40% 55%;       /* muted pink */
     --category-photo: 200 30% 50%;        /* muted cyan */
-    --category-other: 210 15% 45%;        /* gray */
+    --category-other: 210 15% 45%;        /* neutral gray */
 
-    /* ==================== INTENSITY SCALE - DARK ==================== */
-    --intensity-none: 215 15% 18%;        /* #2A2F36 - muted gray */
-    --intensity-low: 210 15% 55% / 0.3;
-    --intensity-medium: 210 15% 55% / 0.6;
-    --intensity-high: 210 15% 55%;
+    /* ==================== INTENSITY SCALE - DARK (progress/success - GREEN ALLOWED) ==================== */
+    --intensity-none: 215 15% 18%;        /* #2A2F36 - neutral gray */
+    --intensity-low: 142 40% 59% / 0.3;   /* #6DBE8B at 30% */
+    --intensity-medium: 142 40% 59% / 0.6;/* #6DBE8B at 60% */
+    --intensity-high: 142 40% 59%;        /* #6DBE8B full */
 
-    /* ==================== OVERLAY COLORS - DARK ==================== */
+    /* ==================== OVERLAY COLORS - DARK (NO GREEN) ==================== */
     --overlay-dark: 216 28% 4% / 0.9;
     --overlay-light: 210 20% 92% / 0.05;
   }
