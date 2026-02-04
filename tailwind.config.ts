@@ -99,6 +99,8 @@ export default {
           tabBg: "hsl(var(--theme-tab-bg))",
           tabIconActive: "hsl(var(--theme-tab-icon-active))",
           tabIconInactive: "hsl(var(--theme-tab-icon-inactive))",
+          inputBg: "hsl(var(--theme-input-bg, var(--muted)))",
+          inputBorder: "hsl(var(--theme-input-border, var(--input)))",
         },
       },
       borderRadius: {
