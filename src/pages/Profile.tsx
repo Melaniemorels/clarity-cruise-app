@@ -13,9 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
+import { useUserEntries } from "@/hooks/use-entries";
 
 const Profile = () => {
   const { signOut, user } = useAuth();
@@ -26,63 +25,12 @@ const Profile = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
 
-  // Fetch user's entries (photos) from database
-  const { data: entries = [] } = useQuery({
-    queryKey: ['user-entries', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('occurred_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  // Use centralized hooks
+  const { data: entries = [] } = useUserEntries();
+  const { data: profile } = useProfile();
+  const { data: stats } = useProfileStats();
+  const updateProfileMutation = useUpdateProfile();
 
-  // Fetch user's profile
-  const { data: profile } = useQuery({
-    queryKey: ['user-profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const queryClient = useQueryClient();
-
-  // Mutation to update profile privacy
-  const updatePrivacyMutation = useMutation({
-    mutationFn: async (isPrivate: boolean) => {
-      if (!user) throw new Error("No user");
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_private: isPrivate })
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      return isPrivate;
-    },
-    onSuccess: (isPrivate) => {
-      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
-      toast.success(isPrivate ? "Perfil ahora es privado" : "Perfil ahora es público");
-    },
-    onError: () => {
-      toast.error("Error al actualizar privacidad");
-    },
-  });
-  
   const healthData = {
     steps: { value: 8432, goal: 10000, label: 'Steps' },
     workout: { value: 45, goal: 60, label: 'Workout (min)' },
@@ -115,6 +63,10 @@ const Profile = () => {
     setActivityModalOpen(true);
   };
 
+  const handlePrivacyChange = (isPrivate: boolean) => {
+    updateProfileMutation.mutate({ is_private: isPrivate });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="mx-auto max-w-2xl p-4 space-y-4">
@@ -141,8 +93,9 @@ const Profile = () => {
                 <h2 className="text-xl font-bold">@{profile?.handle || 'user'}</h2>
                 <p className="text-sm text-muted-foreground">{profile?.bio || 'Finding balance through movement'}</p>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span><strong>{entries.length}</strong> posts</span>
-                  <span><strong>42</strong> friends</span>
+                  <span><strong>{stats?.postsCount || 0}</strong> posts</span>
+                  <span><strong>{stats?.followersCount || 0}</strong> seguidores</span>
+                  <span><strong>{stats?.followingCount || 0}</strong> siguiendo</span>
                 </div>
               </div>
             </div>
@@ -234,6 +187,7 @@ const Profile = () => {
                       src={entry.photo_url} 
                       alt="Capture" 
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
@@ -307,8 +261,8 @@ const Profile = () => {
               </div>
               <Switch
                 checked={profile?.is_private ?? false}
-                onCheckedChange={(checked) => updatePrivacyMutation.mutate(checked)}
-                disabled={updatePrivacyMutation.isPending}
+                onCheckedChange={handlePrivacyChange}
+                disabled={updateProfileMutation.isPending}
               />
             </div>
 

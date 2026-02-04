@@ -1,32 +1,20 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
-import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
+import { AdaptiveHeading } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
-import { Plus, RefreshCw, Search, Hexagon, Camera } from "lucide-react";
+import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
+import { useInfinitePosts } from "@/hooks/use-posts";
 import { cn } from "@/lib/utils";
-interface Post {
-  id: string;
-  user_id: string;
-  image_url: string | null;
-  caption: string | null;
-  activity_tag: string | null;
-  created_at: string;
-  profiles: {
-    handle: string;
-    photo_url: string | null;
-  } | null;
-  likes_count: number;
-  user_has_liked: boolean;
-}
+import { useInView } from "react-intersection-observer";
 
 const Feed = () => {
   const { user } = useAuth();
@@ -36,72 +24,33 @@ const Feed = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const device = useDevice();
   const navPadding = useNavPadding();
-  const { data: posts = [], isLoading, refetch } = useQuery({
-    queryKey: ["posts", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
 
-      // First, get the list of users this person follows
-      const { data: followsData } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", user.id);
+  const { 
+    data, 
+    isLoading, 
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch 
+  } = useInfinitePosts({ feedType: "following" });
 
-      const followingIds = (followsData || []).map((f) => f.following_id);
-      
-      // Include the user's own posts + posts from people they follow
-      const relevantUserIds = [...followingIds, user.id];
-
-      const { data: postsData, error: postsError } = await supabase
-        .from("posts")
-        .select("*")
-        .in("user_id", relevantUserIds)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (postsError) throw postsError;
-
-      if (!postsData || postsData.length === 0) return [];
-
-      const userIds = [...new Set(postsData.map((p) => p.user_id))];
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("user_id, handle, photo_url")
-        .in("user_id", userIds);
-
-      const profilesMap = new Map(
-        (profilesData || []).map((p) => [p.user_id, p])
-      );
-
-      const postIds = postsData.map((p) => p.id);
-      const { data: likesData } = await supabase
-        .from("post_likes")
-        .select("post_id, user_id")
-        .in("post_id", postIds);
-
-      const likeCounts = new Map<string, number>();
-      const userLikes = new Set<string>();
-
-      (likesData || []).forEach((like) => {
-        likeCounts.set(like.post_id, (likeCounts.get(like.post_id) || 0) + 1);
-        if (like.user_id === user.id) {
-          userLikes.add(like.post_id);
-        }
-      });
-
-      return postsData.map((post) => ({
-        ...post,
-        profiles: profilesMap.get(post.user_id) || null,
-        likes_count: likeCounts.get(post.id) || 0,
-        user_has_liked: userLikes.has(post.id),
-      }));
-    },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    enabled: !!user,
+  // Infinite scroll trigger
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.1,
+    rootMargin: "100px",
   });
 
-  const handleRefresh = async () => {
+  // Load more when scroll reaches bottom
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten paginated data
+  const posts = data?.pages.flatMap(page => page.posts) || [];
+
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refetch();
@@ -111,31 +60,22 @@ const Feed = () => {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refetch]);
 
+  // Realtime subscription for new posts
   useEffect(() => {
     const channel = supabase
       .channel("posts-channel")
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "posts",
         },
         () => {
-          refetch();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "post_likes",
-        },
-        () => {
-          refetch();
+          // Only invalidate, don't auto-refetch to avoid jarring UX
+          queryClient.invalidateQueries({ queryKey: ["posts", "infinite"] });
         }
       )
       .subscribe();
@@ -143,7 +83,7 @@ const Feed = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refetch]);
+  }, [queryClient]);
 
   return (
     <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
@@ -244,12 +184,24 @@ const Feed = () => {
               </Button>
             </div>
           ) : (
-            posts.map((post) => (
-              <PostItem
-                key={post.id}
-                post={post}
-              />
-            ))
+            <>
+              {posts.map((post) => (
+                <PostItem
+                  key={post.id}
+                  post={post}
+                />
+              ))}
+              
+              {/* Load more trigger */}
+              <div ref={loadMoreRef} className="py-4 flex justify-center">
+                {isFetchingNextPage && (
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                )}
+                {!hasNextPage && posts.length > 0 && (
+                  <p className="text-sm text-muted-foreground">No hay más publicaciones</p>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
