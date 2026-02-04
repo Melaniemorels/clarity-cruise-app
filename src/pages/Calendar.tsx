@@ -258,49 +258,82 @@ const Calendar = () => {
   const dayPhotos = getPhotosForDate(currentDate);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="p-4 space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-theme-bg pb-24">
+      <div className="px-5 py-6 space-y-6 max-w-lg mx-auto">
+        {/* Header - Apple Style */}
+        <div className="flex items-center justify-between pt-2">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('calendar.title')}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-[28px] font-semibold tracking-tight text-theme-textPrimary">{t('calendar.title')}</h1>
+            <p className="text-[15px] text-theme-textSecondary mt-0.5 tracking-wide">
               {format(currentDate, lang === 'es' ? "d 'de' MMMM, yyyy" : "MMMM d, yyyy", { locale: dateLocale })}
             </p>
           </div>
-          <Button size="icon" onClick={() => handleNewEvent()}>
-            <Plus className="h-5 w-5" />
+          <Button 
+            size="icon" 
+            onClick={() => handleNewEvent()}
+            className="h-10 w-10 rounded-full bg-theme-accentPrimary hover:bg-theme-accentHighlight text-primary-foreground shadow-sm"
+          >
+            <Plus className="h-5 w-5" strokeWidth={2} />
           </Button>
         </div>
 
-        {/* View Tabs */}
+        {/* View Tabs - Apple Segmented Control Style */}
         <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="day">{t('calendar.day')}</TabsTrigger>
-            <TabsTrigger value="week">{t('calendar.week')}</TabsTrigger>
-            <TabsTrigger value="month">{t('calendar.month')}</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-11 p-1 bg-theme-bgElevated/60 backdrop-blur-sm rounded-xl border border-theme-borderSubtle/50">
+            <TabsTrigger 
+              value="day" 
+              className="rounded-lg text-[13px] font-medium data-[state=active]:bg-theme-cardBg data-[state=active]:shadow-sm data-[state=active]:text-theme-textPrimary text-theme-textSecondary transition-all"
+            >
+              {t('calendar.day')}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="week"
+              className="rounded-lg text-[13px] font-medium data-[state=active]:bg-theme-cardBg data-[state=active]:shadow-sm data-[state=active]:text-theme-textPrimary text-theme-textSecondary transition-all"
+            >
+              {t('calendar.week')}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="month"
+              className="rounded-lg text-[13px] font-medium data-[state=active]:bg-theme-cardBg data-[state=active]:shadow-sm data-[state=active]:text-theme-textPrimary text-theme-textSecondary transition-all"
+            >
+              {t('calendar.month')}
+            </TabsTrigger>
           </TabsList>
 
           {/* Day View */}
-          <TabsContent value="day" className="space-y-4">
+          <TabsContent value="day" className="space-y-5 mt-5">
             <div className="flex items-center justify-between">
-              <Button variant="outline" size="icon" onClick={goToPrevious}>
-                <ChevronLeft className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToPrevious}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
               </Button>
-              <Button variant="ghost" onClick={goToToday} className="font-semibold">
+              <Button 
+                variant="ghost" 
+                onClick={goToToday} 
+                className="text-[15px] font-medium text-theme-accentPrimary hover:bg-theme-accentPrimary/10 px-4 h-9 rounded-full"
+              >
                 {t('common.today')}
               </Button>
-              <Button variant="outline" size="icon" onClick={goToNext}>
-                <ChevronRight className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToNext}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
               </Button>
             </div>
 
-            <Card>
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
               <CardContent className="p-0">
                 {isLoading ? (
-                  <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
+                  <div className="p-10 text-center text-theme-textTertiary text-[15px]">{t('common.loading')}</div>
                 ) : (
-                  <div className="max-h-[60vh] overflow-y-auto">
+                  <div className="max-h-[55vh] overflow-y-auto">
                     {hours.map((hour) => {
                       const hourEvents = dayEvents.filter(e => {
                         const eventHour = new Date(e.starts_at).getHours();
@@ -313,11 +346,11 @@ const Calendar = () => {
                       });
                       
                       return (
-                        <div key={hour} className="flex border-b border-border">
-                          <div className="w-16 flex-shrink-0 p-2 text-xs text-muted-foreground text-right">
+                        <div key={hour} className="flex border-b border-theme-borderSubtle/30 last:border-b-0">
+                          <div className="w-14 flex-shrink-0 py-3 pr-3 text-[11px] font-medium text-theme-textTertiary text-right tracking-wide">
                             {hour === 0 ? `12 ${t('time.am')}` : hour < 12 ? `${hour} ${t('time.am')}` : hour === 12 ? `12 ${t('time.pm')}` : `${hour - 12} ${t('time.pm')}`}
                           </div>
-                          <div className="flex-1 min-h-[60px] p-2 relative space-y-1">
+                          <div className="flex-1 min-h-[56px] py-2 px-3 relative space-y-1.5 border-l border-theme-borderSubtle/30">
                             {/* Regular events */}
                             {hourEvents.map((event) => {
                               const start = new Date(event.starts_at);
@@ -385,18 +418,18 @@ const Calendar = () => {
               </CardContent>
             </Card>
 
-            {/* Health Overlay */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('calendar.steps')}</span>
-                    <span className="font-semibold">8,432 / 10,000</span>
+            {/* Health Overlay - Apple Card Style */}
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
+              <CardContent className="p-5">
+                <h3 className="text-[17px] font-semibold text-theme-textPrimary tracking-tight mb-4">{t('calendar.todaysActivity')}</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] text-theme-textSecondary">{t('calendar.steps')}</span>
+                    <span className="text-[15px] font-semibold text-theme-textPrimary tabular-nums">8,432 / 10,000</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('calendar.workout')}</span>
-                    <span className="font-semibold">45 / 60 min</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] text-theme-textSecondary">{t('calendar.workout')}</span>
+                    <span className="text-[15px] font-semibold text-theme-textPrimary tabular-nums">45 / 60 min</span>
                   </div>
                 </div>
               </CardContent>
@@ -404,43 +437,53 @@ const Calendar = () => {
           </TabsContent>
 
           {/* Week View */}
-          <TabsContent value="week" className="space-y-4">
+          <TabsContent value="week" className="space-y-5 mt-5">
             <div className="flex items-center justify-between">
-              <Button variant="outline" size="icon" onClick={goToPrevious}>
-                <ChevronLeft className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToPrevious}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
               </Button>
-              <span className="font-semibold">
+              <span className="text-[15px] font-semibold text-theme-textPrimary tracking-tight">
                 {t('calendar.weekOf', { date: format(startOfWeek(currentDate, { weekStartsOn: 1 }), lang === 'es' ? "d MMM" : "MMM d", { locale: dateLocale }) })}
               </span>
-              <Button variant="outline" size="icon" onClick={goToNext}>
-                <ChevronRight className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToNext}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
               </Button>
             </div>
 
-            <Card>
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
               <CardContent className="p-0">
-                <div className="grid grid-cols-8 border-b border-border">
-                  <div className="p-2" />
+                <div className="grid grid-cols-8 border-b border-theme-borderSubtle/30 bg-theme-bgElevated/30">
+                  <div className="p-3" />
                   {daysShort.map((day, i) => (
-                    <div key={i} className="p-2 text-center text-xs font-medium">
-                      <div className="text-muted-foreground">{day}</div>
-                      <div className={`mt-1 ${i === 4 ? 'text-primary font-bold' : ''}`}>
+                    <div key={i} className="py-3 px-1 text-center">
+                      <div className="text-[11px] font-medium text-theme-textTertiary uppercase tracking-wider">{day}</div>
+                      <div className={`mt-1 text-[15px] font-medium ${i === 4 ? 'text-theme-accentPrimary' : 'text-theme-textPrimary'}`}>
                         {6 + i}
                       </div>
                     </div>
                   ))}
                 </div>
                 
-                <div className="max-h-[50vh] overflow-y-auto">
+                <div className="max-h-[48vh] overflow-y-auto">
                   {Array.from({ length: 12 }, (_, i) => i + 7).map((hour) => (
-                    <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[60px]">
-                      <div className="p-2 text-xs text-muted-foreground text-right">
+                    <div key={hour} className="grid grid-cols-8 border-b border-theme-borderSubtle/30 last:border-b-0 min-h-[52px]">
+                      <div className="py-3 pr-2 text-[11px] font-medium text-theme-textTertiary text-right tracking-wide">
                         {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
                       </div>
                       {daysShort.map((_, i) => (
-                        <div key={i} className="border-l border-border p-1">
+                        <div key={i} className="border-l border-theme-borderSubtle/30 p-1.5">
                           {i === 4 && hour === 7 && (
-                            <div className="bg-primary/20 border-l-2 border-primary rounded text-xs p-1">
+                            <div className="bg-theme-accentPrimary/15 border-l-2 border-theme-accentPrimary rounded-lg text-[11px] font-medium text-theme-accentPrimary p-1.5">
                               Yoga
                             </div>
                           )}
@@ -453,31 +496,41 @@ const Calendar = () => {
             </Card>
           </TabsContent>
 
-          {/* Month View */}
-          <TabsContent value="month" className="space-y-4">
+          {/* Month View - Apple Calendar Style */}
+          <TabsContent value="month" className="space-y-5 mt-5">
             <div className="flex items-center justify-between">
-              <Button variant="outline" size="icon" onClick={goToPrevious}>
-                <ChevronLeft className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToPrevious}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
               </Button>
-              <span className="font-semibold">
+              <span className="text-[17px] font-semibold text-theme-textPrimary tracking-tight capitalize">
                 {format(currentDate, "MMMM yyyy", { locale: dateLocale })}
               </span>
-              <Button variant="outline" size="icon" onClick={goToNext}>
-                <ChevronRight className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToNext}
+                className="h-9 w-9 rounded-full hover:bg-theme-bgElevated text-theme-textSecondary"
+              >
+                <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
               </Button>
             </div>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-7 gap-1 mb-2">
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
+              <CardContent className="p-5">
+                <div className="grid grid-cols-7 gap-1 mb-3">
                   {dayLetters.map((day, i) => (
-                    <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
+                    <div key={i} className="text-center text-[11px] font-semibold text-theme-textTertiary uppercase tracking-wider py-2">
                       {day}
                     </div>
                   ))}
                 </div>
                 
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-2">
                   {(() => {
                     const daysInMonth = getDaysInMonth(currentDate);
                     const firstDayOfMonth = getDay(startOfMonth(currentDate));
@@ -494,34 +547,35 @@ const Calendar = () => {
                       );
                     }
                     
-                    // Add actual days
+                    // Add actual days - Apple Calendar style
                     for (let day = 1; day <= daysInMonth; day++) {
                       const dayDate = setDate(currentDate, day);
                       const dayEvents = getEventsForDate(dayDate);
-                      const isToday = isCurrentMonth && day === today.getDate();
+                      const isTodayDate = isCurrentMonth && day === today.getDate();
                       
                       slots.push(
                         <button
                           key={day}
                           onClick={() => handleDayClick(day)}
-                          className={`aspect-square flex flex-col items-center justify-center rounded-md border transition-colors cursor-pointer ${
-                            isToday
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'border-border hover:bg-muted/50 hover:border-primary/50'
+                          className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all duration-200 cursor-pointer ${
+                            isTodayDate
+                              ? 'bg-theme-accentPrimary text-primary-foreground shadow-sm'
+                              : 'hover:bg-theme-bgElevated text-theme-textPrimary'
                           }`}
                         >
-                          <span className="text-sm">{day}</span>
+                          <span className={`text-[15px] font-medium ${isTodayDate ? 'text-white' : ''}`}>{day}</span>
                           {dayEvents.length > 0 && (
                             <div className="flex gap-0.5 mt-1">
                               {dayEvents.slice(0, 3).map((event, idx) => (
                                 <div 
                                   key={idx} 
-                                  className={`w-1 h-1 rounded-full ${
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    isTodayDate ? 'bg-white/70' :
                                     event.category === 'trabajo' ? 'bg-category-work' :
                                     event.category === 'deporte' ? 'bg-category-sport' :
-                                    event.category === 'salud' ? 'bg-primary' :
+                                    event.category === 'salud' ? 'bg-theme-accentPrimary' :
                                     event.category === 'estudio' ? 'bg-category-study' :
-                                    'bg-secondary'
+                                    'bg-theme-textTertiary'
                                   }`} 
                                 />
                               ))}
@@ -539,9 +593,13 @@ const Calendar = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Quick Add Button */}
-        <Button className="w-full" size="lg" onClick={() => handleNewEvent()}>
-          <Plus className="h-5 w-5 mr-2" />
+        {/* Quick Add Button - Apple Style */}
+        <Button 
+          className="w-full h-12 rounded-xl bg-theme-accentPrimary hover:bg-theme-accentHighlight text-white text-[15px] font-semibold shadow-sm" 
+          size="lg" 
+          onClick={() => handleNewEvent()}
+        >
+          <Plus className="h-5 w-5 mr-2" strokeWidth={2} />
           {t('daySummary.addEvent')}
         </Button>
 
@@ -582,120 +640,123 @@ const Calendar = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Focus Mode Section */}
-        <div className="space-y-4 mt-8 pt-8 border-t border-border">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-              <Lock className="h-6 w-6 text-primary" />
+        {/* Focus Mode Section - Apple Style */}
+        <div className="space-y-5 mt-10 pt-8 border-t border-theme-borderSubtle/50">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-theme-accentPrimary/10">
+              <Lock className="h-7 w-7 text-theme-accentPrimary" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">{t('calendar.focusMode')}</h2>
-              <p className="text-xs text-muted-foreground">{t('calendar.timeWellSpent')}</p>
+              <h2 className="text-[22px] font-semibold text-theme-textPrimary tracking-tight">{t('calendar.focusMode')}</h2>
+              <p className="text-[13px] text-theme-textTertiary mt-0.5">{t('calendar.timeWellSpent')}</p>
             </div>
           </div>
 
-          {/* Daily Time Cap */}
-          <Card>
+          {/* Daily Time Cap - Apple Card */}
+          <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
             <CardContent className="p-6">
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold text-foreground mb-2">
-                  {dailyMinutes - usedMinutes} min
+              <div className="text-center mb-5">
+                <div className="text-[44px] font-bold text-theme-textPrimary tracking-tight tabular-nums">
+                  {dailyMinutes - usedMinutes} <span className="text-[22px] font-medium text-theme-textSecondary">min</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{t('calendar.remainingToday')}</p>
+                <p className="text-[15px] text-theme-textSecondary mt-1">{t('calendar.remainingToday')}</p>
               </div>
               
-              <Progress value={(usedMinutes / dailyMinutes) * 100} className="h-2 mb-2" />
+              <Progress value={(usedMinutes / dailyMinutes) * 100} className="h-2.5 mb-3 rounded-full" />
               
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{usedMinutes} {t('calendar.minUsed')}</span>
-                <span>{dailyMinutes} {t('calendar.minDaily')}</span>
+              <div className="flex justify-between text-[13px] text-theme-textTertiary">
+                <span className="tabular-nums">{usedMinutes} {t('calendar.minUsed')}</span>
+                <span className="tabular-nums">{dailyMinutes} {t('calendar.minDaily')}</span>
               </div>
               
-              <Button className="w-full mt-4" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button 
+                className="w-full mt-5 h-11 rounded-xl border-theme-borderSubtle text-theme-textPrimary hover:bg-theme-bgElevated" 
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
                 {t('calendar.extendTime')}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Module Breakdown */}
+          {/* Module Breakdown - Apple Style */}
           <div className="space-y-3">
-            <h3 className="font-semibold">{t('calendar.moduleTime')}</h3>
+            <h3 className="text-[17px] font-semibold text-theme-textPrimary tracking-tight">{t('calendar.moduleTime')}</h3>
             
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{t('nav.feed')}</span>
-                  <span className="text-sm text-muted-foreground">{feedUsed}/{feedMinutes} min</span>
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[15px] font-medium text-theme-textPrimary">{t('nav.feed')}</span>
+                  <span className="text-[13px] text-theme-textSecondary tabular-nums">{feedUsed}/{feedMinutes} min</span>
                 </div>
-                <Progress value={(feedUsed / feedMinutes) * 100} className="h-2" />
+                <Progress value={(feedUsed / feedMinutes) * 100} className="h-2 rounded-full" />
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{t('nav.explore')}</span>
-                  <span className="text-sm text-muted-foreground">{exploreUsed}/{exploreMinutes} min</span>
+            <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[15px] font-medium text-theme-textPrimary">{t('nav.explore')}</span>
+                  <span className="text-[13px] text-theme-textSecondary tabular-nums">{exploreUsed}/{exploreMinutes} min</span>
                 </div>
-                <Progress value={(exploreUsed / exploreMinutes) * 100} className="h-2" />
+                <Progress value={(exploreUsed / exploreMinutes) * 100} className="h-2 rounded-full" />
               </CardContent>
             </Card>
             
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
+            <Card className="overflow-hidden border-theme-borderSubtle/30 bg-theme-bgElevated/50 rounded-2xl">
+              <CardContent className="p-5">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{t('calendar.calendarAndProfile')}</span>
-                  <span className="text-sm text-primary font-semibold">{t('calendar.unlimited')}</span>
+                  <span className="text-[15px] font-medium text-theme-textPrimary">{t('calendar.calendarAndProfile')}</span>
+                  <span className="text-[13px] text-theme-accentPrimary font-semibold">{t('calendar.unlimited')}</span>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Weekly Time Saved */}
-          <Card>
+          {/* Weekly Time Saved - Apple Style */}
+          <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
             <CardContent className="p-6">
-              <h3 className="font-semibold mb-4">{t('calendar.timeSavedThisWeek')}</h3>
+              <h3 className="text-[17px] font-semibold text-theme-textPrimary tracking-tight mb-5">{t('calendar.timeSavedThisWeek')}</h3>
               
-              <div className="flex items-end justify-between gap-2 h-48 mb-4">
+              <div className="flex items-end justify-between gap-3 h-44 mb-5">
                 {weeklyData.map((data, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full bg-muted rounded-t-lg overflow-hidden relative" style={{ height: '100%' }}>
+                    <div className="w-full bg-theme-bgElevated rounded-lg overflow-hidden relative" style={{ height: '100%' }}>
                       <div
-                        className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary/70 rounded-t-lg transition-all"
+                        className="absolute bottom-0 w-full bg-gradient-to-t from-theme-accentPrimary to-theme-accentHighlight rounded-lg transition-all duration-500"
                         style={{ height: `${(data.saved / data.goal) * 100}%` }}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground">{daysShort[i]}</div>
+                    <div className="text-[11px] font-medium text-theme-textTertiary uppercase tracking-wide">{daysShort[i]}</div>
                   </div>
                 ))}
               </div>
               
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {weeklyData.reduce((acc, d) => acc + d.saved, 0)} min
+              <div className="text-center pt-2 border-t border-theme-borderSubtle/30">
+                <div className="text-[28px] font-bold text-theme-accentPrimary mt-3 tabular-nums">
+                  {weeklyData.reduce((acc, d) => acc + d.saved, 0)} <span className="text-[17px] font-medium">min</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
+                <p className="text-[13px] text-theme-textSecondary mt-1">{t('calendar.totalTimeSaved')}</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Settings */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-3">{t('settings.title')}</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>{t('calendar.dailyCap')}</span>
-                  <span className="text-muted-foreground">{dailyMinutes} {t('calendar.minutes')}</span>
+          {/* Settings - Apple List Style */}
+          <Card className="overflow-hidden border-theme-borderSubtle/50 shadow-sm bg-theme-cardBg rounded-2xl">
+            <CardContent className="p-5">
+              <h3 className="text-[17px] font-semibold text-theme-textPrimary tracking-tight mb-4">{t('settings.title')}</h3>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between py-3 px-1 rounded-lg hover:bg-theme-bgElevated/50 transition-colors">
+                  <span className="text-[15px] text-theme-textPrimary">{t('calendar.dailyCap')}</span>
+                  <span className="text-[15px] text-theme-textSecondary tabular-nums">{dailyMinutes} {t('calendar.minutes')}</span>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>{t('calendar.feedCap')}</span>
-                  <span className="text-muted-foreground">{feedMinutes} {t('calendar.minutes')}</span>
+                <div className="flex items-center justify-between py-3 px-1 rounded-lg hover:bg-theme-bgElevated/50 transition-colors border-t border-theme-borderSubtle/30">
+                  <span className="text-[15px] text-theme-textPrimary">{t('calendar.feedCap')}</span>
+                  <span className="text-[15px] text-theme-textSecondary tabular-nums">{feedMinutes} {t('calendar.minutes')}</span>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>{t('calendar.exploreCap')}</span>
-                  <span className="text-muted-foreground">{exploreMinutes} {t('calendar.minutes')}</span>
+                <div className="flex items-center justify-between py-3 px-1 rounded-lg hover:bg-theme-bgElevated/50 transition-colors border-t border-theme-borderSubtle/30">
+                  <span className="text-[15px] text-theme-textPrimary">{t('calendar.exploreCap')}</span>
+                  <span className="text-[15px] text-theme-textSecondary tabular-nums">{exploreMinutes} {t('calendar.minutes')}</span>
                 </div>
               </div>
             </CardContent>
