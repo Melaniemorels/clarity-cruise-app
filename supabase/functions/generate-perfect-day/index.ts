@@ -14,6 +14,7 @@ interface UserContext {
   upcomingEvents: { title: string; category: string; startsAt: string }[];
   recentMood?: string;
   focusSessionsToday: number;
+  userLanguage: string;
 }
 
 interface TimeBlock {
@@ -46,8 +47,17 @@ function buildSystemPrompt(context: UserContext): string {
 
   const hasWorkoutData = context.todayWorkoutMinutes > 0;
   const hasStepsData = context.todaySteps > 0;
+  
+  const lang = context.userLanguage || "en";
+  const langInstruction = lang === "es" 
+    ? "IDIOMA OBLIGATORIO: Responde EXCLUSIVAMENTE en español. No mezcles idiomas. No incluyas traducciones ni texto bilingüe. Todos los títulos, descripciones y afirmaciones deben estar en español."
+    : "MANDATORY LANGUAGE: Respond EXCLUSIVELY in English. Do not mix languages. Do not include translations or bilingual text. All titles, descriptions, and affirmations must be in English.";
 
-  return `You are an AI assistant inside VYV, a premium wellness and productivity application. Generate the user's ideal day using only the available data below.
+  return `You are an AI assistant inside VYV, a premium wellness and productivity application.
+
+${langInstruction}
+
+Generate the user's ideal day using only the available data below.
 
 AVAILABLE USER DATA:
 - Current time of day: ${context.timeOfDay}
@@ -188,6 +198,15 @@ serve(async (req) => {
       .gte("start_at", `${today}T00:00:00`)
       .lte("start_at", `${today}T23:59:59`);
 
+    // Get user language from request body
+    let userLanguage = "en";
+    try {
+      const body = await req.json();
+      userLanguage = body?.userLanguage || "en";
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
     const context: UserContext = {
       timeOfDay,
       todayWorkoutMinutes: healthData?.workout_minutes || 0,
@@ -199,6 +218,7 @@ serve(async (req) => {
         startsAt: new Date(e.starts_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
       })) || [],
       focusSessionsToday: scheduleBlocks?.length || 0,
+      userLanguage,
     };
 
     // Generate perfect day using AI
