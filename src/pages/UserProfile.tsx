@@ -197,15 +197,15 @@ const UserProfile = () => {
                   <span><strong>{profile.posts_count}</strong> {t("profile.posts")}</span>
                   <button 
                     onClick={() => setFollowListType("followers")}
-                    className="hover:underline min-h-[44px] flex items-center"
+                    className="hover:underline"
                   >
-                    <strong>{profile.followers_count}</strong>&nbsp;{t("profile.followers")}
+                    <strong>{profile.followers_count}</strong> {t("profile.followers")}
                   </button>
                   <button 
                     onClick={() => setFollowListType("following")}
-                    className="hover:underline min-h-[44px] flex items-center"
+                    className="hover:underline"
                   >
-                    <strong>{profile.following_count}</strong>&nbsp;{t("profile.following")}
+                    <strong>{profile.following_count}</strong> {t("profile.following")}
                   </button>
                 </div>
               </div>

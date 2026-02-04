@@ -56,9 +56,7 @@ const Home = () => {
             <FeedPost
               key={entry.id}
               postId={entry.id}
-              userId={entry.user_id}
               userHandle={entry.profiles?.handle || "anonymous"}
-              userName={entry.profiles?.name || undefined}
               userPhotoUrl={entry.profiles?.photo_url || undefined}
               photoUrl={entry.photo_url || undefined}
               caption={entry.caption || undefined}

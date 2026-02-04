@@ -198,8 +198,8 @@ export const PostItem = ({ post }: PostItemProps) => {
       <Card>
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-3">
-            <button 
-              className="flex items-center gap-3 flex-1 min-h-[48px] text-left"
+            <div 
+              className="flex items-center gap-3 flex-1 cursor-pointer"
               onClick={() => navigate(`/profile/${post.user_id}`)}
             >
               <ProfileAvatar
@@ -215,7 +215,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                   {getTimeAgo(post.created_at)}
                 </p>
               </div>
-            </button>
+            </div>
             
             {/* 3-dot menu - only visible to post owner */}
             {isOwner && (
@@ -289,7 +289,7 @@ export const PostItem = ({ post }: PostItemProps) => {
               variant="ghost"
               size="sm"
               onClick={handleLike}
-              className="gap-2 hover:text-destructive min-w-[48px] min-h-[48px]"
+              className="gap-2 hover:text-destructive"
             >
               <Heart
                 className={`h-5 w-5 ${

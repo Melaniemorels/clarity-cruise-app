@@ -31,7 +31,7 @@ export function SocialBudgetLockOverlay({
   const subtitleKey = `socialBudget.completedSubtitle${getDailySubtitleKey()}`;
 
   const handleReturnToFocus = () => {
-    navigate("/entries");
+    navigate("/");
   };
 
   const handleViewDay = () => {

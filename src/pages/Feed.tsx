@@ -81,7 +81,7 @@ const Feed = () => {
 
   const handleReturnToFocus = useCallback(() => {
     setShowBudgetModal(false);
-    navigate("/entries");
+    navigate("/");
   }, [navigate]);
 
   const { 

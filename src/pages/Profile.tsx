@@ -89,15 +89,15 @@ const Profile = () => {
                   <span><strong>{stats?.postsCount || 0}</strong> {t('profile.posts')}</span>
                   <button 
                     onClick={() => setFollowListType("followers")}
-                    className="hover:underline min-h-[44px] flex items-center"
+                    className="hover:underline"
                   >
-                    <strong>{stats?.followersCount || 0}</strong>&nbsp;{t('profile.followers')}
+                    <strong>{stats?.followersCount || 0}</strong> {t('profile.followers')}
                   </button>
                   <button 
                     onClick={() => setFollowListType("following")}
-                    className="hover:underline min-h-[44px] flex items-center"
+                    className="hover:underline"
                   >
-                    <strong>{stats?.followingCount || 0}</strong>&nbsp;{t('profile.following')}
+                    <strong>{stats?.followingCount || 0}</strong> {t('profile.following')}
                   </button>
                 </div>
               </div>
