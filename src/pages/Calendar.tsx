@@ -153,11 +153,11 @@ const Calendar = () => {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      trabajo: 'bg-blue-500/20 border-blue-500',
-      deporte: 'bg-green-500/20 border-green-500',
-      salud: 'bg-primary/20 border-primary',
-      estudio: 'bg-purple-500/20 border-purple-500',
-      otros: 'bg-secondary/20 border-secondary',
+      trabajo: 'category-work border-l-4',
+      deporte: 'category-sport border-l-4',
+      salud: 'category-health border-l-4',
+      estudio: 'category-study border-l-4',
+      otros: 'category-other border-l-4',
     };
     return colors[category] || colors.otros;
   };
@@ -322,7 +322,7 @@ const Calendar = () => {
                               return (
                                 <div
                                   key={photo.id}
-                                  className="bg-emerald-500/20 border-l-4 border-emerald-500 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start"
+                                  className="category-photo border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start"
                                   onClick={() => setSelectedPhoto(photo.photo_url)}
                                 >
                                   <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
@@ -340,7 +340,7 @@ const Calendar = () => {
                                     <div className="text-xs text-muted-foreground">
                                       {format(photoTime, "HH:mm")}
                                       {context && (
-                                        <span className="ml-1 text-emerald-600 dark:text-emerald-400">
+                                        <span className="ml-1 text-category-photo">
                                           • {context.relation} {context.event.title}
                                         </span>
                                       )}

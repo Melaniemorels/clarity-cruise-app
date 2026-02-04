@@ -288,14 +288,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-64 object-cover"
-                style={{ 
-                  filter: "grayscale(100%)",
-                  borderRadius: '22px',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  boxShadow: '0 0 12px rgba(0,0,0,0.4)',
-                  backgroundColor: '#1F1F1F'
-                }}
+                className="w-full h-64 object-cover rounded-[22px] border border-border shadow-lg bg-muted grayscale"
               />
               <Button
                 type="button"
@@ -315,13 +308,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
               <img
                 src={capturedImage}
                 alt="Captured"
-                className="w-full h-64 object-cover"
-                style={{
-                  borderRadius: '22px',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  boxShadow: '0 0 12px rgba(0,0,0,0.4)',
-                  backgroundColor: '#1F1F1F'
-                }}
+                className="w-full h-64 object-cover rounded-[22px] border border-border shadow-lg bg-muted"
               />
               
               {/* Instagram-style options menu */}
@@ -331,10 +318,10 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                     type="button"
                     variant="secondary"
                     size="icon"
-                    className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 border-0 backdrop-blur-sm"
+                    className="absolute top-3 right-3 bg-foreground/60 hover:bg-foreground/80 border-0 backdrop-blur-sm"
                     disabled={createPostMutation.isPending}
                   >
-                    <MoreHorizontal className="w-5 h-5 text-white" />
+                    <MoreHorizontal className="w-5 h-5 text-background" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 

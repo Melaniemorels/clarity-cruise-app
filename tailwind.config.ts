@@ -50,6 +50,32 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Semantic category colors
+        category: {
+          work: "hsl(var(--category-work))",
+          sport: "hsl(var(--category-sport))",
+          health: "hsl(var(--category-health))",
+          study: "hsl(var(--category-study))",
+          reading: "hsl(var(--category-reading))",
+          social: "hsl(var(--category-social))",
+          photo: "hsl(var(--category-photo))",
+          other: "hsl(var(--category-other))",
+        },
+        // Intensity scale for heatmaps
+        intensity: {
+          none: "hsl(var(--intensity-none))",
+          low: "hsl(var(--intensity-low))",
+          medium: "hsl(var(--intensity-medium))",
+          high: "hsl(var(--intensity-high))",
+        },
+        // State colors
+        state: {
+          success: "hsl(var(--state-success))",
+          warning: "hsl(var(--state-warning))",
+          error: "hsl(var(--state-error))",
+          info: "hsl(var(--state-info))",
+        },
+        // Legacy luxury tokens (kept for backward compatibility)
         luxury: {
           emerald: "hsl(var(--luxury-emerald))",
           emeraldLight: "hsl(var(--luxury-emerald-light))",
@@ -59,6 +85,7 @@ export default {
           white: "hsl(var(--luxury-white))",
           black: "hsl(var(--luxury-black))",
         },
+        // Semantic theme tokens
         theme: {
           bg: "hsl(var(--theme-bg))",
           bgElevated: "hsl(var(--theme-bg-elevated))",

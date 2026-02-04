@@ -28,11 +28,11 @@ interface EventModalProps {
 }
 
 const categories = [
-  { value: "trabajo", label: "Trabajo", color: "bg-blue-500" },
-  { value: "deporte", label: "Deporte", color: "bg-green-500" },
-  { value: "salud", label: "Salud", color: "bg-primary" },
-  { value: "estudio", label: "Estudio", color: "bg-purple-500" },
-  { value: "otros", label: "Otros", color: "bg-secondary" },
+  { value: "trabajo", label: "Trabajo", colorClass: "bg-category-work" },
+  { value: "deporte", label: "Deporte", colorClass: "bg-category-sport" },
+  { value: "salud", label: "Salud", colorClass: "bg-primary" },
+  { value: "estudio", label: "Estudio", colorClass: "bg-category-study" },
+  { value: "otros", label: "Otros", colorClass: "bg-secondary" },
 ];
 
 export const EventModal = ({ open, onOpenChange, event, onSave, onDelete }: EventModalProps) => {
@@ -139,7 +139,7 @@ export const EventModal = ({ open, onOpenChange, event, onSave, onDelete }: Even
                   variant={category === cat.value ? "default" : "outline"}
                   className={cn(
                     "cursor-pointer",
-                    category === cat.value && cat.color
+                    category === cat.value && cat.colorClass
                   )}
                   onClick={() => setCategory(cat.value)}
                 >

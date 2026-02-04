@@ -94,7 +94,7 @@ export function DeviceIndicator() {
   const { type, orientation, width, height } = useDevice();
   
   return (
-    <div className="fixed top-2 right-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded-full">
+    <div className="fixed top-2 right-2 z-50 bg-foreground/80 text-background text-xs px-2 py-1 rounded-full">
       {type} • {orientation} • {width}×{height}
     </div>
   );
