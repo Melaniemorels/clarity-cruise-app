@@ -46,6 +46,7 @@ export function useProfile(userId?: string) {
 }
 
 // Fetch profile stats (posts count, followers, following)
+// Only counts accepted follows
 export function useProfileStats(userId?: string) {
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
@@ -57,20 +58,22 @@ export function useProfileStats(userId?: string) {
         return { postsCount: 0, followersCount: 0, followingCount: 0 };
       }
 
-      // Parallel fetch all counts
+      // Parallel fetch all counts - only accepted follows count
       const [postsResult, followersResult, followingResult] = await Promise.all([
         supabase
           .from("posts")
           .select("id", { count: "exact", head: true })
           .eq("user_id", targetUserId),
-        supabase
+        (supabase as any)
           .from("follows")
           .select("id", { count: "exact", head: true })
-          .eq("following_id", targetUserId),
-        supabase
+          .eq("following_id", targetUserId)
+          .eq("status", "accepted"),
+        (supabase as any)
           .from("follows")
           .select("id", { count: "exact", head: true })
-          .eq("follower_id", targetUserId),
+          .eq("follower_id", targetUserId)
+          .eq("status", "accepted"),
       ]);
 
       return {

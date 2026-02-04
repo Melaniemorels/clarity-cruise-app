@@ -483,5 +483,42 @@
     "accepted": "Request accepted",
     "rejected": "Request rejected",
     "error": "Error processing request"
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "requested": "Requested",
+    "unfollow": "Unfollow",
+    "requestSent": "Follow request sent",
+    "nowFollowing": "Now following",
+    "unfollowed": "Unfollowed",
+    "requestCanceled": "Request canceled",
+    "unfollowTitle": "Unfollow user?",
+    "unfollowDescription": "You will stop following this user. If their profile is private, you'll need to request again.",
+    "cancelRequestTitle": "Cancel follow request?",
+    "cancelRequestDescription": "Are you sure you want to cancel your follow request?",
+    "cancelRequest": "Cancel request"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "posts": "posts",
+    "followers": "followers",
+    "following": "following",
+    "todayStats": "Today",
+    "activityCalendar": "Activity Calendar",
+    "myCaptures": "My Captures",
+    "noCapturesYet": "No captures yet",
+    "useQuickCamera": "Use quick camera to get started",
+    "defaultBio": "Finding balance through movement",
+    "userNotFound": "User not found",
+    "noBio": "No bio yet",
+    "privateAccount": "This account is private",
+    "followToSee": "Follow to see their content",
+    "requestPending": "Follow request pending",
+    "waitingApproval": "Waiting for approval",
+    "contentNotAvailable": "This content is not available",
+    "sectionPrivate": "{{section}} is private",
+    "requestSentInfo": "Your request has been sent. You'll be notified when it's accepted."
   }
 }

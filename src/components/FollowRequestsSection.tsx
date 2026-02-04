@@ -97,7 +97,7 @@ export function FollowRequestsSection() {
           <div key={request.id} className="flex items-center gap-3">
             <div 
               className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
-              onClick={() => handleNavigateToProfile(request.requester_id)}
+              onClick={() => handleNavigateToProfile(request.follower_id)}
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage src={request.requester?.photo_url || undefined} />

@@ -2,13 +2,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useFollow } from "@/hooks/use-profile";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, UserPlus, UserCheck, Lock } from "lucide-react";
+import { ChevronLeft, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { FollowButton } from "@/components/FollowButton";
+import { PrivateProfilePlaceholder } from "@/components/PrivateProfilePlaceholder";
+import { useViewerAccess } from "@/hooks/use-viewer-access";
+import { useFollowStatus } from "@/hooks/use-follow-status";
 
 interface UserProfileData {
   user_id: string;
@@ -20,7 +23,6 @@ interface UserProfileData {
   posts_count: number;
   followers_count: number;
   following_count: number;
-  is_following: boolean;
 }
 
 const UserProfile = () => {
@@ -28,10 +30,13 @@ const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const followMutation = useFollow();
-
+  
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === userId;
+  
+  // Access control
+  const { access, isLoading: accessLoading, isPrivateLocked } = useViewerAccess(userId);
+  const { data: followStatus } = useFollowStatus(userId);
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["user-profile", userId],
@@ -50,34 +55,25 @@ const UserProfile = () => {
         return null;
       }
 
-      // Fetch posts count
+      // Fetch posts count (always public info for non-private or for display)
       const { count: postsCount } = await supabase
         .from("posts")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
 
-      // Fetch followers count
-      const { count: followersCount } = await supabase
+      // Fetch followers count - only accepted follows
+      const { count: followersCount } = await (supabase as any)
         .from("follows")
         .select("*", { count: "exact", head: true })
-        .eq("following_id", userId);
+        .eq("following_id", userId)
+        .eq("status", "accepted");
 
-      // Fetch following count
-      const { count: followingCount } = await supabase
+      // Fetch following count - only accepted follows
+      const { count: followingCount } = await (supabase as any)
         .from("follows")
         .select("*", { count: "exact", head: true })
-        .eq("follower_id", userId);
-
-      // Check if current user is following
-      let isFollowing = false;
-      if (currentUser) {
-        const { count } = await supabase
-          .from("follows")
-          .select("*", { count: "exact", head: true })
-          .eq("follower_id", currentUser.id)
-          .eq("following_id", userId);
-        isFollowing = (count || 0) > 0;
-      }
+        .eq("follower_id", userId)
+        .eq("status", "accepted");
 
       return {
         user_id: profileData.user_id,
@@ -89,7 +85,6 @@ const UserProfile = () => {
         posts_count: postsCount || 0,
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
-        is_following: isFollowing,
       };
     },
     enabled: !!userId && !isOwnProfile,
@@ -101,15 +96,7 @@ const UserProfile = () => {
     return null;
   }
 
-  const handleFollow = () => {
-    if (!userId || !profile) return;
-    followMutation.mutate({ 
-      targetUserId: userId, 
-      isFollowing: profile.is_following 
-    });
-  };
-
-  if (isLoading) {
+  if (isLoading || accessLoading) {
     return (
       <div className="min-h-screen bg-background pb-20">
         <div className="mx-auto max-w-2xl p-4 space-y-4">
@@ -214,37 +201,45 @@ const UserProfile = () => {
               </div>
             </div>
             
-            {currentUser && (
-              <Button 
-                className="w-full" 
-                variant={profile.is_following ? "outline" : "default"}
-                onClick={handleFollow}
-                disabled={followMutation.isPending}
-              >
-                {profile.is_following ? (
-                  <>
-                    <UserCheck className="h-4 w-4 mr-2" />
-                    {t("userSearch.following")}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    {t("userSearch.follow")}
-                  </>
-                )}
-              </Button>
+            {currentUser && userId && (
+              <FollowButton
+                targetUserId={userId}
+                targetIsPrivate={profile.is_private}
+                className="w-full"
+              />
             )}
           </CardContent>
         </Card>
 
-        {/* Private account notice */}
-        {profile.is_private && !profile.is_following && (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Lock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground">{t("profile.privateAccount")}</p>
-            </CardContent>
-          </Card>
+        {/* Content based on access level */}
+        {isPrivateLocked ? (
+          <PrivateProfilePlaceholder
+            targetUserId={userId!}
+            targetIsPrivate={profile.is_private}
+          />
+        ) : (
+          <>
+            {/* Posts section - show if viewer has access */}
+            {access.canViewPosts ? (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-4">{t("profile.myCaptures")}</h3>
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    {t("profile.noCapturesYet")}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : followStatus === "accepted" && !access.canViewPosts ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Lock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    {t("profile.sectionPrivate", { section: t("privacy.sectionVisibility.posts") })}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
         )}
       </div>
 
