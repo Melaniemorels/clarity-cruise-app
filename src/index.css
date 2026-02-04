@@ -180,22 +180,65 @@
 
   html, body, #root {
     @apply bg-background min-h-screen;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     @apply text-foreground;
-    font-family: 'Poppins', system-ui, sans-serif;
-    letter-spacing: 0.025em;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
   }
   
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+  
+  h2 {
     font-weight: 600;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
   }
   
-  p, span, div {
+  h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  
+  h5, h6 {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+  }
+  
+  p {
     font-weight: 400;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.005em;
+    line-height: 1.5;
+  }
+  
+  /* Metadata, captions, timestamps */
+  small, .text-xs, .text-sm {
+    font-weight: 400;
+    letter-spacing: 0em;
+    line-height: 1.4;
+  }
+  
+  /* Buttons and interactive text */
+  button, [role="button"] {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  
+  /* Numeric data - tabular figures for alignment */
+  .tabular-nums, time, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0em;
   }
 
   /* ==================== SCROLLBAR STYLING ==================== */
