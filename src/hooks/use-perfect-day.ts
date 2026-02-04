@@ -4,24 +4,23 @@ import { useTranslation } from "react-i18next";
 
 export type ActivityType = "work" | "movement" | "nutrition" | "rest" | "mindfulness";
 export type Period = "morning" | "midday" | "afternoon" | "evening";
+export type EnergyLevel = "low" | "medium" | "high";
 
 export interface Activity {
   type: ActivityType;
   title: string;
   description: string;
   duration?: string;
-  icon: string;
 }
 
 export interface TimeBlock {
   period: Period;
-  icon: string;
   activities: Activity[];
 }
 
 export interface PerfectDayResponse {
-  greeting: string;
-  intention: string;
+  energyLevel: EnergyLevel;
+  sleepHours: number;
   blocks: TimeBlock[];
   closing: {
     type: "reflection" | "affirmation";

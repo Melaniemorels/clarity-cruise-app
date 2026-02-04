@@ -86,18 +86,19 @@ For each section:
 - High energy → allow for challenging tasks and active movement
 - Missing data → conservative, flexible alternatives
 
-ACTIVITY TYPES & ICONS:
-- work: "💼" (focused work or study)
-- movement: "🏃" (physical activity)
-- nutrition: "🥗" (conscious eating)
-- rest: "😴" (recovery and breaks)
-- mindfulness: "🧘" (reflection and mental clarity)
+STYLE REQUIREMENTS:
+- NO EMOJIS anywhere in the response
+- Use professional, formal language ("plan", "focus", "consistency", "priorities", "recovery")
+- Avoid casual words like "vibes", "slay", or overly enthusiastic phrasing
+- Keep titles short and professional (2-4 words max)
+- Descriptions should be clear and actionable (1 sentence)
 
-PERIOD ICONS:
-- morning: "🌅"
-- midday: "☀️"
-- afternoon: "🌤️"
-- evening: "🌙"
+ACTIVITY TYPES (use exactly these strings, NO icons):
+- work (focused work or study)
+- movement (physical activity)
+- nutrition (conscious eating)
+- rest (recovery and breaks)
+- mindfulness (reflection and mental clarity)
 
 CLOSING:
 End with exactly one of:
@@ -105,32 +106,43 @@ End with exactly one of:
 - A personalized affirmation aligned with the user's wellbeing and goals
 
 TONE REQUIREMENTS:
-- Calm, neutral, and supportive
+- Calm, neutral, and professional
 - Clear and concise
+- Old-money aesthetic: understated, sophisticated, never flashy
 - Appropriate for a premium wellness application
 
-OUTPUT FORMAT (strict JSON):
+OUTPUT FORMAT (strict JSON, NO emojis):
 {
-  "greeting": "Brief greeting acknowledging their current state based on available data",
-  "intention": "One sentence setting intention based on real data only",
+  "energyLevel": "${energyLevel}",
+  "sleepHours": ${context.sleepHours},
   "blocks": [
     {
       "period": "morning",
-      "icon": "🌅",
       "activities": [
         {
           "type": "mindfulness",
-          "title": "Activity Title",
-          "description": "Brief, actionable description",
-          "duration": "X min",
-          "icon": "🧘"
+          "title": "Morning Focus",
+          "description": "Brief, actionable description without emojis",
+          "duration": "10 min"
         }
       ]
+    },
+    {
+      "period": "midday",
+      "activities": []
+    },
+    {
+      "period": "afternoon",
+      "activities": []
+    },
+    {
+      "period": "evening",
+      "activities": []
     }
   ],
   "closing": {
     "type": "reflection",
-    "text": "One reflective question or affirmation based on available data"
+    "text": "One reflective question or affirmation"
   }
 }`;
 }
