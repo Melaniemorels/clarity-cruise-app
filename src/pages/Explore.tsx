@@ -77,6 +77,24 @@ const Explore = () => {
         { title: "Stress Relief", duration: "15 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=XXXX" },
       ],
     },
+    {
+      title: "Nutrición",
+      icon: "🥗",
+      items: [
+        { title: "Recetas Saludables", duration: "15 min", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Meal Prep Semanal", duration: "30 min", color: "from-orange-500/20 to-amber-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Smoothies Energéticos", duration: "10 min", color: "from-pink-500/20 to-rose-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+      ],
+    },
+    {
+      title: "Planes Alimenticios",
+      icon: "📋",
+      items: [
+        { title: "Déficit Calórico", duration: "Guía", color: "from-teal-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Alto en Proteína", duration: "Guía", color: "from-red-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+        { title: "Alimentación Intuitiva", duration: "Guía", color: "from-violet-500/20 to-indigo-500/20", url: "https://www.youtube.com/watch?v=XXXX" },
+      ],
+    },
   ];
 
   return (
