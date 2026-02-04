@@ -354,5 +354,22 @@
     "verifyWarning": "Debes verificar tu email para continuar. Revisa tu bandeja de entrada o spam.",
     "continue": "Continuar",
     "accountSecured": "Tu cuenta está verificada y protegida"
+  },
+  "recommendations": {
+    "title": "Para Ti",
+    "selectGoal": "¿Qué necesitas ahora?",
+    "contextDetected": "Contexto detectado",
+    "cached": "En caché",
+    "refreshed": "Recomendaciones actualizadas",
+    "empty": "No hay recomendaciones aún. Prueba seleccionando un objetivo.",
+    "dataControls": "Control de Datos",
+    "dataControlsDescription": "Elige qué datos puede usar la IA para personalizar tus recomendaciones",
+    "healthData": "Salud y Actividad",
+    "healthDataDescription": "Pasos, entrenamientos, patrones de sueño",
+    "calendarData": "Patrones de Calendario",
+    "calendarDataDescription": "Tu agenda y sesiones de enfoque",
+    "mediaPreferences": "Preferencias de Media",
+    "mediaPreferencesDescription": "Servicios de música conectados (Spotify)",
+    "privacyNotice": "Tus datos se usan solo para personalizar recomendaciones y nunca se comparten."
   }
 }
