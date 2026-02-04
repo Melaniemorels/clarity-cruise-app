@@ -14,7 +14,7 @@ import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import { Plus, Search, Hexagon, Camera, Loader2 } from "lucide-react";
+import { Plus, Search, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
 import { useInfinitePosts } from "@/hooks/use-posts";
@@ -22,6 +22,7 @@ import { useSocialBudgetTracker } from "@/hooks/use-social-budget";
 import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
+import vyvIcon from "@/assets/vyv-icon.jpeg";
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
@@ -215,13 +216,17 @@ const Feed = () => {
 
   return (
     <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
-      {/* Watermark - only show when content is visible and not locked */}
+      {/* Watermark - subtle old money logo behind posts */}
       {!isLimitReached && !isLoading && posts.length > 0 && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
-          <Hexagon 
-            size={device.isDesktop ? 500 : device.isTablet ? 400 : 300} 
-            strokeWidth={0.5}
-            className="text-theme-borderSubtle opacity-12"
+          <img 
+            src={vyvIcon} 
+            alt="" 
+            className="opacity-[0.04] grayscale"
+            style={{
+              width: device.isDesktop ? '400px' : device.isTablet ? '320px' : '240px',
+              height: 'auto',
+            }}
           />
         </div>
       )}
