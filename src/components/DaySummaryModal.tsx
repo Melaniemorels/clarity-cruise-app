@@ -1,8 +1,31 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format, isToday, isFuture } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { Briefcase, Dumbbell, Footprints, Camera, CalendarPlus, Clock } from "lucide-react";
+
+// Simple language detection
+const getUserLanguage = () => {
+  const lang = navigator.language || 'en';
+  return lang.startsWith('es') ? 'es' : 'en';
+};
+
+const translations = {
+  en: {
+    activityFlow: 'Activity Flow',
+    captures: 'Captures',
+    noEvents: 'No events for this day',
+    noActivity: 'No activity recorded for this day',
+    addEvent: 'Add Event',
+  },
+  es: {
+    activityFlow: 'Tu Actividad',
+    captures: 'Capturas',
+    noEvents: 'No hay eventos para este día',
+    noActivity: 'No hay actividad registrada para este día',
+    addEvent: 'Agregar Evento',
+  },
+};
 
 interface Event {
   id: string;
@@ -51,6 +74,10 @@ export const DaySummaryModal = ({
 }: DaySummaryModalProps) => {
   if (!date) return null;
 
+  const lang = getUserLanguage();
+  const t = translations[lang];
+  const dateLocale = lang === 'es' ? es : enUS;
+
   const isPastDay = !isToday(date) && !isFuture(date);
   const canAddEvent = isToday(date) || isFuture(date);
 
@@ -59,7 +86,7 @@ export const DaySummaryModal = ({
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {format(date, "EEEE d 'de' MMMM", { locale: es })}
+            {format(date, lang === 'es' ? "EEEE d 'de' MMMM" : "EEEE, MMMM d", { locale: dateLocale })}
           </DialogTitle>
         </DialogHeader>
 
@@ -68,7 +95,7 @@ export const DaySummaryModal = ({
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Activity Flow ({events.length})
+              {t.activityFlow} ({events.length})
             </h3>
             
             {events.length > 0 ? (
@@ -92,7 +119,7 @@ export const DaySummaryModal = ({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-2">
-                No hay eventos para este día
+                {t.noEvents}
               </p>
             )}
           </div>
@@ -102,7 +129,7 @@ export const DaySummaryModal = ({
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                 <Camera className="h-4 w-4" />
-                Capturas ({photos.length})
+                {t.captures} ({photos.length})
               </h3>
               
               <div className="grid grid-cols-3 gap-2">
@@ -126,7 +153,7 @@ export const DaySummaryModal = ({
           {/* Empty state for past days */}
           {isPastDay && events.length === 0 && photos.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">No hay actividad registrada para este día</p>
+              <p className="text-sm">{t.noActivity}</p>
             </div>
           )}
 
@@ -140,7 +167,7 @@ export const DaySummaryModal = ({
               }}
             >
               <CalendarPlus className="h-4 w-4 mr-2" />
-              Agregar Evento
+              {t.addEvent}
             </Button>
           )}
         </div>
