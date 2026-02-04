@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import { QuickCamera } from "@/components/QuickCamera";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
+import { Plus, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
 import { useInfinitePosts } from "@/hooks/use-posts";
@@ -21,17 +21,20 @@ import { useSocialBudgetTracker } from "@/hooks/use-social-budget";
 import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
+
+const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
 const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const device = useDevice();
   const navPadding = useNavPadding();
+  const lastRefreshRef = useRef<number>(Date.now());
 
   // Social budget tracking
   const {
@@ -77,6 +80,16 @@ const Feed = () => {
     refetch 
   } = useInfinitePosts({ feedType: "following" });
 
+  // Silent background refresh - no UI feedback
+  const silentRefresh = useCallback(async () => {
+    const now = Date.now();
+    // Throttle: don't refresh more than once per 30 seconds
+    if (now - lastRefreshRef.current < 30000) return;
+    
+    lastRefreshRef.current = now;
+    await refetch();
+  }, [refetch]);
+
   // Infinite scroll trigger
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0.1,
@@ -93,19 +106,40 @@ const Feed = () => {
   // Flatten paginated data
   const posts = data?.pages.flatMap(page => page.posts) || [];
 
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await refetch();
-      toast.success(t('feed.feedUpdated'));
-    } catch (error) {
-      toast.error(t('feed.errorUpdating'));
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [refetch, t]);
+  // Auto-refresh on visibility change (tab focus / app resume)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        silentRefresh();
+      }
+    };
 
-  // Realtime subscription for new posts
+    const handleFocus = () => {
+      silentRefresh();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [silentRefresh]);
+
+  // Interval-based refresh (every 3 minutes)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Only refresh if tab is visible
+      if (document.visibilityState === 'visible') {
+        silentRefresh();
+      }
+    }, AUTO_REFRESH_INTERVAL);
+
+    return () => clearInterval(intervalId);
+  }, [silentRefresh]);
+
+  // Realtime subscription for new posts - immediate update
   useEffect(() => {
     const channel = supabase
       .channel("posts-channel")
@@ -117,8 +151,8 @@ const Feed = () => {
           table: "posts",
         },
         () => {
-          // Only invalidate, don't auto-refetch to avoid jarring UX
-          queryClient.invalidateQueries({ queryKey: ["posts", "infinite"] });
+          // Silently refetch to get new posts
+          silentRefresh();
         }
       )
       .subscribe();
@@ -126,7 +160,7 @@ const Feed = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, silentRefresh]);
 
   return (
     <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
@@ -150,7 +184,6 @@ const Feed = () => {
           )}>
             <AdaptiveHeading level={1}>VYV</AdaptiveHeading>
             <div className={cn("flex items-center", device.isMobile ? "gap-2" : "gap-4")}>
-              <NotificationCenter />
               <Button
                 variant="ghost"
                 size="icon"
@@ -158,14 +191,7 @@ const Feed = () => {
               >
                 <Search className="h-5 w-5" strokeWidth={1.4} style={{ color: '#EAEAEA' }} />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`h-5 w-5 ${isRefreshing ? "animate-spin" : ""}`} strokeWidth={1.4} style={{ color: '#EAEAEA' }} />
-              </Button>
+              <NotificationCenter />
               <Button
                 size="icon"
                 onClick={() => setIsCameraOpen(true)}
