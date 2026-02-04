@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +59,7 @@ interface PostItemProps {
 export const PostItem = ({ post }: PostItemProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [optimisticLike, setOptimisticLike] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
@@ -196,19 +198,24 @@ export const PostItem = ({ post }: PostItemProps) => {
       <Card>
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={post.profiles?.photo_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {post.profiles?.handle?.[0]?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <p className="font-semibold text-sm text-foreground">
-                {post.profiles?.handle || "user"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {getTimeAgo(post.created_at)}
-              </p>
+            <div 
+              className="flex items-center gap-3 flex-1 cursor-pointer"
+              onClick={() => navigate(`/profile/${post.user_id}`)}
+            >
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={post.profiles?.photo_url || undefined} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {post.profiles?.handle?.[0]?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-foreground hover:underline">
+                  {post.profiles?.handle || "user"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {getTimeAgo(post.created_at)}
+                </p>
+              </div>
             </div>
             
             {/* 3-dot menu - only visible to post owner */}
@@ -239,7 +246,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                     onClick={handleArchive}
                     className="py-3 cursor-pointer focus:bg-muted"
                   >
-                    <Archive className="mr-3 h-4 w-4 text-amber-500" />
+                    <Archive className="mr-3 h-4 w-4" style={{ color: 'rgb(245, 158, 11)' }} />
                     <span className="font-medium">{t('post.archive')}</span>
                   </DropdownMenuItem>
                   

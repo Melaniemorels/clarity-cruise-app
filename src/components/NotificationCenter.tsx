@@ -50,11 +50,12 @@ export function NotificationCenter() {
 
     // Navigate based on type
     if (notification.type === "follow_request") {
+      setOpen(false);
       navigate("/profile?tab=requests");
     } else if (notification.actor_id) {
       // Navigate to actor's profile
       setOpen(false);
-      // For now, just close the popover
+      navigate(`/profile/${notification.actor_id}`);
     }
   };
 

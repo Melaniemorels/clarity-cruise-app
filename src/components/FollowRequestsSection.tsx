@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -15,6 +16,7 @@ import {
 
 export function FollowRequestsSection() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { data: requests = [], isLoading } = useFollowRequests();
   const acceptRequest = useAcceptRequest();
   const rejectRequest = useRejectRequest();
@@ -37,6 +39,10 @@ export function FollowRequestsSection() {
     } catch (error) {
       toast.error(t("followRequests.error"));
     }
+  };
+
+  const handleNavigateToProfile = (userId: string) => {
+    navigate(`/profile/${userId}`);
   };
 
   if (isLoading) {
@@ -89,25 +95,30 @@ export function FollowRequestsSection() {
       <CardContent className="space-y-4">
         {requests.map((request) => (
           <div key={request.id} className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={request.requester?.photo_url || undefined} />
-              <AvatarFallback>
-                {request.requester?.handle?.charAt(0).toUpperCase() || "?"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
-                @{request.requester?.handle || "unknown"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {request.requester?.name || ""}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(request.created_at), {
-                  addSuffix: true,
-                  locale: dateLocale,
-                })}
-              </p>
+            <div 
+              className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+              onClick={() => handleNavigateToProfile(request.requester_id)}
+            >
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={request.requester?.photo_url || undefined} />
+                <AvatarFallback>
+                  {request.requester?.handle?.charAt(0).toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate hover:underline">
+                  @{request.requester?.handle || "unknown"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {request.requester?.name || ""}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(request.created_at), {
+                    addSuffix: true,
+                    locale: dateLocale,
+                  })}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button

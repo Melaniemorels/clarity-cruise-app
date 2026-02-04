@@ -19,7 +19,8 @@
     "today": "Hoy",
     "less": "Menos",
     "more": "Más",
-    "done": "Listo"
+    "done": "Listo",
+    "goBack": "Regresar"
   },
   "nav": {
     "feed": "Inicio",
@@ -151,7 +152,10 @@
     "myCaptures": "Mis Capturas",
     "noCapturesYet": "No hay capturas aún",
     "useQuickCamera": "Usa la cámara rápida para empezar",
-    "defaultBio": "Encontrando balance a través del movimiento"
+    "defaultBio": "Encontrando balance a través del movimiento",
+    "userNotFound": "Usuario no encontrado",
+    "noBio": "Sin biografía aún",
+    "privateAccount": "Esta cuenta es privada. Síguelo para ver su contenido."
   },
   "settings": {
     "title": "Configuración",

@@ -19,7 +19,8 @@
     "today": "Today",
     "less": "Less",
     "more": "More",
-    "done": "Done"
+    "done": "Done",
+    "goBack": "Go back"
   },
   "nav": {
     "feed": "Feed",
@@ -151,7 +152,10 @@
     "myCaptures": "My Captures",
     "noCapturesYet": "No captures yet",
     "useQuickCamera": "Use quick camera to get started",
-    "defaultBio": "Finding balance through movement"
+    "defaultBio": "Finding balance through movement",
+    "userNotFound": "User not found",
+    "noBio": "No bio yet",
+    "privateAccount": "This account is private. Follow to see their content."
   },
   "settings": {
     "title": "Settings",
