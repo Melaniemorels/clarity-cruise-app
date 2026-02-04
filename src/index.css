@@ -103,75 +103,79 @@
 
   .dark {
     /* ==================== CORE PALETTE - DARK ==================== */
-    --background: 0 0% 2%;
-    --foreground: 0 0% 96%;
+    /* VYV Dark Mode: Calm – luxury wellness – cohesive dark surfaces */
+    --background: 170 33% 8%;             /* #0F1A1A - main dark background */
+    --foreground: 168 33% 93%;            /* #E6F2F1 - primary text */
 
-    --card: 0 0% 6.3%;
-    --card-foreground: 0 0% 96%;
+    --card: 170 27% 11%;                  /* #162424 - modal/card background */
+    --card-foreground: 168 33% 93%;       /* #E6F2F1 */
 
-    --popover: 0 0% 6.3%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 170 27% 11%;               /* #162424 - modal background */
+    --popover-foreground: 168 33% 93%;    /* #E6F2F1 */
 
-    --primary: 156 48% 51%;
-    --primary-foreground: 0 0% 2%;
+    --primary: 168 38% 51%;               /* #4FB3A2 - accent green */
+    --primary-foreground: 170 33% 8%;     /* dark text on primary */
 
-    --secondary: 163 33% 27%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 170 27% 17%;             /* #1F3A38 - elevated surfaces */
+    --secondary-foreground: 168 33% 93%;  /* #E6F2F1 */
 
-    --muted: 0 0% 6.3%;
-    --muted-foreground: 0 0% 64%;
+    --muted: 170 33% 8%;                  /* #0F1A1A - input background */
+    --muted-foreground: 168 15% 62%;      /* #8FAEAA - secondary text */
 
-    --accent: 156 48% 51%;
-    --accent-foreground: 0 0% 2%;
+    --accent: 168 38% 51%;                /* #4FB3A2 */
+    --accent-foreground: 170 33% 8%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 100% / 0.08;
-    --input: 0 0% 100% / 0.08;
-    --ring: 156 48% 51%;
+    --border: 170 30% 17%;                /* #1F3A38 - modal border */
+    --input: 169 29% 24%;                 /* #2C4F4A - input border */
+    --ring: 168 38% 51%;                  /* #4FB3A2 */
     
     /* ==================== SEMANTIC THEME TOKENS - DARK ==================== */
-    --theme-bg: 0 0% 2%;
-    --theme-bg-elevated: 0 0% 6.3%;
-    --theme-card-bg: 0 0% 6.3%;
-    --theme-text-primary: 0 0% 96%;
-    --theme-text-secondary: 0 0% 64%;
-    --theme-accent-primary: 163 33% 27%;
-    --theme-accent-highlight: 156 48% 51%;
-    --theme-border-subtle: 0 0% 100% / 0.08;
-    --theme-tab-bg: 0 0% 2%;
-    --theme-tab-icon-active: 156 48% 51%;
-    --theme-tab-icon-inactive: 0 0% 48%;
+    --theme-bg: 170 33% 8%;               /* #0F1A1A */
+    --theme-bg-elevated: 170 27% 11%;     /* #162424 */
+    --theme-card-bg: 170 27% 11%;         /* #162424 */
+    --theme-text-primary: 168 33% 93%;    /* #E6F2F1 */
+    --theme-text-secondary: 168 15% 62%;  /* #8FAEAA */
+    --theme-text-tertiary: 168 15% 50%;   /* muted text */
+    --theme-accent-primary: 168 38% 51%;  /* #4FB3A2 */
+    --theme-accent-highlight: 168 38% 51%;/* #4FB3A2 */
+    --theme-border-subtle: 170 30% 17%;   /* #1F3A38 */
+    --theme-tab-bg: 170 33% 8%;           /* #0F1A1A */
+    --theme-tab-icon-active: 168 38% 51%; /* #4FB3A2 */
+    --theme-tab-icon-inactive: 168 15% 50%;/* muted */
+    --theme-input-bg: 170 33% 8%;         /* #0F1A1A - input background */
+    --theme-input-border: 169 29% 24%;    /* #2C4F4A - input border */
 
     /* ==================== BRAND COLORS - DARK ==================== */
-    --luxury-emerald: 156 48% 51%;
-    --luxury-emerald-light: 156 48% 51%;
-    --luxury-emerald-dark: 163 33% 27%;
+    --luxury-emerald: 168 38% 51%;        /* #4FB3A2 */
+    --luxury-emerald-light: 168 38% 60%;
+    --luxury-emerald-dark: 168 38% 40%;
     --luxury-chocolate: 25 80% 30%;
     --luxury-navy: 220 100% 30%;
-    --luxury-white: 0 0% 100%;
-    --luxury-black: 0 0% 2%;
+    --luxury-white: 168 33% 93%;          /* #E6F2F1 */
+    --luxury-black: 170 33% 8%;           /* #0F1A1A */
 
     /* ==================== CATEGORY COLORS - DARK ==================== */
     --category-work: 217 91% 65%;
     --category-sport: 142 71% 50%;
-    --category-health: 156 48% 51%;
+    --category-health: 168 38% 51%;       /* #4FB3A2 */
     --category-study: 262 83% 65%;
     --category-reading: 25 95% 60%;
     --category-social: 330 81% 65%;
-    --category-photo: 156 48% 51%;
-    --category-other: 163 33% 35%;
+    --category-photo: 168 38% 51%;        /* #4FB3A2 */
+    --category-other: 168 30% 40%;
 
     /* ==================== INTENSITY SCALE - DARK ==================== */
-    --intensity-none: 0 0% 15%;
-    --intensity-low: 156 48% 51% / 0.3;
-    --intensity-medium: 156 48% 51% / 0.6;
-    --intensity-high: 156 48% 51%;
+    --intensity-none: 170 20% 20%;        /* muted gray for progress bg */
+    --intensity-low: 168 38% 51% / 0.3;
+    --intensity-medium: 168 38% 51% / 0.6;
+    --intensity-high: 168 38% 51%;
 
     /* ==================== OVERLAY COLORS - DARK ==================== */
-    --overlay-dark: 0 0% 0% / 0.8;
-    --overlay-light: 0 0% 100% / 0.06;
+    --overlay-dark: 170 33% 5% / 0.9;
+    --overlay-light: 168 33% 93% / 0.05;
   }
 }
 
