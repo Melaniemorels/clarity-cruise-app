@@ -483,5 +483,42 @@
     "accepted": "Solicitud aceptada",
     "rejected": "Solicitud rechazada",
     "error": "Error al procesar la solicitud"
+  },
+  "follow": {
+    "follow": "Seguir",
+    "following": "Siguiendo",
+    "requested": "Solicitado",
+    "unfollow": "Dejar de seguir",
+    "requestSent": "Solicitud de seguimiento enviada",
+    "nowFollowing": "Ahora sigues a este usuario",
+    "unfollowed": "Dejaste de seguir",
+    "requestCanceled": "Solicitud cancelada",
+    "unfollowTitle": "¿Dejar de seguir?",
+    "unfollowDescription": "Dejarás de seguir a este usuario. Si su perfil es privado, deberás solicitar de nuevo.",
+    "cancelRequestTitle": "¿Cancelar solicitud?",
+    "cancelRequestDescription": "¿Estás seguro de cancelar tu solicitud de seguimiento?",
+    "cancelRequest": "Cancelar solicitud"
+  },
+  "profile": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "posts": "publicaciones",
+    "followers": "seguidores",
+    "following": "siguiendo",
+    "todayStats": "Hoy",
+    "activityCalendar": "Calendario de Actividad",
+    "myCaptures": "Mis Capturas",
+    "noCapturesYet": "No hay capturas aún",
+    "useQuickCamera": "Usa la cámara rápida para empezar",
+    "defaultBio": "Encontrando balance a través del movimiento",
+    "userNotFound": "Usuario no encontrado",
+    "noBio": "Sin biografía aún",
+    "privateAccount": "Esta cuenta es privada",
+    "followToSee": "Síguelo para ver su contenido",
+    "requestPending": "Solicitud de seguimiento pendiente",
+    "waitingApproval": "Esperando aprobación",
+    "contentNotAvailable": "Este contenido no está disponible",
+    "sectionPrivate": "{{section}} es privado",
+    "requestSentInfo": "Tu solicitud ha sido enviada. Serás notificado cuando sea aceptada."
   }
 }
