@@ -8,7 +8,7 @@ import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostItem } from "@/components/PostItem";
-import { CreatePostDialog } from "@/components/CreatePostDialog";
+import { QuickCamera } from "@/components/QuickCamera";
 import { Plus, RefreshCw, Search, Hexagon, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
@@ -21,7 +21,7 @@ const Feed = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const device = useDevice();
@@ -126,7 +126,7 @@ const Feed = () => {
               </Button>
               <Button
                 size="icon"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => setIsCameraOpen(true)}
                 className="rounded-full"
                 style={{
                   backgroundColor: '#2F7058',
@@ -178,7 +178,7 @@ const Feed = () => {
                 {t('feed.emptyDescription')}
               </p>
               <Button 
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => setIsCameraOpen(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
               >
                 <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
@@ -208,9 +208,9 @@ const Feed = () => {
         </div>
       </div>
 
-      <CreatePostDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+      <QuickCamera
+        isOpen={isCameraOpen}
+        onOpenChange={setIsCameraOpen}
       />
 
       <UserSearchDialog
@@ -218,7 +218,7 @@ const Feed = () => {
         onOpenChange={setIsSearchOpen}
       />
 
-      <ResponsiveNav onCreatePost={() => setIsCreateOpen(true)} />
+      <ResponsiveNav onCreatePost={() => setIsCameraOpen(true)} />
     </div>
   );
 };
