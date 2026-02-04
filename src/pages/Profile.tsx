@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
+import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useUpdateProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
@@ -24,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -224,12 +226,13 @@ const Profile = () => {
 
       {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>{t('settings.title')}</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-6 py-4">
             {/* Theme Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -306,7 +309,10 @@ const Profile = () => {
 
             <Separator />
 
-            {/* Health Devices */}
+            {/* Section Visibility Controls */}
+            <SectionVisibilitySettings />
+
+            <Separator />
             <Button
               variant="ghost"
               className="w-full justify-between h-auto py-3"
@@ -379,6 +385,7 @@ const Profile = () => {
               {t('auth.signOut')}
             </Button>
           </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 

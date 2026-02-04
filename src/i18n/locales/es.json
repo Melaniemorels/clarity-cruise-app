@@ -373,5 +373,17 @@
     "mediaPreferences": "Preferencias de Media",
     "mediaPreferencesDescription": "Servicios de música conectados (Spotify)",
     "privacyNotice": "Tus datos se usan solo para personalizar recomendaciones y nunca se comparten."
+  },
+  "privacy": {
+    "sectionVisibility": {
+      "title": "Secciones del Perfil",
+      "description": "Controla qué secciones son visibles para otros",
+      "posts": "Publicaciones",
+      "postsDescription": "Tus fotos y capturas",
+      "calendar": "Calendario",
+      "calendarDescription": "Tus eventos y agenda",
+      "wellness": "Bienestar y Hábitos",
+      "wellnessDescription": "Datos de salud y hábitos diarios"
+    }
   }
 }
