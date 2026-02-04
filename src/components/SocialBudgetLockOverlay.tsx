@@ -1,12 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Sparkles, CalendarDays, Leaf } from "lucide-react";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface SocialBudgetLockOverlayProps {
   visible: boolean;
   allowExtensions?: boolean;
   onExtend?: () => void;
+  onReturnToFocus?: () => void;
 }
 
 // Get daily rotating subtitle (one per day)
@@ -21,26 +24,34 @@ function getDailySubtitleKey(): number {
 export function SocialBudgetLockOverlay({ 
   visible, 
   allowExtensions = true,
-  onExtend 
+  onExtend,
+  onReturnToFocus
 }: SocialBudgetLockOverlayProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const handleReturnToFocus = useCallback(() => {
+    // Trigger light haptic feedback on primary CTA
+    triggerHaptic("light");
+    
+    // Notify parent to set cooldown
+    onReturnToFocus?.();
+    
+    navigate("/entries");
+  }, [navigate, onReturnToFocus]);
+
+  const handleViewDay = useCallback(() => {
+    navigate("/calendar");
+  }, [navigate]);
 
   if (!visible) return null;
 
   const subtitleKey = `socialBudget.completedSubtitle${getDailySubtitleKey()}`;
 
-  const handleReturnToFocus = () => {
-    navigate("/");
-  };
-
-  const handleViewDay = () => {
-    navigate("/calendar");
-  };
-
   return (
     <div className="absolute inset-0 z-20 bg-background/95 backdrop-blur-md flex items-center justify-center pointer-events-auto">
-      <div className="text-center p-6 max-w-sm mx-auto">
+      {/* Safe area padding for iOS */}
+      <div className="text-center p-6 max-w-sm mx-auto pb-safe">
         {/* Calm icon */}
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
           <Leaf className="w-7 h-7 text-primary" strokeWidth={1.5} />
@@ -51,17 +62,17 @@ export function SocialBudgetLockOverlay({
           {t('socialBudget.completed')}
         </h2>
 
-        {/* Rotating subtitle */}
-        <p className="text-sm text-muted-foreground mb-8">
+        {/* Rotating subtitle - improved contrast */}
+        <p className="text-sm text-muted-foreground/90 mb-8">
           {t(subtitleKey)}
         </p>
 
-        {/* Action buttons */}
+        {/* Action buttons with 48px min tap targets */}
         <div className="space-y-3">
           {/* Primary action - Return to Focus */}
           <Button
             onClick={handleReturnToFocus}
-            className="w-full h-12 text-base font-medium rounded-xl bg-primary hover:bg-primary/90"
+            className="w-full min-h-[48px] text-base font-medium rounded-xl bg-primary hover:bg-primary/90"
           >
             <Home className="w-4 h-4 mr-2" />
             {t('socialBudget.returnToFocus')}
@@ -72,11 +83,11 @@ export function SocialBudgetLockOverlay({
             <Button
               onClick={onExtend}
               variant="outline"
-              className="w-full h-12 text-base font-medium rounded-xl border-border hover:bg-secondary"
+              className="w-full min-h-[48px] text-base font-medium rounded-xl border-border hover:bg-secondary"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               {t('socialBudget.extendTime')}
-              <span className="ml-2 text-xs text-muted-foreground">
+              <span className="ml-2 text-xs text-muted-foreground/80">
                 {t('socialBudget.onceMore')}
               </span>
             </Button>
@@ -86,7 +97,7 @@ export function SocialBudgetLockOverlay({
           <Button
             onClick={handleViewDay}
             variant="ghost"
-            className="w-full h-10 text-sm text-muted-foreground hover:text-foreground"
+            className="w-full min-h-[48px] text-sm text-muted-foreground/80 hover:text-foreground"
           >
             <CalendarDays className="w-4 h-4 mr-2" />
             {t('socialBudget.viewMyDay')}
