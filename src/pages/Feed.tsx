@@ -15,8 +15,10 @@ import { UserSearchDialog } from "@/components/UserSearchDialog";
 import { useInfinitePosts } from "@/hooks/use-posts";
 import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
+import { useTranslation } from "react-i18next";
 
 const Feed = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -54,13 +56,13 @@ const Feed = () => {
     setIsRefreshing(true);
     try {
       await refetch();
-      toast.success("Feed actualizado");
+      toast.success(t('feed.feedUpdated'));
     } catch (error) {
-      toast.error("Error al actualizar");
+      toast.error(t('feed.errorUpdating'));
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch]);
+  }, [refetch, t]);
 
   // Realtime subscription for new posts
   useEffect(() => {
@@ -170,17 +172,17 @@ const Feed = () => {
                 </div>
               </div>
               <p className="mb-2 text-xl font-medium text-foreground">
-                ¡Bienvenido a VYV!
+                {t('feed.emptyTitle')}
               </p>
               <p className="mb-6 text-sm text-muted-foreground max-w-xs mx-auto">
-                Comparte tu primer momento y comienza a conectar con otros
+                {t('feed.emptyDescription')}
               </p>
               <Button 
                 onClick={() => setIsCreateOpen(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg px-6 py-2.5"
               >
                 <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                Captura tu primer vibe
+                {t('feed.captureFirstVibe')}
               </Button>
             </div>
           ) : (
@@ -198,7 +200,7 @@ const Feed = () => {
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 )}
                 {!hasNextPage && posts.length > 0 && (
-                  <p className="text-sm text-muted-foreground">No hay más publicaciones</p>
+                  <p className="text-sm text-muted-foreground">{t('feed.noMorePosts')}</p>
                 )}
               </div>
             </>

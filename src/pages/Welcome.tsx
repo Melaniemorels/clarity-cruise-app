@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import vyvIcon from "@/assets/vyv-icon.jpeg";
 
 const Welcome = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user) {
@@ -36,10 +38,10 @@ const Welcome = () => {
             VYV
           </h1>
           <p className="text-2xl font-semibold text-luxury-emerald/90">
-            Visualize Your Vibe
+            {t('welcome.tagline')}
           </p>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            Una app de bienestar que te devuelve el tiempo. Mezcla y relaja tu vida con un solo hecho: que estás disfrutando lo mejor de ti.
+            {t('welcome.description')}
           </p>
         </div>
 
@@ -50,11 +52,11 @@ const Welcome = () => {
             size="lg"
             className="w-full bg-gradient-to-r from-primary to-luxury-emerald hover:opacity-90 transition-opacity"
           >
-            Comenzar
+            {t('welcome.getStarted')}
           </Button>
           
           <p className="text-xs text-muted-foreground">
-            Captura momentos • Planifica tu día • Vive mejor
+            {t('welcome.footerHint')}
           </p>
         </div>
 
@@ -62,15 +64,15 @@ const Welcome = () => {
         <div className="grid grid-cols-3 gap-4 pt-8 animate-in fade-in duration-700 delay-700">
           <div className="space-y-2">
             <div className="text-3xl">📸</div>
-            <p className="text-xs text-muted-foreground">Quick Capture</p>
+            <p className="text-xs text-muted-foreground">{t('welcome.features.quickCapture')}</p>
           </div>
           <div className="space-y-2">
             <div className="text-3xl">⏰</div>
-            <p className="text-xs text-muted-foreground">Focus Mode</p>
+            <p className="text-xs text-muted-foreground">{t('welcome.features.focusMode')}</p>
           </div>
           <div className="space-y-2">
             <div className="text-3xl">🌿</div>
-            <p className="text-xs text-muted-foreground">Wellness</p>
+            <p className="text-xs text-muted-foreground">{t('welcome.features.wellness')}</p>
           </div>
         </div>
       </div>

@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ interface EditProfileDialogProps {
 }
 
 export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDialogProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,13 +84,13 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error("Por favor selecciona una imagen");
+      toast.error(t('editProfile.errors.selectImage'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen debe ser menor a 5MB");
+      toast.error(t('editProfile.errors.imageTooLarge'));
       return;
     }
 
@@ -108,10 +110,10 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
         .getPublicUrl(fileName);
 
       setPhotoUrl(publicUrl);
-      toast.success("Foto subida correctamente");
+      toast.success(t('editProfile.photoUploaded'));
     } catch (error) {
       console.error("Error uploading photo:", error);
-      toast.error("Error al subir la foto");
+      toast.error(t('editProfile.errors.uploadError'));
     } finally {
       setUploading(false);
     }
@@ -119,7 +121,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
 
   const handleRemovePhoto = () => {
     setPhotoUrl("");
-    toast.success("Foto eliminada");
+    toast.success(t('editProfile.photoRemoved'));
   };
 
   const updateProfileMutation = useMutation({
@@ -129,7 +131,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
       // Check if handle is being changed
       if (handleChanged) {
         if (!canChangeHandle) {
-          throw new Error("Has alcanzado el límite de cambios de nombre de usuario este año");
+          throw new Error(t('editProfile.usernameChangesLimit'));
         }
 
         // Check if handle is already taken
@@ -141,7 +143,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
           .single();
 
         if (existingHandle) {
-          throw new Error("Este nombre de usuario ya está en uso");
+          throw new Error(t('editProfile.usernameTaken'));
         }
 
         // Record the handle change
@@ -172,11 +174,11 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['handle-changes', user?.id] });
-      toast.success("Perfil actualizado");
+      toast.success(t('editProfile.profileUpdated'));
       onOpenChange(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Error al actualizar el perfil");
+      toast.error(error.message || t('errors.generic'));
     },
   });
 
@@ -184,7 +186,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Editar Perfil</DialogTitle>
+          <DialogTitle>{t('editProfile.title')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -227,7 +229,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
                   className="text-primary font-semibold hover:text-primary/80 hover:bg-transparent"
                   disabled={uploading}
                 >
-                  {uploading ? "Subiendo..." : "Editar foto"}
+                  {uploading ? t('editProfile.uploading') : t('editProfile.editPhoto')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent 
@@ -239,7 +241,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
                   className="py-3 cursor-pointer focus:bg-muted"
                 >
                   <ImagePlus className="mr-3 h-4 w-4 text-primary" />
-                  <span className="font-medium">Subir nueva foto</span>
+                  <span className="font-medium">{t('editProfile.uploadNewPhoto')}</span>
                 </DropdownMenuItem>
                 
                 {photoUrl && (
@@ -250,7 +252,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
                       className="py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                     >
                       <Trash2 className="mr-3 h-4 w-4" />
-                      <span className="font-medium">Eliminar foto actual</span>
+                      <span className="font-medium">{t('editProfile.removePhoto')}</span>
                     </DropdownMenuItem>
                   </>
                 )}
@@ -260,19 +262,19 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
 
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre</Label>
+            <Label htmlFor="name">{t('editProfile.name')}</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Tu nombre"
+              placeholder={t('editProfile.namePlaceholder')}
               maxLength={50}
             />
           </div>
 
           {/* Handle/Username */}
           <div className="space-y-2">
-            <Label htmlFor="handle">Nombre de usuario</Label>
+            <Label htmlFor="handle">{t('editProfile.username')}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
               <Input
@@ -290,25 +292,25 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   {canChangeHandle 
-                    ? `Te quedan ${remainingHandleChanges} cambio${remainingHandleChanges === 1 ? '' : 's'} de nombre de usuario este año`
-                    : "Has alcanzado el límite de 2 cambios de nombre de usuario por año"
+                    ? t('editProfile.usernameChangesRemaining', { count: remainingHandleChanges })
+                    : t('editProfile.usernameChangesLimit')
                   }
                 </AlertDescription>
               </Alert>
             )}
             <p className="text-xs text-muted-foreground">
-              Solo puedes cambiar tu nombre de usuario 2 veces al año
+              {t('editProfile.usernameChanges')}
             </p>
           </div>
 
           {/* Bio */}
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">{t('editProfile.bio')}</Label>
             <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Cuéntanos sobre ti..."
+              placeholder={t('editProfile.bioPlaceholder')}
               maxLength={150}
               rows={3}
             />
@@ -324,7 +326,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               className="flex-1"
               onClick={() => onOpenChange(false)}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button 
               className="flex-1"
@@ -334,10 +336,10 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               {updateProfileMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Guardando...
+                  {t('common.save')}...
                 </>
               ) : (
-                "Guardar"
+                t('common.save')
               )}
             </Button>
           </div>

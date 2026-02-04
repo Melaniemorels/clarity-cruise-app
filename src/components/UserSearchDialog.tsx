@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, UserPlus, UserCheck, X } from "lucide-react";
 import { useSearchProfiles, useFollow } from "@/hooks/use-profile";
+import { useTranslation } from "react-i18next";
 
 interface UserSearchDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface UserSearchDialogProps {
 }
 
 export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -33,7 +35,7 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
       <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
         <SheetHeader className="px-4 pt-4 pb-3 border-b border-border sticky top-0 bg-background z-10">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl">Buscar Amigos</SheetTitle>
+            <SheetTitle className="text-xl">{t('userSearch.title')}</SheetTitle>
             <Button
               variant="ghost"
               size="icon"
@@ -49,7 +51,7 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Buscar por @usuario..."
+              placeholder={t('userSearch.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-11 text-base"
@@ -62,16 +64,16 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
           {!searchQuery.trim() ? (
             <div className="text-center py-16 text-muted-foreground">
               <Search className="h-16 w-16 mx-auto mb-3 opacity-30" />
-              <p className="text-lg">Busca usuarios por su @handle</p>
+              <p className="text-lg">{t('userSearch.searchByHandle')}</p>
             </div>
           ) : isLoading ? (
             <div className="text-center py-16 text-muted-foreground">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-              <p>Buscando...</p>
+              <p>{t('userSearch.searching')}</p>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
-              <p className="text-lg">No se encontraron usuarios</p>
+              <p className="text-lg">{t('userSearch.noUsersFound')}</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -108,12 +110,12 @@ export function UserSearchDialog({ open, onOpenChange }: UserSearchDialogProps) 
                     {searchUser.is_following ? (
                       <>
                         <UserCheck className="h-4 w-4 mr-1.5" />
-                        Siguiendo
+                        {t('userSearch.following')}
                       </>
                     ) : (
                       <>
                         <UserPlus className="h-4 w-4 mr-1.5" />
-                        Seguir
+                        {t('userSearch.follow')}
                       </>
                     )}
                   </Button>

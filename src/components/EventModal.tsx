@@ -11,6 +11,7 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface EventModalProps {
   open: boolean;
@@ -28,15 +29,8 @@ interface EventModalProps {
   onDelete?: (id: string) => Promise<void>;
 }
 
-const categories = [
-  { value: "trabajo", label: "Trabajo", colorClass: "bg-category-work" },
-  { value: "deporte", label: "Deporte", colorClass: "bg-category-sport" },
-  { value: "salud", label: "Salud", colorClass: "bg-primary" },
-  { value: "estudio", label: "Estudio", colorClass: "bg-category-study" },
-  { value: "otros", label: "Otros", colorClass: "bg-secondary" },
-];
-
 export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onDelete }: EventModalProps) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("otros");
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -45,6 +39,14 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
   const [endTime, setEndTime] = useState("10:00");
   const [notes, setNotes] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const categories = [
+    { value: "trabajo", label: t('event.categories.work'), colorClass: "bg-category-work" },
+    { value: "deporte", label: t('event.categories.sport'), colorClass: "bg-category-sport" },
+    { value: "salud", label: t('event.categories.health'), colorClass: "bg-primary" },
+    { value: "estudio", label: t('event.categories.study'), colorClass: "bg-category-study" },
+    { value: "otros", label: t('event.categories.other'), colorClass: "bg-secondary" },
+  ];
 
   useEffect(() => {
     if (event) {
@@ -70,7 +72,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("El título es obligatorio");
+      toast.error(t('event.errors.titleRequired'));
       return;
     }
 
@@ -84,7 +86,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
     ends_at.setHours(endHour, endMinute, 0, 0);
 
     if (ends_at < starts_at) {
-      toast.error("La fecha de fin debe ser posterior a la fecha de inicio");
+      toast.error(t('event.errors.endBeforeStart'));
       return;
     }
 
@@ -114,24 +116,24 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{event?.id ? "Editar Evento" : "Nuevo Evento"}</DialogTitle>
+          <DialogTitle>{event?.id ? t('event.editEvent') : t('event.newEvent')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Título *</Label>
+            <Label htmlFor="title">{t('event.title')} *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Reunión de equipo"
+              placeholder={t('event.titlePlaceholder')}
             />
           </div>
 
           {/* Category */}
           <div className="space-y-2">
-            <Label>Categoría</Label>
+            <Label>{t('event.category')}</Label>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <Badge
@@ -152,7 +154,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
           {/* Start Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Fecha inicio</Label>
+              <Label>{t('event.startDate')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -173,7 +175,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
             </div>
 
             <div className="space-y-2">
-              <Label>Hora inicio</Label>
+              <Label>{t('event.startTime')}</Label>
               <Input
                 type="time"
                 value={startTime}
@@ -185,7 +187,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
           {/* End Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Fecha fin</Label>
+              <Label>{t('event.endDate')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -206,7 +208,7 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
             </div>
 
             <div className="space-y-2">
-              <Label>Hora fin</Label>
+              <Label>{t('event.endTime')}</Label>
               <Input
                 type="time"
                 value={endTime}
@@ -217,12 +219,12 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
+            <Label htmlFor="notes">{t('event.notes')}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Detalles adicionales..."
+              placeholder={t('event.notesPlaceholder')}
               rows={3}
             />
           </div>
@@ -237,11 +239,11 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {isDeleting ? "Eliminando..." : "Eliminar"}
+                {isDeleting ? t('event.deleting') : t('common.delete')}
               </Button>
             )}
             <Button onClick={handleSave} className="flex-1">
-              {event?.id ? "Actualizar" : "Crear"}
+              {event?.id ? t('event.update') : t('event.create')}
             </Button>
           </div>
         </div>
