@@ -135,10 +135,10 @@ function UserListItem({ user, currentUserId, onClick }: UserListItemProps) {
   const isCurrentUser = user.user_id === currentUserId;
 
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors min-h-[56px]">
       <button
         onClick={onClick}
-        className="flex items-center gap-3 flex-1 text-left"
+        className="flex items-center gap-3 flex-1 text-left min-h-[48px]"
       >
         <ProfileAvatar
           photoUrl={user.photo_url}
