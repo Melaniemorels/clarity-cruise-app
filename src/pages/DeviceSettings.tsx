@@ -258,6 +258,23 @@ const DeviceSettings = () => {
           })}
         </div>
 
+        {/* Future Integrations Note */}
+        <Card className="border-dashed">
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-sm">
+                <p className="font-medium mb-1 text-foreground">{t('devices.moreDevices', 'More devices coming soon')}</p>
+                <p className="text-muted-foreground text-xs">
+                  {t('devices.moreDevicesDesc', 'More devices supported through health platforms like Apple Health. Additional integrations coming soon.')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Info Card */}
         <Card className="bg-muted/50">
           <CardContent className="p-4">
