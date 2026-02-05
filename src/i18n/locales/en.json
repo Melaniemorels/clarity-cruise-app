@@ -208,26 +208,58 @@
   },
   "devices": {
     "title": "Health Devices",
-    "subtitle": "Connect your devices to sync data",
-    "connectedDevices": "Connected devices",
-    "availableDevices": "Available Devices",
+    "subtitle": "Connect health platforms to personalize your day",
     "connected": "Connected",
     "connect": "Connect",
     "disconnect": "Disconnect",
-    "sync": "Sync",
-    "syncStarted": "Sync started",
+    "lastSync": "Last sync",
+    "dataEnabled": "Data enabled",
     "autoSync": "Automatic sync",
-    "autoSyncDesc": "Your health data will sync automatically every hour when your device is connected.",
+    "autoSyncDesc": "Your health data syncs automatically when a platform is connected.",
     "connectedSuccess": "{{device}} connected successfully",
     "disconnectedSuccess": "{{device}} disconnected successfully",
-    "appleHealth": "Apple Health",
-    "appleHealthDesc": "Sync steps, activity and health metrics",
-    "ouraRing": "Oura Ring",
-    "ouraRingDesc": "Sleep monitoring, heart rate and recovery",
-    "whoop": "Whoop",
-    "whoopDesc": "Strain, recovery and sleep analysis",
-    "appleWatch": "Apple Watch",
-    "appleWatchDesc": "Activity, workouts and fitness metrics"
+    "vyvIntelligence": "VYV is your intelligence layer",
+    "vyvIntelligenceDesc": "VYV connects to health platforms — not directly to wearables. Your devices feed data through Apple Health or Google Fit, and VYV interprets it to personalize your day.",
+    "platformsConnected": "{{count}} platform(s) connected",
+    "healthPlatforms": "Health Platforms",
+    "platforms": {
+      "appleHealth": "Apple Health",
+      "appleHealthDesc": "Access steps, activity, sleep and heart rate from all your Apple devices",
+      "googleFit": "Google Fit",
+      "googleFitDesc": "Access health and activity data from Android devices and wearables"
+    },
+    "dataTypes": {
+      "steps": "Steps",
+      "activity": "Activity",
+      "sleep": "Sleep",
+      "heartRate": "Heart rate"
+    },
+    "howVyvAdapts": "How VYV adapts your day",
+    "insightsDescription": "VYV reads permitted data only and interprets it to help you flow through your day.",
+    "insights": {
+      "focusMode": "Focus mode",
+      "focusModeDesc": "Adjusts focus sessions based on your energy and sleep quality",
+      "recovery": "Recovery suggestions",
+      "recoveryDesc": "Suggests lighter days when your body needs rest",
+      "dailyFlow": "Daily flow",
+      "dailyFlowDesc": "Adapts notifications and reminders to your rhythm"
+    },
+    "watch": {
+      "title": "Watch & Wearable (V1)",
+      "description": "Simple, calm interactions — no complex watch app. Just what matters.",
+      "smartNotifications": "Smart notifications",
+      "statusUpdates": "Focus / Recovery / Flow status",
+      "gentleReminders": "Gentle reminders",
+      "exampleLabel": "VYV · Focus Mode",
+      "exampleTitle": "Deep focus session",
+      "exampleBody": "25 minutes of deep focus. Breathe and begin."
+    },
+    "compatible": {
+      "title": "Compatible wearables",
+      "description": "These devices feed data through health platforms that VYV reads from."
+    },
+    "moreDevices": "More devices coming soon",
+    "moreDevicesDesc": "More devices supported through health platforms like Apple Health. Additional integrations coming soon."
   },
   "camera": {
     "title": "Quick Capture",

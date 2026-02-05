@@ -208,26 +208,58 @@
   },
   "devices": {
     "title": "Dispositivos de Salud",
-    "subtitle": "Conecta tus dispositivos para sincronizar datos",
-    "connectedDevices": "Dispositivos conectados",
-    "availableDevices": "Dispositivos Disponibles",
+    "subtitle": "Conecta plataformas de salud para personalizar tu día",
     "connected": "Conectado",
     "connect": "Conectar",
     "disconnect": "Desconectar",
-    "sync": "Sincronizar",
-    "syncStarted": "Sincronización iniciada",
+    "lastSync": "Última sincronización",
+    "dataEnabled": "Datos habilitados",
     "autoSync": "Sincronización automática",
-    "autoSyncDesc": "Tus datos de salud se sincronizarán automáticamente cada hora cuando tu dispositivo esté conectado.",
+    "autoSyncDesc": "Tus datos de salud se sincronizan automáticamente cuando una plataforma está conectada.",
     "connectedSuccess": "{{device}} conectado exitosamente",
     "disconnectedSuccess": "{{device}} desconectado exitosamente",
-    "appleHealth": "Apple Health",
-    "appleHealthDesc": "Sincroniza pasos, actividad y métricas de salud",
-    "ouraRing": "Oura Ring",
-    "ouraRingDesc": "Monitoreo de sueño, frecuencia cardíaca y recuperación",
-    "whoop": "Whoop",
-    "whoopDesc": "Strain, recuperación y análisis de sueño",
-    "appleWatch": "Apple Watch",
-    "appleWatchDesc": "Actividad, entrenamientos y métricas de fitness"
+    "vyvIntelligence": "VYV es tu capa de inteligencia",
+    "vyvIntelligenceDesc": "VYV se conecta a plataformas de salud, no directamente a wearables. Tus dispositivos envían datos a Apple Health o Google Fit, y VYV los interpreta para personalizar tu día.",
+    "platformsConnected": "{{count}} plataforma(s) conectada(s)",
+    "healthPlatforms": "Plataformas de Salud",
+    "platforms": {
+      "appleHealth": "Apple Health",
+      "appleHealthDesc": "Accede a pasos, actividad, sueño y ritmo cardíaco de tus dispositivos Apple",
+      "googleFit": "Google Fit",
+      "googleFitDesc": "Accede a datos de salud y actividad de dispositivos Android y wearables"
+    },
+    "dataTypes": {
+      "steps": "Pasos",
+      "activity": "Actividad",
+      "sleep": "Sueño",
+      "heartRate": "Ritmo cardíaco"
+    },
+    "howVyvAdapts": "Cómo VYV adapta tu día",
+    "insightsDescription": "VYV lee solo los datos permitidos y los interpreta para ayudarte a fluir durante tu día.",
+    "insights": {
+      "focusMode": "Modo enfoque",
+      "focusModeDesc": "Ajusta sesiones de enfoque según tu energía y calidad de sueño",
+      "recovery": "Sugerencias de recuperación",
+      "recoveryDesc": "Sugiere días más ligeros cuando tu cuerpo necesita descanso",
+      "dailyFlow": "Flujo diario",
+      "dailyFlowDesc": "Adapta notificaciones y recordatorios a tu ritmo"
+    },
+    "watch": {
+      "title": "Reloj y Wearable (V1)",
+      "description": "Interacciones simples y serenas — sin app compleja. Solo lo que importa.",
+      "smartNotifications": "Notificaciones inteligentes",
+      "statusUpdates": "Estado: Enfoque / Recuperación / Flujo",
+      "gentleReminders": "Recordatorios suaves",
+      "exampleLabel": "VYV · Modo Enfoque",
+      "exampleTitle": "Sesión de enfoque profundo",
+      "exampleBody": "25 minutos de enfoque profundo. Respira y comienza."
+    },
+    "compatible": {
+      "title": "Wearables compatibles",
+      "description": "Estos dispositivos envían datos a través de plataformas de salud que VYV lee."
+    },
+    "moreDevices": "Más dispositivos próximamente",
+    "moreDevicesDesc": "Más dispositivos soportados a través de plataformas de salud como Apple Health. Integraciones adicionales próximamente."
   },
   "camera": {
     "title": "Captura Rápida",
