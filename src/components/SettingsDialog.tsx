@@ -170,13 +170,13 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-0">
             <DialogTitle>{t("settings.title")}</DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
+          <ScrollArea className="flex-1 min-h-0 px-6 pb-6">
+            <div className="space-y-6 py-4 pr-4">
               {/* Appearance */}
               <div>
                 <SectionHeader>{t("settings.appearance")}</SectionHeader>
