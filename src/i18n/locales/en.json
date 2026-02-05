@@ -254,6 +254,46 @@
       "exampleTitle": "Deep focus session",
       "exampleBody": "25 minutes of deep focus. Breathe and begin."
     },
+    "watchNotifs": {
+      "title": "Watch Notifications",
+      "description": "VYV uses your watch as a gentle companion. Minimal, contextual, calm — never intrusive.",
+      "customize": "Notification types",
+      "frequencyRules": "How it works",
+      "ruleMaxDaily": "Maximum 3–5 notifications per day to protect your attention",
+      "ruleRecoveryOverride": "Recovery mode can override focus suggestions when your body needs rest",
+      "ruleTapToOpen": "Tap any notification to open VYV on your phone",
+      "statusActive": "{{count}} notification type(s) active",
+      "types": {
+        "focus": "Focus",
+        "recovery": "Recovery",
+        "transition": "Transition",
+        "calendar": "Calendar"
+      },
+      "focus": {
+        "label": "VYV · Focus",
+        "title": "25 min of deep focus",
+        "body": "Breathe and begin",
+        "desc": "Triggered when optimal focus conditions are detected"
+      },
+      "recovery": {
+        "label": "VYV · Recovery",
+        "title": "Your body needs a lighter pace today",
+        "body": "Choose calm over push",
+        "desc": "Activated by poor sleep, strain, or stress signals"
+      },
+      "transition": {
+        "label": "VYV · Transition",
+        "title": "Focus block completed",
+        "body": "Take a short pause",
+        "desc": "Sent when a focus block ends"
+      },
+      "calendar": {
+        "label": "VYV · Today",
+        "title": "Long meetings ahead",
+        "body": "Protect your energy",
+        "desc": "Contextual nudges based on your day structure"
+      }
+    },
     "compatible": {
       "title": "Compatible wearables",
       "description": "These devices feed data through health platforms that VYV reads from."
