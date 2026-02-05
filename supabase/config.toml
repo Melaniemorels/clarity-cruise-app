@@ -2,3 +2,12 @@ project_id = "ithgwfirbaexaooahzbm"
 
 [functions.analyze-image]
 verify_jwt = false
+
+[functions.generate-perfect-day]
+verify_jwt = false
+
+[functions.generate-recommendations]
+verify_jwt = false
+
+[functions.generate-watch-notifications]
+verify_jwt = false
