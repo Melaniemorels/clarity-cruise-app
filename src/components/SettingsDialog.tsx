@@ -170,12 +170,12 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-0">
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
             <DialogTitle>{t("settings.title")}</DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 px-6 pb-6">
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="space-y-6 py-4 pr-4">
               {/* Appearance */}
               <div>
@@ -485,7 +485,7 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 {t("auth.signOut")}
               </Button>
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
