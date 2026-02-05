@@ -254,6 +254,46 @@
       "exampleTitle": "Sesión de enfoque profundo",
       "exampleBody": "25 minutos de enfoque profundo. Respira y comienza."
     },
+    "watchNotifs": {
+      "title": "Notificaciones del Reloj",
+      "description": "VYV usa tu reloj como un acompañante sereno. Mínimo, contextual, calmo — nunca intrusivo.",
+      "customize": "Tipos de notificación",
+      "frequencyRules": "Cómo funciona",
+      "ruleMaxDaily": "Máximo 3–5 notificaciones por día para proteger tu atención",
+      "ruleRecoveryOverride": "El modo recuperación puede anular sugerencias de enfoque cuando tu cuerpo necesita descanso",
+      "ruleTapToOpen": "Toca cualquier notificación para abrir VYV en tu teléfono",
+      "statusActive": "{{count}} tipo(s) de notificación activo(s)",
+      "types": {
+        "focus": "Enfoque",
+        "recovery": "Recuperación",
+        "transition": "Transición",
+        "calendar": "Calendario"
+      },
+      "focus": {
+        "label": "VYV · Enfoque",
+        "title": "25 min de enfoque profundo",
+        "body": "Respira y comienza",
+        "desc": "Se activa cuando se detectan condiciones óptimas de enfoque"
+      },
+      "recovery": {
+        "label": "VYV · Recuperación",
+        "title": "Tu cuerpo necesita un ritmo más ligero hoy",
+        "body": "Elige calma sobre esfuerzo",
+        "desc": "Se activa por mal sueño, esfuerzo o señales de estrés"
+      },
+      "transition": {
+        "label": "VYV · Transición",
+        "title": "Bloque de enfoque completado",
+        "body": "Tómate una pausa breve",
+        "desc": "Se envía cuando un bloque de enfoque termina"
+      },
+      "calendar": {
+        "label": "VYV · Hoy",
+        "title": "Reuniones largas por delante",
+        "body": "Protege tu energía",
+        "desc": "Recordatorios contextuales basados en la estructura de tu día"
+      }
+    },
     "compatible": {
       "title": "Wearables compatibles",
       "description": "Estos dispositivos envían datos a través de plataformas de salud que VYV lee."
