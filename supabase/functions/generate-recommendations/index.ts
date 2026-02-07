@@ -61,15 +61,22 @@ RECOMMENDATION RULES:
 3. Include variety: at least one music and one non-music option
 4. Be specific about why each recommendation fits their context
 5. Focus on quality over quantity
+6. CRITICAL: You MUST include a real, working URL for EVERY recommendation. Use publicly accessible URLs:
+   - For playlists/music: use real Spotify playlist URLs (https://open.spotify.com/playlist/...) or YouTube music URLs
+   - For podcasts: use real Spotify show/episode URLs or Apple Podcasts URLs or YouTube channel URLs
+   - For ambient sounds: use real YouTube video URLs of ambient/nature sounds
+   - For guided content: use real YouTube video URLs of guided meditation, yoga, etc.
+   Only recommend content that actually exists and is well-known. Do NOT invent or hallucinate URLs.
 
 OUTPUT FORMAT (JSON array):
 [
   {
     "type": "playlist" | "podcast" | "ambient" | "guided",
-    "title": "Descriptive title",
+    "title": "Exact name of the real content",
     "description": "Why this fits their current context (1-2 sentences)",
     "duration": "30 min" | "1 hour" | etc,
     "mood": "calm" | "energizing" | "focused" | "uplifting" | "relaxing",
+    "externalUrl": "https://open.spotify.com/playlist/... or https://www.youtube.com/watch?v=...",
     "tags": ["focus", "instrumental", "lo-fi"] // 2-4 tags
   }
 ]`;
