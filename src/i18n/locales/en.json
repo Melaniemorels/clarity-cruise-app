@@ -149,9 +149,10 @@
     "calendarAndProfile": "Calendar & Profile",
     "unlimited": "Unlimited",
     "totalTimeSaved": "Time recovered this week",
-    "dailyCap": "Daily cap",
-    "feedCap": "Feed cap",
-    "exploreCap": "Explore cap",
+    "chosenTime": "Chosen time",
+    "dailyCap": "Daily",
+    "feedCap": "Feed",
+    "exploreCap": "Explore",
     "minutes": "minutes"
   },
   "profile": {

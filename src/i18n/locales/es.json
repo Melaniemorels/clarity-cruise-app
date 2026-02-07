@@ -149,9 +149,10 @@
     "calendarAndProfile": "Calendario y Perfil",
     "unlimited": "Sin límite",
     "totalTimeSaved": "Tiempo recuperado esta semana",
-    "dailyCap": "Límite diario",
-    "feedCap": "Límite del feed",
-    "exploreCap": "Límite de explorar",
+    "chosenTime": "Tiempo elegido",
+    "dailyCap": "Diario",
+    "feedCap": "Feed",
+    "exploreCap": "Explorar",
     "minutes": "minutos"
   },
   "profile": {
