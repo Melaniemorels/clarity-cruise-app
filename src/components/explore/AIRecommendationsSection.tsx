@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { openInAppBrowser } from "@/lib/browser";
 import {
   useRecommendations,
   useRefreshRecommendations,
@@ -66,16 +67,26 @@ function RecommendationCard({
   const meta = TYPE_META[recommendation.type] || TYPE_META.playlist;
   const gradient = MOOD_GRADIENTS[recommendation.mood] || "from-primary/20 to-primary/10";
 
+  const externalLink = recommendation.externalUrl || recommendation.spotifyUri;
+
+  const handleClick = async () => {
+    if (externalLink) {
+      await openInAppBrowser(externalLink);
+    }
+  };
+
   return (
     <Card
       className={cn(
-        "flex-shrink-0 overflow-hidden cursor-pointer transition-all hover:scale-[1.02] bg-theme-cardBg",
+        "flex-shrink-0 overflow-hidden transition-all hover:scale-[1.02] bg-theme-cardBg",
+        externalLink ? "cursor-pointer" : "cursor-default",
         device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56"
       )}
       style={{
         borderRadius: "18px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
       }}
+      onClick={handleClick}
     >
       <div
         className={cn(
