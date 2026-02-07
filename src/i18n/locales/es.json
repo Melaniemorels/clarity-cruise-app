@@ -57,7 +57,9 @@
     "backToSignIn": "Volver a iniciar sesión",
     "invalidEmail": "Ingresa un correo electrónico válido",
     "continueWithGoogle": "Continuar con Google",
-    "orContinueWith": "o"
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "signInWithApple": "Iniciar sesión con Apple",
+    "brandSubtitle": "Tu día, con intención."
   },
   "welcome": {
     "tagline": "Visualize Your Vibe",
