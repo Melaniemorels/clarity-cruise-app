@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { ScreenshotGuard } from "@/components/ScreenshotGuard";
 
 interface FeedPostProps {
   postId: string;
+  postUserId?: string;
   userHandle: string;
   userPhotoUrl?: string;
   photoUrl?: string;
@@ -21,6 +23,7 @@ interface FeedPostProps {
 
 export const FeedPost = ({
   postId,
+  postUserId,
   userHandle,
   userPhotoUrl,
   photoUrl,
@@ -33,6 +36,7 @@ export const FeedPost = ({
 }: FeedPostProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const isOwnPost = user?.id === postUserId;
   const [inspireCount, setInspireCount] = useState(initialInspireCount);
   const [saveCount, setSaveCount] = useState(initialSaveCount);
   const [hasInspired, setHasInspired] = useState(initialHasInspired);
@@ -106,55 +110,57 @@ export const FeedPost = ({
   };
 
   return (
-    <Card className="overflow-hidden">
-      {/* User Header */}
-      <div className="flex items-center gap-3 p-4">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg overflow-hidden">
-          {userPhotoUrl ? (
-            <img src={userPhotoUrl} alt={userHandle} className="w-full h-full object-cover" />
-          ) : (
-            "🌿"
-          )}
+    <ScreenshotGuard enabled={!isOwnPost}>
+      <Card className="overflow-hidden">
+        {/* User Header */}
+        <div className="flex items-center gap-3 p-4">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg overflow-hidden">
+            {userPhotoUrl ? (
+              <img src={userPhotoUrl} alt={userHandle} className="w-full h-full object-cover" />
+            ) : (
+              "🌿"
+            )}
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-sm">@{userHandle}</div>
+            <div className="text-xs text-muted-foreground">{getTimeAgo(createdAt)}</div>
+          </div>
         </div>
-        <div className="flex-1">
-          <div className="font-semibold text-sm">@{userHandle}</div>
-          <div className="text-xs text-muted-foreground">{getTimeAgo(createdAt)}</div>
-        </div>
-      </div>
 
-      {/* Photo */}
-      {photoUrl && (
-        <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
-          <img src={photoUrl} alt="Post" className="w-full h-full object-cover" />
-        </div>
-      )}
+        {/* Photo */}
+        {photoUrl && (
+          <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
+            <img src={photoUrl} alt="Post" className="w-full h-full object-cover" />
+          </div>
+        )}
 
-      {/* Content */}
-      <CardContent className="p-4">
-        {caption && <p className="text-sm mb-3">{caption}</p>}
-        
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => handleReaction("INSPIRE")}
-            className={`flex items-center gap-1 transition-colors ${
-              hasInspired ? "text-primary" : "text-muted-foreground hover:text-primary"
-            }`}
-          >
-            <Heart className={`h-5 w-5 ${hasInspired ? "fill-current" : ""}`} />
-            <span className="text-sm">{inspireCount}</span>
-          </button>
+        {/* Content */}
+        <CardContent className="p-4">
+          {caption && <p className="text-sm mb-3">{caption}</p>}
           
-          <button
-            onClick={() => handleReaction("SAVE_IDEA")}
-            className={`flex items-center gap-1 transition-colors ${
-              hasSaved ? "text-secondary" : "text-muted-foreground hover:text-secondary"
-            }`}
-          >
-            <Bookmark className={`h-5 w-5 ${hasSaved ? "fill-current" : ""}`} />
-            <span className="text-sm">{saveCount}</span>
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => handleReaction("INSPIRE")}
+              className={`flex items-center gap-1 transition-colors ${
+                hasInspired ? "text-primary" : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              <Heart className={`h-5 w-5 ${hasInspired ? "fill-current" : ""}`} />
+              <span className="text-sm">{inspireCount}</span>
+            </button>
+            
+            <button
+              onClick={() => handleReaction("SAVE_IDEA")}
+              className={`flex items-center gap-1 transition-colors ${
+                hasSaved ? "text-secondary" : "text-muted-foreground hover:text-secondary"
+              }`}
+            >
+              <Bookmark className={`h-5 w-5 ${hasSaved ? "fill-current" : ""}`} />
+              <span className="text-sm">{saveCount}</span>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    </ScreenshotGuard>
   );
 };

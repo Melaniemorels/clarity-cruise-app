@@ -17,6 +17,7 @@ import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { useViewerAccess } from "@/hooks/use-viewer-access";
 import { useFollowStatus } from "@/hooks/use-follow-status";
 import { usePosts } from "@/hooks/use-posts";
+import { ScreenshotGuard } from "@/components/ScreenshotGuard";
 
 interface UserProfileData {
   user_id: string;
@@ -162,6 +163,7 @@ const UserProfile = () => {
   }
 
   return (
+    <ScreenshotGuard enabled={!isOwnProfile}>
     <div className="min-h-screen bg-background pb-20">
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
@@ -307,6 +309,7 @@ const UserProfile = () => {
 
       <BottomNav />
     </div>
+    </ScreenshotGuard>
   );
 };
 

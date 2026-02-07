@@ -572,7 +572,8 @@
       "calendarDescription": "Your events and schedule",
       "wellness": "Wellness & Habits",
       "wellnessDescription": "Health data and daily habits"
-    }
+    },
+    "screenshotProtected": "Protected content"
   },
   "socialBudget": {
     "timeToday": "Social time today",
