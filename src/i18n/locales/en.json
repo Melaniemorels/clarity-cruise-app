@@ -47,7 +47,17 @@
     "signUpAgreement": "By signing up, you agree to our",
     "privacyPolicy": "Privacy Policy",
     "termsOfUse": "Terms of Use",
-    "and": "and"
+    "and": "and",
+    "keepSignedIn": "Keep me signed in",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordDesc": "Enter your email and we'll send you a link to reset your password.",
+    "sendResetLink": "Send reset link",
+    "resetEmailSent": "Reset link sent!",
+    "resetEmailSentDesc": "Check your inbox for a password reset link. It may take a few minutes to arrive.",
+    "backToSignIn": "Back to sign in",
+    "invalidEmail": "Please enter a valid email address",
+    "continueWithGoogle": "Continue with Google",
+    "orContinueWith": "or"
   },
   "welcome": {
     "tagline": "Visualize Your Vibe",
@@ -204,7 +214,11 @@
     "contactSupport": "Contact Support",
     "reportProblem": "Report a Problem",
     "sendFeedback": "Send Feedback",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "security": "Security",
+    "logOutAllDevices": "Log out of all devices",
+    "logOutAllDevicesDesc": "End sessions on all other devices",
+    "loggedOutAllDevices": "Logged out of all devices"
   },
   "devices": {
     "title": "Health Devices",
