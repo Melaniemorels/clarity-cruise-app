@@ -572,7 +572,8 @@
       "calendarDescription": "Tus eventos y agenda",
       "wellness": "Bienestar y Hábitos",
       "wellnessDescription": "Datos de salud y hábitos diarios"
-    }
+    },
+    "screenshotProtected": "Contenido protegido"
   },
   "socialBudget": {
     "timeToday": "Tiempo social hoy",
