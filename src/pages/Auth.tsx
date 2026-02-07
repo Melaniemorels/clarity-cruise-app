@@ -4,11 +4,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Hexagon } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
 
 const signUpSchema = z.object({
   email: z.string().email("Invalid email address").max(255, "Email too long"),
@@ -30,6 +30,13 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+const fadeIn = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const },
+};
+
 const Auth = () => {
   const { t } = useTranslation();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -41,7 +48,6 @@ const Auth = () => {
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   if (user) {
     navigate("/");
     return null;
@@ -50,8 +56,7 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
-    // Validate inputs
+
     try {
       if (isSignUp) {
         signUpSchema.parse({ email, password, handle });
@@ -97,110 +102,155 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
-            <Hexagon
-              size={96}
-              strokeWidth={1}
-              style={{ color: '#6BDFA8', filter: 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.25))' }}
-            />
-          </div>
-          <CardTitle className="text-2xl text-luxury-emerald">
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="w-full max-w-sm"
+      >
+        {/* Logo — focal point */}
+        <div className="mb-12 flex flex-col items-center gap-3">
+          <Hexagon
+            size={56}
+            strokeWidth={1.2}
+            className="text-primary"
+            style={{ filter: 'drop-shadow(0 0 12px hsl(var(--primary) / 0.15))' }}
+          />
+          <span className="text-lg font-semibold tracking-[0.12em] text-foreground">
             VYV
-          </CardTitle>
-          <CardDescription>
-            {isSignUp ? t('auth.createAccount') : t('auth.welcomeBack')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          </span>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <AnimatePresence mode="popLayout">
             {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="handle">{t('auth.username')}</Label>
+              <motion.div key="handle-field" {...fadeIn} className="space-y-1.5">
+                <Label
+                  htmlFor="handle"
+                  className="text-xs font-normal text-muted-foreground"
+                >
+                  {t('auth.username')}
+                </Label>
                 <Input
                   id="handle"
                   placeholder="yourhandle"
                   value={handle}
                   onChange={(e) => setHandle(e.target.value)}
                   required
+                  className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
                 />
                 {errors.handle && (
                   <p className="text-xs text-destructive">{errors.handle}</p>
                 )}
-              </div>
+              </motion.div>
             )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('auth.email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {errors.email && (
-                <p className="text-xs text-destructive">{errors.email}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('auth.password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={isSignUp ? 8 : 1}
-              />
-              {errors.password && (
-                <p className="text-xs text-destructive">{errors.password}</p>
-              )}
-            </div>
-            
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('auth.pleaseWait') : (isSignUp ? t('auth.signUp') : t('auth.signIn'))}
-            </Button>
-          </form>
-          
-          <div className="mt-4 text-center text-sm">
-            {isSignUp ? t('auth.alreadyHaveAccount') + " " : t('auth.dontHaveAccount') + " "}
-            <Button
-              variant="link"
-              className="p-0"
-              onClick={() => setIsSignUp(!isSignUp)}
+          </AnimatePresence>
+
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="email"
+              className="text-xs font-normal text-muted-foreground"
             >
-              {isSignUp ? t('auth.signIn') : t('auth.signUp')}
-            </Button>
+              {t('auth.email')}
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email}</p>
+            )}
           </div>
 
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="password"
+              className="text-xs font-normal text-muted-foreground"
+            >
+              {t('auth.password')}
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={isSignUp ? 8 : 1}
+              className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
+            />
+            {errors.password && (
+              <p className="text-xs text-destructive">{errors.password}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 rounded-xl text-sm font-medium tracking-wide"
+          >
+            {loading
+              ? t('auth.pleaseWait')
+              : isSignUp
+              ? t('auth.signUp')
+              : t('auth.signIn')}
+          </Button>
+        </form>
+
+        {/* Toggle sign-in / sign-up */}
+        <div className="mt-8 text-center">
+          <span className="text-sm text-muted-foreground">
+            {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}{" "}
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-sm text-primary font-medium hover:text-primary/80 transition-colors duration-200"
+          >
+            {isSignUp ? t('auth.signIn') : t('auth.signUp')}
+          </button>
+        </div>
+
+        {/* Legal links */}
+        <AnimatePresence>
           {isSignUp && (
-            <div className="mt-6 pt-4 border-t border-border text-center text-xs text-muted-foreground">
-              <p className="mb-2">{t('auth.signUpAgreement')}</p>
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <Link 
-                  to="/privacy-policy" 
-                  className="text-primary hover:underline"
-                >
-                  {t('auth.privacyPolicy')}
-                </Link>
-                <span>{t('auth.and')}</span>
-                <Link 
-                  to="/terms-of-use" 
-                  className="text-primary hover:underline"
-                >
-                  {t('auth.termsOfUse')}
-                </Link>
+            <motion.div
+              key="legal"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-8 text-center text-xs text-muted-foreground/70 leading-relaxed">
+                <p className="mb-1.5">{t('auth.signUpAgreement')}</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <Link
+                    to="/privacy-policy"
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  >
+                    {t('auth.privacyPolicy')}
+                  </Link>
+                  <span>{t('auth.and')}</span>
+                  <Link
+                    to="/terms-of-use"
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  >
+                    {t('auth.termsOfUse')}
+                  </Link>
+                </div>
               </div>
-            </div>
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 };
