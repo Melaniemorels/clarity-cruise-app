@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Bookmark, Sparkles } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
-import { MediaConnectionBanner } from "@/components/explore/MediaConnectionBanner";
 import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
+import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { openInAppBrowser } from "@/lib/browser";
@@ -127,8 +127,8 @@ const Explore = () => {
         {/* AI Recommendations Section */}
         <AIRecommendationsSection />
 
-        {/* Media Connection Banner */}
-        <MediaConnectionBanner />
+        {/* First-time onboarding dialog */}
+        <ExploreOnboardingDialog />
 
         {/* Categories */}
         {categories.map((category, idx) => (
