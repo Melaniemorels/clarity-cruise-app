@@ -3,12 +3,15 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+const KEEP_SIGNED_IN_KEY = "vyv-keep-signed-in";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   signUp: (email: string, password: string, handle: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  signOutAll: () => Promise<void>;
   loading: boolean;
 }
 
@@ -33,6 +36,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Session persistence: if "keep signed in" is OFF and this is a new browser session, sign out
+      if (session) {
+        const keepSignedIn = localStorage.getItem(KEEP_SIGNED_IN_KEY);
+        const sessionActive = sessionStorage.getItem(KEEP_SIGNED_IN_KEY);
+        
+        if (keepSignedIn === "false" && !sessionActive) {
+          // User didn't want persistent session and this is a new browser session
+          supabase.auth.signOut().then(() => {
+            setSession(null);
+            setUser(null);
+          });
+        } else {
+          // Mark this browser session as active
+          sessionStorage.setItem(KEEP_SIGNED_IN_KEY, "active");
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -53,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     if (!error) {
-      // Navigate to security onboarding to verify email
       navigate("/security-onboarding");
     }
     
@@ -67,6 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     if (!error) {
+      sessionStorage.setItem(KEEP_SIGNED_IN_KEY, "active");
       navigate("/");
     }
     
@@ -79,7 +99,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error during sign out:", error);
     } finally {
-      // Always clear local state and navigate, even if server logout fails
+      localStorage.removeItem(KEEP_SIGNED_IN_KEY);
+      sessionStorage.removeItem(KEEP_SIGNED_IN_KEY);
+      setSession(null);
+      setUser(null);
+      navigate("/auth");
+    }
+  };
+
+  const signOutAll = async () => {
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch (error) {
+      console.error("Error during global sign out:", error);
+    } finally {
+      localStorage.removeItem(KEEP_SIGNED_IN_KEY);
+      sessionStorage.removeItem(KEEP_SIGNED_IN_KEY);
       setSession(null);
       setUser(null);
       navigate("/auth");
@@ -87,7 +122,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, signOutAll, loading }}>
       {children}
     </AuthContext.Provider>
   );

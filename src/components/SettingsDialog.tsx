@@ -53,6 +53,7 @@ import {
   Mail,
   KeyRound,
   Shield,
+  Smartphone,
   Users,
   Trash2,
   Sparkles,
@@ -73,7 +74,7 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDialogProps) {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, signOutAll } = useAuth();
   const { currentLanguage, changeLanguage } = useLanguage();
   const { data: profile } = useProfile();
   const updateProfileMutation = useUpdateProfile();
@@ -469,6 +470,24 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     icon={Send}
                     label={t("settings.sendFeedback")}
                     onClick={handleComingSoon}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Security */}
+              <div>
+                <SectionHeader>{t("settings.security")}</SectionHeader>
+                <div className="space-y-1">
+                  <LinkButton
+                    icon={Smartphone}
+                    label={t("settings.logOutAllDevices")}
+                    description={t("settings.logOutAllDevicesDesc")}
+                    onClick={async () => {
+                      await signOutAll();
+                      toast.success(t("settings.loggedOutAllDevices"));
+                    }}
                   />
                 </div>
               </div>

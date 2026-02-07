@@ -47,7 +47,17 @@
     "signUpAgreement": "Al registrarte, aceptas nuestra",
     "privacyPolicy": "Política de Privacidad",
     "termsOfUse": "Términos de Uso",
-    "and": "y"
+    "and": "y",
+    "keepSignedIn": "Mantener sesión iniciada",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "forgotPasswordDesc": "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+    "sendResetLink": "Enviar enlace",
+    "resetEmailSent": "¡Enlace enviado!",
+    "resetEmailSentDesc": "Revisa tu bandeja de entrada para el enlace de restablecimiento. Puede tardar unos minutos.",
+    "backToSignIn": "Volver a iniciar sesión",
+    "invalidEmail": "Ingresa un correo electrónico válido",
+    "continueWithGoogle": "Continuar con Google",
+    "orContinueWith": "o"
   },
   "welcome": {
     "tagline": "Visualize Your Vibe",
@@ -204,7 +214,11 @@
     "contactSupport": "Contactar Soporte",
     "reportProblem": "Reportar un Problema",
     "sendFeedback": "Enviar Comentarios",
-    "comingSoon": "Próximamente"
+    "comingSoon": "Próximamente",
+    "security": "Seguridad",
+    "logOutAllDevices": "Cerrar sesión en todos los dispositivos",
+    "logOutAllDevicesDesc": "Finalizar sesiones en otros dispositivos",
+    "loggedOutAllDevices": "Sesión cerrada en todos los dispositivos"
   },
   "devices": {
     "title": "Dispositivos de Salud",
