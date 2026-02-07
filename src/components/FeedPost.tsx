@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Bookmark } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -37,6 +37,7 @@ export const FeedPost = ({
   const [saveCount, setSaveCount] = useState(initialSaveCount);
   const [hasInspired, setHasInspired] = useState(initialHasInspired);
   const [hasSaved, setHasSaved] = useState(initialHasSaved);
+  const isReacting = useRef(false);
 
   const getTimeAgo = (date: string) => {
     const now = new Date();
@@ -53,8 +54,8 @@ export const FeedPost = ({
   };
 
   const handleReaction = async (type: "INSPIRE" | "SAVE_IDEA") => {
-    if (!user) return;
-
+    if (!user || isReacting.current) return;
+    isReacting.current = true;
     const isCurrentlyReacted = type === "INSPIRE" ? hasInspired : hasSaved;
 
     try {
@@ -99,6 +100,8 @@ export const FeedPost = ({
       if (import.meta.env.DEV) {
         console.error("Reaction error:", error);
       }
+    } finally {
+      isReacting.current = false;
     }
   };
 
