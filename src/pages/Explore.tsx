@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
 import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { openInAppBrowser } from "@/lib/browser";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -28,6 +30,14 @@ const Explore = () => {
   const device = useDevice();
   const navPadding = useNavPadding();
   const fonts = useResponsiveFontSize();
+
+  // Track time spent on Explore module
+  const exploreTracker = useModuleTimeTracker("EXPLORE");
+  useEffect(() => {
+    exploreTracker.start();
+    return () => exploreTracker.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleContentClick = async (item: { url?: string }) => {
     if (!item.url) {
