@@ -521,7 +521,46 @@
     "calendarDataDescription": "Tu agenda y sesiones de enfoque",
     "mediaPreferences": "Preferencias de Media",
     "mediaPreferencesDescription": "Servicios de música conectados (Spotify)",
-    "privacyNotice": "Tus datos se usan solo para personalizar recomendaciones y nunca se comparten."
+    "privacyNotice": "Tus datos se usan solo para personalizar recomendaciones y nunca se comparten.",
+    "goals": {
+      "auto": "Auto",
+      "focus": "Enfoque",
+      "energy": "Energía",
+      "calm": "Calma",
+      "recovery": "Recuperación",
+      "sleep": "Sueño"
+    }
+  },
+  "mediaConnections": {
+    "bannerTitle": "Recomendaciones Verificadas con IA",
+    "bannerDescription": "Conecta tus servicios de música para obtener recomendaciones personalizadas y saludables.",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "disconnect": "Desconectar",
+    "disconnected": "{{provider}} desconectado",
+    "notConnected": "No conectado",
+    "readOnlyAccess": "Acceso de solo lectura",
+    "readOnlyNotice": "Solo leemos tus preferencias. Nunca publicamos ni modificamos tu contenido.",
+    "credentialsNeeded": "Las credenciales de la plataforma aún no están configuradas. Próximamente.",
+    "spotifyDescription": "Tus artistas, géneros y playlists favoritos",
+    "youtubeDescription": "Tus videos y playlists de bienestar",
+    "spotifyDataAccess": "Artistas top, géneros, playlists guardadas",
+    "youtubeDataAccess": "Videos que te gustaron, suscripciones",
+    "aiRecommendations": "Para Ti",
+    "healthyVerified": "Modo Verificado Saludable",
+    "healthyVerifiedDesc": "Filtra contenido dañino y prioriza fuentes verificadas",
+    "like": "Me gusta",
+    "save": "Guardar",
+    "liked": "¡Te gusta!",
+    "saved": "Guardado",
+    "hidden": "Oculto de futuras recomendaciones",
+    "settingsTitle": "Conexiones de Media",
+    "settingsDescription": "Gestiona tus servicios conectados y controla qué datos se usan.",
+    "dataAccessTitle": "Acceso a Datos",
+    "dataAccessDescription": "Controla qué información puede usar la IA para personalizar.",
+    "mediaDataDesc": "Géneros, artistas y playlists de tus servicios conectados",
+    "connectionsSettings": "Conexiones de Media",
+    "connectionsSettingsDesc": "Spotify, YouTube y controles de privacidad"
   },
   "privacy": {
     "sectionVisibility": {

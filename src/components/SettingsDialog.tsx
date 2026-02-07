@@ -63,6 +63,7 @@ import {
   MessageCircle,
   AlertTriangle,
   Send,
+  Music,
 } from "lucide-react";
 
 interface SettingsDialogProps {
@@ -342,6 +343,14 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 label={t("settings.healthDevices")}
                 description={t("settings.healthDevicesDesc")}
                 onClick={() => handleNavigate("/device-settings")}
+              />
+
+              {/* Media Connections */}
+              <LinkButton
+                icon={Music}
+                label={t("mediaConnections.connectionsSettings")}
+                description={t("mediaConnections.connectionsSettingsDesc")}
+                onClick={() => handleNavigate("/media-connections")}
               />
 
               <Separator />

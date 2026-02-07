@@ -521,7 +521,46 @@
     "calendarDataDescription": "Your schedule and focus sessions",
     "mediaPreferences": "Media Preferences",
     "mediaPreferencesDescription": "Connected music services (Spotify)",
-    "privacyNotice": "Your data is used only to personalize recommendations and is never shared."
+    "privacyNotice": "Your data is used only to personalize recommendations and is never shared.",
+    "goals": {
+      "auto": "Auto",
+      "focus": "Focus",
+      "energy": "Energy",
+      "calm": "Calm",
+      "recovery": "Recovery",
+      "sleep": "Sleep"
+    }
+  },
+  "mediaConnections": {
+    "bannerTitle": "Healthy Verified AI Recommendations",
+    "bannerDescription": "Connect your music services for personalized, healthy recommendations.",
+    "connect": "Connect",
+    "connected": "Connected",
+    "disconnect": "Disconnect",
+    "disconnected": "{{provider}} disconnected",
+    "notConnected": "Not connected",
+    "readOnlyAccess": "Read-only access",
+    "readOnlyNotice": "We only read your preferences. We never post or modify your content.",
+    "credentialsNeeded": "Platform credentials are not configured yet. Coming soon.",
+    "spotifyDescription": "Your favorite artists, genres, and playlists",
+    "youtubeDescription": "Your wellness videos and playlists",
+    "spotifyDataAccess": "Top artists, genres, saved playlists",
+    "youtubeDataAccess": "Liked videos, subscriptions",
+    "aiRecommendations": "For You",
+    "healthyVerified": "Healthy Verified Mode",
+    "healthyVerifiedDesc": "Filter harmful content and prioritize verified sources",
+    "like": "Like",
+    "save": "Save",
+    "liked": "Liked!",
+    "saved": "Saved",
+    "hidden": "Hidden from future recommendations",
+    "settingsTitle": "Media Connections",
+    "settingsDescription": "Manage your connected services and control what data is used.",
+    "dataAccessTitle": "Data Access",
+    "dataAccessDescription": "Control what information AI can use to personalize.",
+    "mediaDataDesc": "Genres, artists, and playlists from your connected services",
+    "connectionsSettings": "Media Connections",
+    "connectionsSettingsDesc": "Spotify, YouTube and privacy controls"
   },
   "privacy": {
     "sectionVisibility": {
