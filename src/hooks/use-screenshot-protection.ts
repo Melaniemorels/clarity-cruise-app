@@ -76,40 +76,9 @@ export function useScreenshotProtection({
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [enabled, triggerBlur]);
 
-  // --- Capacitor native screenshot detection ---
-  useEffect(() => {
-    if (!enabled || !Capacitor.isNativePlatform()) return;
-
-    let cleanup: (() => void) | undefined;
-
-    (async () => {
-      try {
-        // For Android, FLAG_SECURE is the gold standard.
-        // We toggle it when this hook is active.
-        if (Capacitor.getPlatform() === "android") {
-          try {
-            // Try to import a privacy screen plugin if available
-            const { PrivacyScreen } = await import(
-              "@capacitor-community/privacy-screen" as any
-            );
-            await PrivacyScreen.enable();
-            cleanup = () => {
-              PrivacyScreen.disable().catch(() => {});
-            };
-          } catch {
-            // Plugin not installed — fall back to CSS-only protection
-            console.debug("Privacy screen plugin not available");
-          }
-        }
-      } catch {
-        // Silently ignore
-      }
-    })();
-
-    return () => {
-      cleanup?.();
-    };
-  }, [enabled]);
+  // Note: For Android native FLAG_SECURE support, install
+  // @capacitor-community/privacy-screen and enable it in the native layer.
+  // CSS-only protections (user-select: none) are applied via ScreenshotGuard.
 
   // Cleanup timer on unmount
   useEffect(() => {
