@@ -63,6 +63,16 @@ export const PostItem = ({ post }: PostItemProps) => {
   const queryClient = useQueryClient();
   const [optimisticLike, setOptimisticLike] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
+  const [lastServerLike, setLastServerLike] = useState(post.user_has_liked);
+  const [lastServerCount, setLastServerCount] = useState(post.likes_count);
+
+  // Sync optimistic state when server data actually changes (after refetch)
+  if (post.user_has_liked !== lastServerLike || post.likes_count !== lastServerCount) {
+    setLastServerLike(post.user_has_liked);
+    setLastServerCount(post.likes_count);
+    setOptimisticLike(null);
+    setOptimisticCount(null);
+  }
   
   // Edit dialog state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -119,10 +129,8 @@ export const PostItem = ({ post }: PostItemProps) => {
       toast.error(t('post.errors.likeError'));
       console.error(error);
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      setOptimisticLike(null);
-      setOptimisticCount(null);
     },
   });
 
@@ -180,6 +188,7 @@ export const PostItem = ({ post }: PostItemProps) => {
       toast.error(t('post.errors.loginToLike'));
       return;
     }
+    if (likeMutation.isPending) return;
     likeMutation.mutate();
   };
 

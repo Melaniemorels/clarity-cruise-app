@@ -50,10 +50,11 @@ async function fetchPosts(
 
   // Filter based on feed type
   if (feedType === "following" && userId) {
-    const { data: followsData } = await supabase
+    const { data: followsData } = await (supabase as any)
       .from("follows")
       .select("following_id")
-      .eq("follower_id", userId);
+      .eq("follower_id", userId)
+      .eq("status", "accepted");
 
     const followingIds = (followsData || []).map((f) => f.following_id);
     const relevantUserIds = [...followingIds, userId];
