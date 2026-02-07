@@ -100,10 +100,10 @@ export const PostItem = ({ post }: PostItemProps) => {
   };
 
   const likeMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ wasLiked }: { wasLiked: boolean }) => {
       if (!user) throw new Error(t('errors.unauthorized'));
 
-      if (hasLiked) {
+      if (wasLiked) {
         const { error } = await supabase
           .from("post_likes")
           .delete()
@@ -119,15 +119,14 @@ export const PostItem = ({ post }: PostItemProps) => {
         if (error) throw error;
       }
     },
-    onMutate: async () => {
-      setOptimisticLike(!hasLiked);
-      setOptimisticCount(hasLiked ? likesCount - 1 : likesCount + 1);
+    onMutate: async ({ wasLiked }) => {
+      setOptimisticLike(!wasLiked);
+      setOptimisticCount(wasLiked ? likesCount - 1 : likesCount + 1);
     },
-    onError: (error) => {
+    onError: () => {
       setOptimisticLike(null);
       setOptimisticCount(null);
       toast.error(t('post.errors.likeError'));
-      console.error(error);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -189,7 +188,7 @@ export const PostItem = ({ post }: PostItemProps) => {
       return;
     }
     if (likeMutation.isPending) return;
-    likeMutation.mutate();
+    likeMutation.mutate({ wasLiked: hasLiked });
   };
 
   const handleEdit = () => {
