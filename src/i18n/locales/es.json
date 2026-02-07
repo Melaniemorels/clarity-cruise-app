@@ -133,7 +133,7 @@
     "weeklySummary": "Resumen semanal",
     "minutesSaved": "min ahorrados",
     "averageDay": "promedio diario",
-    "timeSavedThisWeek": "Tiempo ahorrado esta semana",
+    "timeSavedThisWeek": "Tiempo recuperado esta semana",
     "capture": "Captura",
     "instantCapture": "Captura instantánea",
     "during": "durante",
@@ -148,10 +148,10 @@
     "moduleTime": "Tiempo por módulo",
     "calendarAndProfile": "Calendario y Perfil",
     "unlimited": "Sin límite",
-    "totalTimeSaved": "Tiempo total ahorrado",
+    "totalTimeSaved": "Tiempo recuperado esta semana",
     "dailyCap": "Límite diario",
-    "feedCap": "Límite de Feed",
-    "exploreCap": "Límite de Explorar",
+    "feedCap": "Límite del feed",
+    "exploreCap": "Límite de explorar",
     "minutes": "minutos"
   },
   "profile": {

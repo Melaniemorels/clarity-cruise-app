@@ -727,6 +727,11 @@ const Calendar = () => {
                     <div className="text-2xl font-bold text-primary mb-1">
                       {totalWeeklySaved} min
                     </div>
+                    {totalWeeklySaved >= 60 && (
+                      <p className="text-xs text-muted-foreground mb-1">
+                        ≈ {Math.floor(totalWeeklySaved / 60)} h {totalWeeklySaved % 60 > 0 ? `${totalWeeklySaved % 60} min` : ''}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
                   </div>
                 </>
