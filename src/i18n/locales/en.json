@@ -720,9 +720,9 @@
     "continue": "Got it"
   },
   "explore.unavailable": {
-    "title": "✦ Good things take time",
-    "noUrl": "This content will be available soon. Great things take their time — just like you, building your best self.",
-    "comingSoon": "We're preparing something special for you. Keep exploring — every step counts.",
-    "error": "We couldn't open this right now. Take a breath, try again — even the best moments need a second try."
+    "title": "Not available yet",
+    "noUrl": "Coming soon",
+    "comingSoon": "Coming soon",
+    "error": "Try again"
   }
 }

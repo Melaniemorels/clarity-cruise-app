@@ -720,9 +720,9 @@
     "continue": "Entendido"
   },
   "explore.unavailable": {
-    "title": "✦ Paciencia, que todo llega",
-    "noUrl": "Este contenido estará disponible próximamente. Grandes cosas toman su tiempo — como tú construyendo tu mejor versión.",
-    "comingSoon": "Estamos preparando algo especial para ti. Mientras tanto, sigue explorando — cada paso cuenta.",
-    "error": "No pudimos abrir este contenido ahora mismo. Respira, vuelve a intentarlo — los mejores momentos también necesitan segundo intento."
+    "title": "No disponible aún",
+    "noUrl": "Próximamente",
+    "comingSoon": "Próximamente",
+    "error": "Intenta de nuevo"
   }
 }
