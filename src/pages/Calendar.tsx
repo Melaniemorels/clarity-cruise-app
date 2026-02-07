@@ -6,6 +6,7 @@ import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EventModal } from "@/components/EventModal";
 import { DaySummaryModal } from "@/components/DaySummaryModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMo
 import { es, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -236,23 +238,33 @@ const Calendar = () => {
     setEventModalOpen(true);
   };
 
-  // Focus Mode data
-  const dailyMinutes = 45;
-  const usedMinutes = 28;
-  const feedMinutes = 10;
-  const feedUsed = 7;
-  const exploreMinutes = 15;
-  const exploreUsed = 12;
+  // Focus Mode — real data from DB
+  const {
+    isLoading: focusLoading,
+    isWeekLoading,
+    isHealthLoading,
+    dailyLimitMinutes,
+    totalUsedMinutes,
+    remainingMinutes,
+    overallProgress,
+    feed: feedMetrics,
+    explore: exploreMetrics,
+    weeklyData,
+    totalWeeklySaved,
+    health,
+  } = useFocusMetrics();
+  const updateGoalMutation = useUpdateTimeGoal();
 
-  const weeklyData = [
-    { day: 'Lun', saved: 15, goal: 45 },
-    { day: 'Mar', saved: 22, goal: 45 },
-    { day: 'Mié', saved: 18, goal: 45 },
-    { day: 'Jue', saved: 25, goal: 45 },
-    { day: 'Vie', saved: 20, goal: 45 },
-    { day: 'Sáb', saved: 17, goal: 45 },
-    { day: 'Dom', saved: 0, goal: 45 },
-  ];
+  const handleExtendTime = () => {
+    const newLimit = dailyLimitMinutes + 5;
+    updateGoalMutation.mutate(
+      { module: null, daily_minutes: newLimit },
+      {
+        onSuccess: () => toast.success(t('socialBudget.extended')),
+        onError: (err) => toast.error(String(err)),
+      }
+    );
+  };
 
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
@@ -389,16 +401,29 @@ const Calendar = () => {
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('calendar.steps')}</span>
-                    <span className="font-semibold">8,432 / 10,000</span>
+                {isHealthLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('calendar.workout')}</span>
-                    <span className="font-semibold">45 / 60 min</span>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-muted-foreground">{t('calendar.steps')}</span>
+                        <span className="font-semibold">{health.steps.value.toLocaleString()} / {health.steps.goal.toLocaleString()}</span>
+                      </div>
+                      <Progress value={Math.min(100, (health.steps.value / health.steps.goal) * 100)} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-muted-foreground">{t('calendar.workout')}</span>
+                        <span className="font-semibold">{health.workout.value} / {health.workout.goal} min</span>
+                      </div>
+                      <Progress value={Math.min(100, (health.workout.value / health.workout.goal) * 100)} className="h-2" />
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -597,24 +622,39 @@ const Calendar = () => {
           {/* Daily Time Cap */}
           <Card>
             <CardContent className="p-6">
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold text-foreground mb-2">
-                  {dailyMinutes - usedMinutes} min
+              {focusLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-10 w-24 mx-auto" />
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-4 w-full" />
                 </div>
-                <p className="text-sm text-muted-foreground">{t('calendar.remainingToday')}</p>
-              </div>
-              
-              <Progress value={(usedMinutes / dailyMinutes) * 100} className="h-2 mb-2" />
-              
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{usedMinutes} {t('calendar.minUsed')}</span>
-                <span>{dailyMinutes} {t('calendar.minDaily')}</span>
-              </div>
-              
-              <Button className="w-full mt-4" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                {t('calendar.extendTime')}
-              </Button>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="text-4xl font-bold text-foreground mb-2">
+                      {remainingMinutes} min
+                    </div>
+                    <p className="text-sm text-muted-foreground">{t('calendar.remainingToday')}</p>
+                  </div>
+                  
+                  <Progress value={overallProgress * 100} className="h-2 mb-2" />
+                  
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{totalUsedMinutes} {t('calendar.minUsed')}</span>
+                    <span>{dailyLimitMinutes} {t('calendar.minDaily')}</span>
+                  </div>
+                  
+                  <Button
+                    className="w-full mt-4"
+                    variant="outline"
+                    onClick={handleExtendTime}
+                    disabled={updateGoalMutation.isPending}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('calendar.extendTime')}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -626,9 +666,9 @@ const Calendar = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{t('nav.feed')}</span>
-                  <span className="text-sm text-muted-foreground">{feedUsed}/{feedMinutes} min</span>
+                  <span className="text-sm text-muted-foreground">{feedMetrics.usedMinutes}/{feedMetrics.limitMinutes} min</span>
                 </div>
-                <Progress value={(feedUsed / feedMinutes) * 100} className="h-2" />
+                <Progress value={feedMetrics.progress * 100} className="h-2" />
               </CardContent>
             </Card>
             
@@ -636,9 +676,9 @@ const Calendar = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{t('nav.explore')}</span>
-                  <span className="text-sm text-muted-foreground">{exploreUsed}/{exploreMinutes} min</span>
+                  <span className="text-sm text-muted-foreground">{exploreMetrics.usedMinutes}/{exploreMetrics.limitMinutes} min</span>
                 </div>
-                <Progress value={(exploreUsed / exploreMinutes) * 100} className="h-2" />
+                <Progress value={exploreMetrics.progress * 100} className="h-2" />
               </CardContent>
             </Card>
             
@@ -657,26 +697,40 @@ const Calendar = () => {
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4">{t('calendar.timeSavedThisWeek')}</h3>
               
-              <div className="flex items-end justify-between gap-2 h-48 mb-4">
-                {weeklyData.map((data, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full bg-muted rounded-t-lg overflow-hidden relative" style={{ height: '100%' }}>
-                      <div
-                        className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary/70 rounded-t-lg transition-all"
-                        style={{ height: `${(data.saved / data.goal) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground">{daysShort[i]}</div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {weeklyData.reduce((acc, d) => acc + d.saved, 0)} min
+              {isWeekLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-6 w-24 mx-auto" />
                 </div>
-                <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-end justify-between gap-2 h-48 mb-4">
+                    {weeklyData.map((data, i) => {
+                      const barHeight = data.goalMinutes > 0
+                        ? Math.min(1, data.savedMinutes / data.goalMinutes) * 100
+                        : 0;
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                          <div className="w-full bg-muted rounded-t-lg overflow-hidden relative" style={{ height: '100%' }}>
+                            <div
+                              className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary/70 rounded-t-lg transition-all"
+                              style={{ height: `${barHeight}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground">{daysShort[i]}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary mb-1">
+                      {totalWeeklySaved} min
+                    </div>
+                    <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -687,15 +741,15 @@ const Calendar = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.dailyCap')}</span>
-                  <span className="text-muted-foreground">{dailyMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{dailyLimitMinutes} {t('calendar.minutes')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.feedCap')}</span>
-                  <span className="text-muted-foreground">{feedMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{feedMetrics.limitMinutes} {t('calendar.minutes')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.exploreCap')}</span>
-                  <span className="text-muted-foreground">{exploreMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} {t('calendar.minutes')}</span>
                 </div>
               </div>
             </CardContent>

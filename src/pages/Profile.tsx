@@ -9,10 +9,12 @@ import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { FollowListModal } from "@/components/FollowListModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { Progress } from "@/components/ui/progress";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
 import { useTranslation } from "react-i18next";
+import { useFocusMetrics } from "@/hooks/use-focus-metrics";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -27,13 +29,12 @@ const Profile = () => {
   const { data: entries = [] } = useUserEntries();
   const { data: profile } = useProfile();
   const { data: stats } = useProfileStats();
+  const { health, isHealthLoading } = useFocusMetrics();
 
-  const healthData = {
-    steps: { value: 8432, goal: 10000, label: t('calendar.steps') },
-    workout: { value: 45, goal: 60, label: `${t('calendar.workout')} (min)` },
-    sleep: { value: 7.5, goal: 8, label: 'Sleep (hrs)' },
-    screenTime: { value: 3.2, goal: 4, label: 'Screen Time (hrs)' },
-  };
+  const healthData = [
+    { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '' },
+    { key: 'workout', label: `${t('calendar.workout')} (min)`, value: health.workout.value, goal: health.workout.goal, unit: '' },
+  ];
 
   // Calculate activity based on real entries for each day
   const getActivityData = (dayIndex: number) => {
@@ -112,24 +113,22 @@ const Profile = () => {
         <div className="space-y-3">
           <h2 className="font-semibold">{t('profile.todayStats')}</h2>
           
-          {Object.entries(healthData).map(([key, data]) => (
-            <Card key={key}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{data.label}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {data.value} / {data.goal}
-                  </span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all"
-                    style={{ width: `${Math.min((data.value / data.goal) * 100, 100)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {healthData.map((data) => {
+            const progress = data.goal > 0 ? Math.min(100, (data.value / data.goal) * 100) : 0;
+            return (
+              <Card key={data.key}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">{data.label}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {data.value.toLocaleString()} / {data.goal.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Mini Calendar */}
