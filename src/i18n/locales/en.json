@@ -704,5 +704,19 @@
     "noFollowersYet": "No followers yet",
     "notFollowingAnyone": "Not following anyone yet",
     "privateInfo": "This information is private"
+  },
+  "exploreOnboarding": {
+    "title": "Personalized recommendations",
+    "description": "VYV analyzes your calendar and activities to suggest content that fits your moment of the day.",
+    "whatWeUse": "What does the AI consider?",
+    "calendarSignal": "Your calendar and daily events",
+    "activitySignal": "Your physical activity and workouts",
+    "goalsSignal": "Your personal goals",
+    "optionalConnect": "Optional: enhance your recommendations",
+    "spotifyDesc": "Suggests music based on your real tastes",
+    "youtubeDesc": "Recommends wellness videos for you",
+    "privacyNote": "We only access read-only data. We never post or modify anything on your accounts.",
+    "skip": "Not now",
+    "continue": "Got it"
   }
 }

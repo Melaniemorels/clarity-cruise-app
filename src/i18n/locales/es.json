@@ -704,5 +704,19 @@
     "noFollowersYet": "Todavía no tenés seguidores",
     "notFollowingAnyone": "Aún no seguís a nadie",
     "privateInfo": "Esta información es privada"
+  },
+  "exploreOnboarding": {
+    "title": "Recomendaciones personalizadas",
+    "description": "VYV analiza tu calendario y actividades para sugerirte contenido que se adapte a tu momento del día.",
+    "whatWeUse": "¿Qué tiene en cuenta la IA?",
+    "calendarSignal": "Tu calendario y eventos del día",
+    "activitySignal": "Tu actividad física y entrenamientos",
+    "goalsSignal": "Tus objetivos personales",
+    "optionalConnect": "Opcional: mejora tus recomendaciones",
+    "spotifyDesc": "Sugiere música basada en tus gustos reales",
+    "youtubeDesc": "Recomienda videos de bienestar para ti",
+    "privacyNote": "Solo accedemos a datos de lectura. Nunca publicamos ni modificamos nada en tus cuentas.",
+    "skip": "Ahora no",
+    "continue": "Entendido"
   }
 }
