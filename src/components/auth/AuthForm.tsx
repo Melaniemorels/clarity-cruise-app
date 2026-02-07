@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { GoogleSignInButton } from "./GoogleSignInButton";
+import { SocialSignInButton } from "./SocialSignInButton";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 const signUpSchema = z.object({
@@ -93,7 +93,6 @@ export function AuthForm() {
           toast.success(t("auth.accountCreated"));
         }
       } else {
-        // Store "keep me signed in" preference
         localStorage.setItem(KEEP_SIGNED_IN_KEY, JSON.stringify(keepSignedIn));
         if (keepSignedIn) {
           sessionStorage.setItem(KEEP_SIGNED_IN_KEY, "active");
@@ -103,7 +102,6 @@ export function AuthForm() {
         if (error) {
           toast.error(error.message || "Failed to sign in");
         } else {
-          // Mark session as active in sessionStorage
           sessionStorage.setItem(KEEP_SIGNED_IN_KEY, "active");
           toast.success(t("auth.welcomeBackSuccess"));
         }
@@ -121,7 +119,7 @@ export function AuthForm() {
 
   return (
     <div className="space-y-6">
-      {/* Form */}
+      {/* Email + password form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <AnimatePresence mode="popLayout">
           {isSignUp && (
@@ -190,7 +188,7 @@ export function AuthForm() {
           )}
         </div>
 
-        {/* Keep signed in + Forgot password row */}
+        {/* Keep signed in + Forgot password */}
         <AnimatePresence mode="popLayout">
           {!isSignUp && (
             <motion.div
@@ -223,6 +221,7 @@ export function AuthForm() {
           )}
         </AnimatePresence>
 
+        {/* Primary CTA */}
         <Button
           type="submit"
           disabled={loading}
@@ -239,20 +238,23 @@ export function AuthForm() {
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border/40" />
+          <div className="w-full border-t border-border/30" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-3 text-xs text-muted-foreground/60">
+          <span className="bg-background px-3 text-xs text-muted-foreground/50">
             {t("auth.orContinueWith")}
           </span>
         </div>
       </div>
 
-      {/* Google Sign In */}
-      <GoogleSignInButton />
+      {/* Social sign-in — secondary, neutral */}
+      <div className="space-y-1.5">
+        <SocialSignInButton provider="google" />
+        <SocialSignInButton provider="apple" />
+      </div>
 
       {/* Toggle sign-in / sign-up */}
-      <div className="text-center pt-2">
+      <div className="text-center pt-1">
         <span className="text-sm text-muted-foreground">
           {isSignUp ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}{" "}
         </span>
@@ -268,7 +270,7 @@ export function AuthForm() {
         </button>
       </div>
 
-      {/* Legal links */}
+      {/* Legal links (sign-up only) */}
       <AnimatePresence>
         {isSignUp && (
           <motion.div
@@ -279,19 +281,19 @@ export function AuthForm() {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="text-center text-xs text-muted-foreground/70 leading-relaxed">
+            <div className="text-center text-xs text-muted-foreground/60 leading-relaxed">
               <p className="mb-1.5">{t("auth.signUpAgreement")}</p>
               <div className="flex items-center justify-center gap-1.5">
                 <Link
                   to="/privacy-policy"
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  className="text-muted-foreground/70 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
                 >
                   {t("auth.privacyPolicy")}
                 </Link>
                 <span>{t("auth.and")}</span>
                 <Link
                   to="/terms-of-use"
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  className="text-muted-foreground/70 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
                 >
                   {t("auth.termsOfUse")}
                 </Link>
