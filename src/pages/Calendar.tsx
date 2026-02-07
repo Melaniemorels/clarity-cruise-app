@@ -742,19 +742,19 @@ const Calendar = () => {
           {/* Settings */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-3">{t('settings.title')}</h3>
+              <h3 className="text-xs font-medium text-muted-foreground tracking-wide uppercase mb-3">{t('calendar.chosenTime')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.dailyCap')}</span>
-                  <span className="text-muted-foreground">{dailyLimitMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{dailyLimitMinutes} min</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.feedCap')}</span>
-                  <span className="text-muted-foreground">{feedMetrics.limitMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{feedMetrics.limitMinutes} min</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.exploreCap')}</span>
-                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} {t('calendar.minutes')}</span>
+                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} min</span>
                 </div>
               </div>
             </CardContent>
