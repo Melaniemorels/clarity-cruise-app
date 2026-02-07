@@ -718,5 +718,11 @@
     "privacyNote": "Solo accedemos a datos de lectura. Nunca publicamos ni modificamos nada en tus cuentas.",
     "skip": "Ahora no",
     "continue": "Entendido"
+  },
+  "explore.unavailable": {
+    "title": "✦ Paciencia, que todo llega",
+    "noUrl": "Este contenido estará disponible próximamente. Grandes cosas toman su tiempo — como tú construyendo tu mejor versión.",
+    "comingSoon": "Estamos preparando algo especial para ti. Mientras tanto, sigue explorando — cada paso cuenta.",
+    "error": "No pudimos abrir este contenido ahora mismo. Respira, vuelve a intentarlo — los mejores momentos también necesitan segundo intento."
   }
 }

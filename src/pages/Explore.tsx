@@ -30,8 +30,22 @@ const Explore = () => {
   const fonts = useResponsiveFontSize();
 
   const handleContentClick = async (item: { url?: string }) => {
-    if (item.url) {
+    if (!item.url) {
+      const { toast } = await import("sonner");
+      toast(t('explore.unavailable.title'), {
+        description: t('explore.unavailable.comingSoon'),
+        duration: 4000,
+      });
+      return;
+    }
+    try {
       await openInAppBrowser(item.url);
+    } catch {
+      const { toast } = await import("sonner");
+      toast(t('explore.unavailable.title'), {
+        description: t('explore.unavailable.error'),
+        duration: 4000,
+      });
     }
   };
 

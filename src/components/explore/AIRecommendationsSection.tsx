@@ -67,19 +67,31 @@ function RecommendationCard({
   const meta = TYPE_META[recommendation.type] || TYPE_META.playlist;
   const gradient = MOOD_GRADIENTS[recommendation.mood] || "from-primary/20 to-primary/10";
 
+  const { t } = useTranslation();
   const externalLink = recommendation.externalUrl || recommendation.spotifyUri;
 
   const handleClick = async () => {
-    if (externalLink) {
+    if (!externalLink) {
+      toast(t("explore.unavailable.title"), {
+        description: t("explore.unavailable.noUrl"),
+        duration: 4000,
+      });
+      return;
+    }
+    try {
       await openInAppBrowser(externalLink);
+    } catch {
+      toast(t("explore.unavailable.title"), {
+        description: t("explore.unavailable.error"),
+        duration: 4000,
+      });
     }
   };
 
   return (
     <Card
       className={cn(
-        "flex-shrink-0 overflow-hidden transition-all hover:scale-[1.02] bg-theme-cardBg",
-        externalLink ? "cursor-pointer" : "cursor-default",
+        "flex-shrink-0 overflow-hidden cursor-pointer transition-all hover:scale-[1.02] bg-theme-cardBg",
         device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56"
       )}
       style={{
