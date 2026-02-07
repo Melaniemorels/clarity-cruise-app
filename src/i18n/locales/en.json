@@ -163,12 +163,19 @@
     "todayStats": "Today",
     "activityCalendar": "Activity Calendar",
     "myCaptures": "My Captures",
+    "captures": "Captures",
     "noCapturesYet": "No captures yet",
     "useQuickCamera": "Use quick camera to get started",
     "defaultBio": "Finding balance through movement",
     "userNotFound": "User not found",
     "noBio": "No bio yet",
-    "privateAccount": "This account is private. Follow to see their content."
+    "privateAccount": "This account is private",
+    "sectionPrivate": "{{section}} is private",
+    "requestPending": "Request pending",
+    "waitingApproval": "Waiting for user approval",
+    "followToSee": "Follow this user to see their content",
+    "contentNotAvailable": "This content is not available",
+    "requestSentInfo": "Your request has been sent. You'll be notified when it's accepted."
   },
   "settings": {
     "title": "Settings",

@@ -163,12 +163,19 @@
     "todayStats": "Hoy",
     "activityCalendar": "Calendario de Actividad",
     "myCaptures": "Mis Capturas",
+    "captures": "Capturas",
     "noCapturesYet": "No hay capturas aún",
     "useQuickCamera": "Usa la cámara rápida para empezar",
     "defaultBio": "Encontrando balance a través del movimiento",
     "userNotFound": "Usuario no encontrado",
     "noBio": "Sin biografía aún",
-    "privateAccount": "Esta cuenta es privada. Síguelo para ver su contenido."
+    "privateAccount": "Esta cuenta es privada",
+    "sectionPrivate": "{{section}} es privado",
+    "requestPending": "Solicitud pendiente",
+    "waitingApproval": "Esperando aprobación del usuario",
+    "followToSee": "Sigue a este usuario para ver su contenido",
+    "contentNotAvailable": "Este contenido no está disponible",
+    "requestSentInfo": "Tu solicitud ha sido enviada. Recibirás una notificación cuando sea aceptada."
   },
   "settings": {
     "title": "Configuración",

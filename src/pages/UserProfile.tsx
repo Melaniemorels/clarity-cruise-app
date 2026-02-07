@@ -9,12 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { format, parseISO } from "date-fns";
 import { FollowButton } from "@/components/FollowButton";
 import { PrivateProfilePlaceholder } from "@/components/PrivateProfilePlaceholder";
 import { FollowListModal } from "@/components/FollowListModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { useViewerAccess } from "@/hooks/use-viewer-access";
 import { useFollowStatus } from "@/hooks/use-follow-status";
+import { usePosts } from "@/hooks/use-posts";
 
 interface UserProfileData {
   user_id: string;
@@ -42,6 +44,11 @@ const UserProfile = () => {
   const { access, isLoading: accessLoading, isPrivateLocked } = useViewerAccess(userId);
   const { data: followStatus } = useFollowStatus(userId);
 
+  // Fetch user's posts (only when we have access)
+  const { data: userPosts = [], isLoading: postsLoading } = usePosts({
+    userId: userId,
+    feedType: "user",
+  });
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["user-profile", userId],
     queryFn: async (): Promise<UserProfileData | null> => {
@@ -233,10 +240,45 @@ const UserProfile = () => {
             {access.canViewPosts ? (
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">{t("profile.myCaptures")}</h3>
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    {t("profile.noCapturesYet")}
-                  </p>
+                  <h3 className="font-semibold mb-4">{t("profile.captures")}</h3>
+                  {postsLoading ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="aspect-square rounded-lg" />
+                      ))}
+                    </div>
+                  ) : userPosts.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {userPosts.slice(0, 9).map((post) => (
+                        <div
+                          key={post.id}
+                          className="aspect-square rounded-lg bg-muted relative overflow-hidden group cursor-pointer"
+                        >
+                          {post.image_url ? (
+                            <img
+                              src={post.image_url}
+                              alt="Capture"
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
+                              📸
+                            </div>
+                          )}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-background text-xs">
+                              {format(parseISO(post.created_at), "d MMM, HH:mm")}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      {t("profile.noCapturesYet")}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ) : followStatus === "accepted" && !access.canViewPosts ? (
