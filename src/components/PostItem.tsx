@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,6 +81,10 @@ export const PostItem = ({ post }: PostItemProps) => {
   
   // Delete confirmation state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Double-tap like state
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const lastTapRef = useRef<number>(0);
 
   const hasLiked = optimisticLike !== null ? optimisticLike : post.user_has_liked;
   const likesCount = optimisticCount !== null ? optimisticCount : post.likes_count;
@@ -191,6 +195,25 @@ export const PostItem = ({ post }: PostItemProps) => {
     likeMutation.mutate({ wasLiked: hasLiked });
   };
 
+  const handleDoubleTap = useCallback(() => {
+    if (!user || likeMutation.isPending) return;
+    // Only like on double-tap, never unlike
+    if (!hasLiked) {
+      likeMutation.mutate({ wasLiked: false });
+    }
+    // Always show the heart animation
+    setShowHeartAnimation(true);
+    setTimeout(() => setShowHeartAnimation(false), 800);
+  }, [user, hasLiked, likeMutation]);
+
+  const handleImageTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      handleDoubleTap();
+    }
+    lastTapRef.current = now;
+  }, [handleDoubleTap]);
+
   const handleEdit = () => {
     setEditCaption(post.caption || "");
     setEditActivityTag(post.activity_tag || "");
@@ -272,13 +295,28 @@ export const PostItem = ({ post }: PostItemProps) => {
           </div>
 
           {post.image_url && (
-            <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+            <div
+              className="relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer select-none"
+              onClick={handleImageTap}
+            >
               <img
                 src={post.image_url}
                 alt={post.caption || "Post image"}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                draggable={false}
               />
+              {/* Double-tap heart animation */}
+              {showHeartAnimation && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <Heart
+                    className="h-20 w-20 fill-white text-white drop-shadow-lg animate-in zoom-in-50 fade-in duration-300"
+                    style={{
+                      animation: 'heartPop 800ms ease-out forwards',
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 
