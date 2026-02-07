@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Bookmark, Sparkles } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
+import { MediaConnectionBanner } from "@/components/explore/MediaConnectionBanner";
+import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { openInAppBrowser } from "@/lib/browser";
@@ -122,6 +124,12 @@ const Explore = () => {
           </div>
         </div>
 
+        {/* AI Recommendations Section */}
+        <AIRecommendationsSection />
+
+        {/* Media Connection Banner */}
+        <MediaConnectionBanner />
+
         {/* Categories */}
         {categories.map((category, idx) => (
           <div key={idx} className={cn("space-y-3", device.isTablet && "space-y-4")}>
@@ -171,7 +179,6 @@ const Explore = () => {
                           className="h-6 w-6"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Handle bookmark
                           }}
                         >
                           <Bookmark className="h-3 w-3" />
