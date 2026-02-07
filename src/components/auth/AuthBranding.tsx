@@ -19,8 +19,8 @@ export function AuthBranding() {
           className="text-primary"
           style={{ filter: "drop-shadow(0 0 16px hsl(var(--primary) / 0.15))" }}
         />
-        <span className="text-2xl font-semibold tracking-[0.14em] text-foreground">
-          VYV
+        <span className="text-2xl font-semibold tracking-[0.08em] text-foreground">
+          Visualize Your Vibe
         </span>
         <p className="text-sm font-normal text-muted-foreground/70 tracking-wide">
           {t("auth.brandSubtitle")}

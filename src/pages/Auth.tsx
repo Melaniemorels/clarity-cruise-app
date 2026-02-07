@@ -45,8 +45,8 @@ const Auth = () => {
                 className="text-primary"
                 style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary) / 0.15))" }}
               />
-              <span className="text-lg font-semibold tracking-[0.12em] text-foreground">
-                VYV
+              <span className="text-lg font-semibold tracking-[0.08em] text-foreground">
+                Visualize Your Vibe
               </span>
             </div>
           )}
