@@ -1,7 +1,15 @@
 import { useState, useRef } from "react";
-import { Camera, X, SwitchCamera } from "lucide-react";
+import { Camera, X, SwitchCamera, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -9,6 +17,46 @@ import { useTranslation } from "react-i18next";
 
 type FilterType = "natural" | "bw";
 type FacingMode = "environment" | "user";
+
+const AUTO_SAVE_KEY = "vyv-auto-save-captures";
+const AUTO_SAVE_PROMPTED_KEY = "vyv-auto-save-prompted";
+
+function getAutoSavePreference(): boolean {
+  try {
+    return localStorage.getItem(AUTO_SAVE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function setAutoSavePreference(value: boolean) {
+  try {
+    localStorage.setItem(AUTO_SAVE_KEY, value ? "true" : "false");
+  } catch { /* ignore */ }
+}
+
+function wasAutoSavePrompted(): boolean {
+  try {
+    return localStorage.getItem(AUTO_SAVE_PROMPTED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markAutoSavePrompted() {
+  try {
+    localStorage.setItem(AUTO_SAVE_PROMPTED_KEY, "true");
+  } catch { /* ignore */ }
+}
+
+async function downloadImageToDevice(dataUrl: string) {
+  const link = document.createElement("a");
+  link.href = dataUrl;
+  link.download = `vyv-capture-${Date.now()}.jpg`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 interface QuickCameraProps {
   isOpen?: boolean;
@@ -25,12 +73,13 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const [capturedTimestamp, setCapturedTimestamp] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>("environment");
+  const [showAutoSavePrompt, setShowAutoSavePrompt] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const pendingImageRef = useRef<string | null>(null);
   const { user } = useAuth();
 
   const startCamera = async (mode: FacingMode = facingMode) => {
-    // Stop existing stream first
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -75,7 +124,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
     if (!ctx) return;
 
-    // Mirror the image if using front camera
     if (facingMode === "user") {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
@@ -83,7 +131,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
     ctx.drawImage(videoRef.current, 0, 0);
 
-    // Reset transform
     if (facingMode === "user") {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
@@ -131,6 +178,13 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     }
   };
 
+  const handleAutoSaveIfEnabled = (imageDataUrl: string) => {
+    if (getAutoSavePreference()) {
+      downloadImageToDevice(imageDataUrl);
+      toast.success(t('camera.savedToDevice'));
+    }
+  };
+
   const uploadAndCreate = async () => {
     if (!capturedImage || !user) return;
 
@@ -153,14 +207,11 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         .from("quick-captures")
         .getPublicUrl(fileName);
 
-      // Use captured timestamp for accurate timing
       const timestamp = capturedTimestamp || new Date().toISOString();
 
-      // Analyze the image with AI to get category and label
       const analysis = await analyzeImage(urlData.publicUrl);
       const activityTag = `${analysis.emoji} ${analysis.label}`;
 
-      // Save to entries (almanac/profile)
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
         photo_url: urlData.publicUrl,
@@ -171,7 +222,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       if (entryError) throw entryError;
 
-      // Auto-publish to posts (feed) with preserved timestamp
       const { error: postError } = await supabase.from("posts").insert({
         user_id: user.id,
         image_url: urlData.publicUrl,
@@ -182,7 +232,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       if (postError) throw postError;
 
-      // Create calendar block for the capture with preserved timestamp
       const captureTime = new Date(timestamp);
       const endTime = new Date(captureTime.getTime() + 30 * 60 * 1000).toISOString();
 
@@ -198,6 +247,15 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       if (blockError) throw blockError;
 
       toast.success(t('camera.photoSaved'));
+
+      // Check if we should show auto-save prompt or auto-save
+      if (!wasAutoSavePrompted()) {
+        pendingImageRef.current = capturedImage;
+        setShowAutoSavePrompt(true);
+      } else {
+        handleAutoSaveIfEnabled(capturedImage);
+      }
+
       setIsOpen(false);
       setCapturedImage(null);
     } catch (error) {
@@ -208,6 +266,17 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleAutoSaveResponse = (save: boolean) => {
+    markAutoSavePrompted();
+    setAutoSavePreference(save);
+    if (save && pendingImageRef.current) {
+      downloadImageToDevice(pendingImageRef.current);
+      toast.success(t('camera.savedToDevice'));
+    }
+    pendingImageRef.current = null;
+    setShowAutoSavePrompt(false);
   };
 
   const handleOpen = (open: boolean) => {
@@ -258,7 +327,6 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                     } ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
                   />
                   
-                  {/* Camera toggle button */}
                   <Button
                     variant="secondary"
                     size="icon"
@@ -333,6 +401,31 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Auto-save prompt - shown once on first capture */}
+      <AlertDialog open={showAutoSavePrompt} onOpenChange={setShowAutoSavePrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5 text-primary" />
+              {t('camera.autoSavePromptTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('camera.autoSavePromptDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => handleAutoSaveResponse(false)}>
+              {t('camera.autoSaveNo')}
+            </Button>
+            <Button onClick={() => handleAutoSaveResponse(true)}>
+              {t('camera.autoSaveYes')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
+
+export { getAutoSavePreference, setAutoSavePreference };

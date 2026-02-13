@@ -217,6 +217,8 @@
     "legal": "Legal",
     "communityGuidelines": "Community Guidelines",
     "dataPermissions": "Data & Permissions",
+    "autoSaveCaptures": "Save captures to device",
+    "autoSaveCapturesDesc": "Instant photos will be automatically saved to your gallery",
     "deleteAccount": "Delete Account",
     "deleteAccountTitle": "Delete your account?",
     "deleteAccountDesc": "This action cannot be undone. All your data, posts, and connections will be permanently deleted.",
@@ -349,7 +351,12 @@
     "saving": "Saving...",
     "photoSaved": "Photo saved to your calendar and profile",
     "cameraError": "Could not access camera",
-    "uploadError": "Error saving photo"
+    "uploadError": "Error saving photo",
+    "autoSavePromptTitle": "Save captures to your device?",
+    "autoSavePromptDesc": "We can automatically save every photo you take to your gallery.",
+    "autoSaveYes": "Yes, save",
+    "autoSaveNo": "No, thanks",
+    "savedToDevice": "Photo saved to your device"
   },
   "post": {
     "captureMoment": "Capture Moment",

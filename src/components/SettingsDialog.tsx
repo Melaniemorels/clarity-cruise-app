@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/ThemeProvider";
@@ -64,7 +64,9 @@ import {
   AlertTriangle,
   Send,
   Music,
+  Download,
 } from "lucide-react";
+import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -92,6 +94,11 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const [reflectionPrompts, setReflectionPrompts] = useState(true);
   const [personalizationLevel, setPersonalizationLevel] = useState<"minimal" | "balanced" | "guided">("balanced");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [autoSaveCaptures, setAutoSaveCaptures] = useState(() => getAutoSavePreference());
+
+  const markAutoSavePrompted = () => {
+    try { localStorage.setItem("vyv-auto-save-prompted", "true"); } catch { /* ignore */ }
+  };
 
   const handlePrivacyChange = (isPrivate: boolean) => {
     updateProfileMutation.mutate({ is_private: isPrivate });
@@ -444,6 +451,23 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
               {/* Data & Permissions */}
               <div>
                 <SectionHeader>{t("settings.dataPermissions")}</SectionHeader>
+                <div className="space-y-4">
+                  <SettingRow
+                    icon={Download}
+                    label={t("settings.autoSaveCaptures")}
+                    description={t("settings.autoSaveCapturesDesc")}
+                    action={
+                      <Switch
+                        checked={autoSaveCaptures}
+                        onCheckedChange={(checked) => {
+                          setAutoSaveCaptures(checked);
+                          setAutoSavePreference(checked);
+                          markAutoSavePrompted();
+                        }}
+                      />
+                    }
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   className="w-full justify-start h-auto py-3 px-0 text-destructive hover:text-destructive hover:bg-destructive/10"
