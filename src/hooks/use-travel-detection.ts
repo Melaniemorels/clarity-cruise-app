@@ -70,6 +70,20 @@ export function useTravelDetection(): TravelDetectionResult {
 
   // Already traveling — no suggestion needed
   const alreadyTraveling = profile?.is_traveling ?? false;
+  
+  // If travel mode is "off", never detect
+  const modeStatus = profile?.travel_mode_status ?? "auto";
+  if (modeStatus === "off") {
+    return {
+      isTravelDetected: false,
+      reason: null,
+      currentTimezone,
+      homeTimezone,
+      isDismissed: false,
+      dismiss: () => {},
+      activateTravelMode: () => {},
+    };
+  }
 
   // Check dismissal
   const getDismissKey = () => `${DISMISS_KEY}-${format(new Date(), "yyyy-MM-dd")}`;
@@ -84,6 +98,7 @@ export function useTravelDetection(): TravelDetectionResult {
   const isTravelDetected =
     !alreadyTraveling &&
     !isDismissed &&
+    modeStatus === "auto" &&
     (timezoneChanged || calendarHasTravel.current);
 
   const reason: "timezone" | "calendar" | null = timezoneChanged
@@ -104,10 +119,11 @@ export function useTravelDetection(): TravelDetectionResult {
     updateProfile.mutate({
       is_traveling: true,
       current_timezone: currentTimezone,
+      travel_detected_reason: reason ?? "manual",
       ...(!homeTimezone ? { home_timezone: currentTimezone } : {}),
     });
     dismiss();
-  }, [updateProfile, currentTimezone, homeTimezone, dismiss]);
+  }, [updateProfile, currentTimezone, homeTimezone, reason, dismiss]);
 
   return {
     isTravelDetected,

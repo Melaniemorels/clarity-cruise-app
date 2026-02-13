@@ -23,9 +23,14 @@ interface UserContext {
   recentMood?: string;
   focusSessionsToday: number;
   userLanguage: string;
-  isTraveling: boolean;
-  currentTimezone: string | null;
-  homeTimezone: string | null;
+  travelMode: {
+    status: "off" | "auto" | "on";
+    isTraveling: boolean;
+    detectedReason?: string;
+    timezoneHome: string | null;
+    timezoneCurrent: string | null;
+    allowAutoTimezoneShift: boolean;
+  };
   profile: RecommendationProfile;
 }
 
@@ -78,7 +83,8 @@ AVAILABLE USER DATA:
 - Today's steps: ${hasStepsData ? context.todaySteps.toLocaleString() : "No data available"}
 - Focus sessions today: ${context.focusSessionsToday}
 - Calendar commitments: ${context.upcomingEvents.length > 0 ? context.upcomingEvents.map(e => e.title + " (" + e.category + ") at " + e.startsAt).join("; ") : "No scheduled events"}
-- TRAVEL STATUS: ${context.isTraveling ? "TRAVELING" : "At home"}${context.isTraveling && context.currentTimezone ? ` (current timezone: ${context.currentTimezone}, home timezone: ${context.homeTimezone || "unknown"})` : ""}
+- TRAVEL STATUS: ${context.travelMode.isTraveling ? "TRAVELING" : "At home"} (mode: ${context.travelMode.status}${context.travelMode.detectedReason ? ", detected by: " + context.travelMode.detectedReason : ""})${context.travelMode.isTraveling && context.travelMode.timezoneCurrent ? ` (current timezone: ${context.travelMode.timezoneCurrent}, home timezone: ${context.travelMode.timezoneHome || "unknown"})` : ""}
+- AUTO TIMEZONE SHIFT: ${context.travelMode.allowAutoTimezoneShift ? "enabled" : "disabled"}
 
 STRICT GUIDELINES:
 - Adapt recommendations strictly to the user's real data above
@@ -87,7 +93,7 @@ STRICT GUIDELINES:
 - Avoid overwhelming schedules
 - Prioritize balance, mental clarity, and sustainable habits
 - RESPECT existing calendar commitments—schedule around them, never over them
-${context.isTraveling ? `
+${context.travelMode.isTraveling ? `
 TRAVEL MODE ACTIVE — MANDATORY ADAPTATIONS (based on user's recommendation profile):
 These overrides are non-negotiable when the user is traveling:
 
@@ -98,7 +104,7 @@ These overrides are non-negotiable when the user is traveling:
 5. TONE: ${context.profile.tone === "gentle" ? 'Extra supportive and forgiving. Acknowledge travel disruption. Use phrases like "when possible", "if energy allows", "gentle transition".' : "Standard professional tone."}
 6. NUTRITION: Travel-friendly only (hotel breakfast, light portable meals, emphasis on hydration). No meal-prep or cooking suggestions.
 7. MOVEMENT AS EXPLORATION: Prefer "walking tour", "neighborhood exploration", "sightseeing on foot" over structured cardio.
-${context.currentTimezone && context.homeTimezone && context.currentTimezone !== context.homeTimezone ? `8. JET LAG: The user crossed timezones (${context.homeTimezone} → ${context.currentTimezone}). Include gradual schedule adjustment advice, light exposure timing, and melatonin-friendly evening routine.` : ""}
+${context.travelMode.timezoneCurrent && context.travelMode.timezoneHome && context.travelMode.timezoneCurrent !== context.travelMode.timezoneHome ? `8. JET LAG: The user crossed timezones (${context.travelMode.timezoneHome} → ${context.travelMode.timezoneCurrent}). ${context.travelMode.allowAutoTimezoneShift ? "Schedule is auto-shifted to local time." : "User prefers to keep home timezone schedule."} Include gradual schedule adjustment advice, light exposure timing, and melatonin-friendly evening routine.` : ""}
 ` : ""}
 
 STRUCTURE:
@@ -228,14 +234,17 @@ serve(async (req) => {
         .lte("start_at", `${today}T23:59:59`),
       supabase
         .from("profiles")
-        .select("is_traveling, home_timezone, current_timezone, travel_intensity")
+        .select("is_traveling, home_timezone, current_timezone, travel_intensity, travel_mode_status, travel_detected_reason, allow_auto_timezone_shift")
         .eq("user_id", user.id)
         .single(),
     ]);
 
     // Determine local hour based on user's timezone (travel-aware)
+    const allowAutoShift = profileData?.allow_auto_timezone_shift !== false;
     let localHour: number;
-    const userTimezone = profileData?.current_timezone || profileData?.home_timezone;
+    const userTimezone = allowAutoShift
+      ? (profileData?.current_timezone || profileData?.home_timezone)
+      : profileData?.home_timezone;
     if (userTimezone) {
       try {
         const localTimeStr = now.toLocaleString("en-US", { timeZone: userTimezone, hour12: false, hour: "2-digit" });
@@ -286,6 +295,8 @@ serve(async (req) => {
       };
     }
 
+    const travelModeStatus = (profileData?.travel_mode_status as "off" | "auto" | "on") || "auto";
+
     const context: UserContext = {
       timeOfDay,
       todayWorkoutMinutes: healthData?.workout_minutes || 0,
@@ -298,9 +309,14 @@ serve(async (req) => {
       })) || [],
       focusSessionsToday: scheduleBlocks?.length || 0,
       userLanguage,
-      isTraveling,
-      currentTimezone: profileData?.current_timezone || null,
-      homeTimezone: profileData?.home_timezone || null,
+      travelMode: {
+        status: travelModeStatus,
+        isTraveling,
+        detectedReason: profileData?.travel_detected_reason || undefined,
+        timezoneHome: profileData?.home_timezone || null,
+        timezoneCurrent: profileData?.current_timezone || null,
+        allowAutoTimezoneShift: allowAutoShift,
+      },
       profile: recProfile,
     };
 
