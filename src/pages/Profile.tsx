@@ -33,7 +33,7 @@ const Profile = () => {
 
   const healthData = [
     { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '' },
-    { key: 'workout', label: `${t('calendar.workout')} (min)`, value: health.workout.value, goal: health.workout.goal, unit: '' },
+    { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: health.workout.value, goal: health.workout.goal, unit: '' },
   ];
 
   // Calculate activity based on real entries for each day

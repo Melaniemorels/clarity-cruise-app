@@ -418,7 +418,7 @@ const Calendar = () => {
                     <div>
                       <div className="flex items-center justify-between text-sm mb-1">
                         <span className="text-muted-foreground">{t('calendar.workout')}</span>
-                        <span className="font-semibold">{health.workout.value} / {health.workout.goal} min</span>
+                        <span className="font-semibold">{health.workout.value} / {health.workout.goal} {t('calendar.minShort')}</span>
                       </div>
                       <Progress value={Math.min(100, (health.workout.value / health.workout.goal) * 100)} className="h-2" />
                     </div>
@@ -632,7 +632,7 @@ const Calendar = () => {
                 <>
                   <div className="text-center mb-4">
                     <div className="text-4xl font-bold text-foreground mb-2">
-                      {remainingMinutes} min
+                      {remainingMinutes} {t('calendar.minShort')}
                     </div>
                     <p className="text-sm text-muted-foreground">{t('calendar.remainingToday')}</p>
                   </div>
@@ -666,7 +666,7 @@ const Calendar = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{t('nav.feed')}</span>
-                  <span className="text-sm text-muted-foreground">{feedMetrics.usedMinutes}/{feedMetrics.limitMinutes} min</span>
+                  <span className="text-sm text-muted-foreground">{feedMetrics.usedMinutes}/{feedMetrics.limitMinutes} {t('calendar.minShort')}</span>
                 </div>
                 <Progress value={feedMetrics.progress * 100} className="h-2" />
               </CardContent>
@@ -676,7 +676,7 @@ const Calendar = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{t('nav.explore')}</span>
-                  <span className="text-sm text-muted-foreground">{exploreMetrics.usedMinutes}/{exploreMetrics.limitMinutes} min</span>
+                  <span className="text-sm text-muted-foreground">{exploreMetrics.usedMinutes}/{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
                 </div>
                 <Progress value={exploreMetrics.progress * 100} className="h-2" />
               </CardContent>
@@ -725,11 +725,11 @@ const Calendar = () => {
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary mb-1">
-                      {totalWeeklySaved} min
+                      {totalWeeklySaved} {t('calendar.minShort')}
                     </div>
                     {totalWeeklySaved >= 60 && (
                       <p className="text-xs text-muted-foreground mb-1">
-                        ≈ {Math.floor(totalWeeklySaved / 60)} h {totalWeeklySaved % 60 > 0 ? `${totalWeeklySaved % 60} min` : ''}
+                        ≈ {Math.floor(totalWeeklySaved / 60)} {t('calendar.hShort')} {totalWeeklySaved % 60 > 0 ? `${totalWeeklySaved % 60} ${t('calendar.minShort')}` : ''}
                       </p>
                     )}
                     <p className="text-sm text-muted-foreground">{t('calendar.totalTimeSaved')}</p>
@@ -746,15 +746,15 @@ const Calendar = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.dailyCap')}</span>
-                  <span className="text-muted-foreground">{dailyLimitMinutes} min</span>
+                  <span className="text-muted-foreground">{dailyLimitMinutes} {t('calendar.minShort')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.feedCap')}</span>
-                  <span className="text-muted-foreground">{feedMetrics.limitMinutes} min</span>
+                  <span className="text-muted-foreground">{feedMetrics.limitMinutes} {t('calendar.minShort')}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <span>{t('calendar.exploreCap')}</span>
-                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} min</span>
+                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
                 </div>
               </div>
             </CardContent>

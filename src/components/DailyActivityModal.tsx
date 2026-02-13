@@ -56,7 +56,7 @@ export const DailyActivityModal = ({ open, onOpenChange, date, activities }: Dai
             const percentage = Math.min((value / max) * 100, 100);
             const displayValue = key === 'steps' 
               ? value.toLocaleString() 
-              : `${Math.floor(value)} min`;
+              : `${Math.floor(value)} ${t('calendar.minShort')}`;
 
             return (
               <div key={key} className="space-y-2">
