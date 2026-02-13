@@ -24,15 +24,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+    let initialSessionResolved = false;
+
+    // Set up listener FIRST (before getSession)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!isMounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+
+        // Only set loading false from listener after initial session is resolved
+        if (initialSessionResolved) {
+          setLoading(false);
+        }
       }
     );
 
+    // THEN get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+
+      initialSessionResolved = true;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -43,19 +57,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const sessionActive = sessionStorage.getItem(KEEP_SIGNED_IN_KEY);
         
         if (keepSignedIn === "false" && !sessionActive) {
-          // User didn't want persistent session and this is a new browser session
           supabase.auth.signOut().then(() => {
+            if (!isMounted) return;
             setSession(null);
             setUser(null);
           });
         } else {
-          // Mark this browser session as active
           sessionStorage.setItem(KEEP_SIGNED_IN_KEY, "active");
         }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, handle: string) => {
