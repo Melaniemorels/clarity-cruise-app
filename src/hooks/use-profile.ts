@@ -11,6 +11,9 @@ export interface Profile {
   bio: string | null;
   photo_url: string | null;
   is_private: boolean;
+  is_traveling: boolean;
+  home_timezone: string | null;
+  current_timezone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -93,7 +96,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private">>) => {
+    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private" | "is_traveling" | "home_timezone" | "current_timezone">>) => {
       if (!user) throw new Error("Usuario no autenticado");
 
       const { data, error } = await supabase

@@ -750,5 +750,15 @@
     "contentRejected": "Content rejected: violates community guidelines.",
     "accountSuspended": "Your account has been suspended for repeated community guideline violations.",
     "strikeWarning": "Warning: inappropriate content detected. Strike {{current}}/{{max}}."
+  },
+  "travelMode": {
+    "title": "Travel Mode",
+    "description": "Adapt routines and schedules to your current location",
+    "active": "Traveling",
+    "inactive": "At home",
+    "activated": "Travel mode activated",
+    "deactivated": "Travel mode deactivated",
+    "timezoneDetected": "Timezone detected: {{timezone}}",
+    "differentTimezone": "You seem to be in a different timezone ({{current}} vs {{home}})"
   }
 }
