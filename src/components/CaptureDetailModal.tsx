@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -74,8 +75,10 @@ export function CaptureDetailModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden bg-card border-border rounded-2xl [&>button]:hidden">
-          {/* Header */}
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden bg-card border-border rounded-2xl [&>button]:hidden" aria-describedby={undefined}>
+          <VisuallyHidden>
+            <DialogTitle>{t("captureDetail.delete")}</DialogTitle>
+          </VisuallyHidden>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <span className="text-sm font-medium text-muted-foreground">
               {format(parseISO(entry.occurred_at), "d MMM yyyy · HH:mm")}

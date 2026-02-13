@@ -25,14 +25,12 @@ const sizeClasses = {
 function getCacheBustedUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
   
-  // If URL already has cache param, return as is
+  // If URL already has a cache-busting param, return as-is
   if (url.includes('?v=') || url.includes('&v=')) {
     return url;
   }
   
-  // Add timestamp-based cache buster
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}v=${Date.now()}`;
+  return url;
 }
 
 /**
