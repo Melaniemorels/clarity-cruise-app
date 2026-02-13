@@ -15,6 +15,9 @@ interface UserContext {
   recentMood?: string;
   focusSessionsToday: number;
   userLanguage: string;
+  isTraveling: boolean;
+  currentTimezone: string | null;
+  homeTimezone: string | null;
 }
 
 interface TimeBlock {
@@ -66,6 +69,7 @@ AVAILABLE USER DATA:
 - Today's steps: ${hasStepsData ? context.todaySteps.toLocaleString() : "No data available"}
 - Focus sessions today: ${context.focusSessionsToday}
 - Calendar commitments: ${context.upcomingEvents.length > 0 ? context.upcomingEvents.map(e => e.title + " (" + e.category + ") at " + e.startsAt).join("; ") : "No scheduled events"}
+- TRAVEL STATUS: ${context.isTraveling ? "TRAVELING" : "At home"}${context.isTraveling && context.currentTimezone ? ` (current timezone: ${context.currentTimezone}, home timezone: ${context.homeTimezone || "unknown"})` : ""}
 
 STRICT GUIDELINES:
 - Adapt recommendations strictly to the user's real data above
@@ -74,6 +78,18 @@ STRICT GUIDELINES:
 - Avoid overwhelming schedules
 - Prioritize balance, mental clarity, and sustainable habits
 - RESPECT existing calendar commitments—schedule around them, never over them
+${context.isTraveling ? `
+TRAVEL MODE ACTIVE — SPECIAL INSTRUCTIONS:
+- The user is currently traveling. Adapt ALL recommendations for a travel context.
+- Suggest hotel-friendly or portable exercises (bodyweight workouts, stretching, yoga in small spaces)
+- Recommend shorter, more flexible activity blocks (the user may have unpredictable schedules)
+- Include travel-specific wellness tips (hydration, jet lag management, walking exploration)
+- Suggest local exploration as a form of movement (walking tours, sightseeing on foot)
+- Prioritize recovery and sleep quality, especially if timezone changed
+- Reduce work/focus blocks—traveling often means lighter productivity expectations
+- Nutrition suggestions should be travel-friendly (hotel breakfast, light meals, hydration)
+${context.currentTimezone && context.homeTimezone && context.currentTimezone !== context.homeTimezone ? `- The user crossed timezones (${context.homeTimezone} → ${context.currentTimezone}). Include jet lag management tips and suggest gradual schedule adjustment.` : ""}
+` : ""}
 
 STRUCTURE:
 Organize into 4 time blocks: morning, midday, afternoon, evening.
@@ -186,29 +202,32 @@ serve(async (req) => {
     else if (hour >= 18) timeOfDay = "evening";
 
     // Get health data
-    const { data: healthData } = await supabase
-      .from("health_daily")
-      .select("steps, workout_minutes, sleep_hours")
-      .eq("user_id", user.id)
-      .eq("date", today)
-      .single();
-
-    // Get today's events
-    const { data: events } = await supabase
-      .from("calendar_events")
-      .select("title, category, starts_at")
-      .eq("user_id", user.id)
-      .gte("starts_at", `${today}T00:00:00`)
-      .lte("starts_at", `${today}T23:59:59`)
-      .order("starts_at");
-
-    // Get focus sessions
-    const { data: scheduleBlocks } = await supabase
-      .from("schedule_blocks")
-      .select("id")
-      .eq("user_id", user.id)
-      .gte("start_at", `${today}T00:00:00`)
-      .lte("start_at", `${today}T23:59:59`);
+    const [{ data: healthData }, { data: events }, { data: scheduleBlocks }, { data: profileData }] = await Promise.all([
+      supabase
+        .from("health_daily")
+        .select("steps, workout_minutes, sleep_hours")
+        .eq("user_id", user.id)
+        .eq("date", today)
+        .single(),
+      supabase
+        .from("calendar_events")
+        .select("title, category, starts_at")
+        .eq("user_id", user.id)
+        .gte("starts_at", `${today}T00:00:00`)
+        .lte("starts_at", `${today}T23:59:59`)
+        .order("starts_at"),
+      supabase
+        .from("schedule_blocks")
+        .select("id")
+        .eq("user_id", user.id)
+        .gte("start_at", `${today}T00:00:00`)
+        .lte("start_at", `${today}T23:59:59`),
+      supabase
+        .from("profiles")
+        .select("is_traveling, home_timezone, current_timezone")
+        .eq("user_id", user.id)
+        .single(),
+    ]);
 
     // Get user language from request body
     let userLanguage = "en";
@@ -231,6 +250,9 @@ serve(async (req) => {
       })) || [],
       focusSessionsToday: scheduleBlocks?.length || 0,
       userLanguage,
+      isTraveling: profileData?.is_traveling || false,
+      currentTimezone: profileData?.current_timezone || null,
+      homeTimezone: profileData?.home_timezone || null,
     };
 
     // Generate perfect day using AI

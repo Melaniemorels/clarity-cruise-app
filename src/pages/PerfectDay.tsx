@@ -16,13 +16,15 @@ import {
   Utensils,
   BedDouble,
   Brain,
-  Settings2
+  Settings2,
+  Plane
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { usePerfectDay, TimeBlock, Activity, Period, ActivityType, EnergyLevel } from "@/hooks/use-perfect-day";
+import { useProfile } from "@/hooks/use-profile";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChangeRoutineModal } from "@/components/ChangeRoutineModal";
@@ -233,6 +235,7 @@ export default function PerfectDay() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data, isLoading, error, refetch, isFetching } = usePerfectDay();
+  const { data: profile } = useProfile();
   const [showChangeModal, setShowChangeModal] = useState(false);
 
   const handleRefresh = () => {
@@ -319,10 +322,18 @@ export default function PerfectDay() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-3"
             >
-              <p className="text-sm text-muted-foreground">
-                {t("perfectDay.subtitle")}
-              </p>
-              <EnergyBadge level={data.energyLevel} sleepHours={data.sleepHours} />
+               <p className="text-sm text-muted-foreground">
+                 {t("perfectDay.subtitle")}
+               </p>
+               <div className="flex items-center gap-2 flex-wrap">
+                 <EnergyBadge level={data.energyLevel} sleepHours={data.sleepHours} />
+                 {profile?.is_traveling && (
+                   <Badge variant="outline" className="text-xs font-normal gap-1">
+                     <Plane className="h-3 w-3" />
+                     {t("travelMode.active")}
+                   </Badge>
+                 )}
+               </div>
             </motion.div>
 
             {/* Time Blocks - Always in order: Morning, Midday, Afternoon, Evening */}

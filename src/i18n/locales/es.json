@@ -750,5 +750,15 @@
     "contentRejected": "Contenido rechazado: viola las normas de la comunidad.",
     "accountSuspended": "Tu cuenta está suspendida por violaciones repetidas de las normas de la comunidad.",
     "strikeWarning": "Advertencia: contenido inapropiado detectado. Strike {{current}}/{{max}}."
+  },
+  "travelMode": {
+    "title": "Modo Viaje",
+    "description": "Adapta rutinas y horarios a tu ubicación actual",
+    "active": "Viajando",
+    "inactive": "En casa",
+    "activated": "Modo viaje activado",
+    "deactivated": "Modo viaje desactivado",
+    "timezoneDetected": "Zona horaria detectada: {{timezone}}",
+    "differentTimezone": "Parece que estás en una zona horaria diferente ({{current}} vs {{home}})"
   }
 }

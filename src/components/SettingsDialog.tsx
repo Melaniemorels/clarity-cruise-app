@@ -65,6 +65,7 @@ import {
   Send,
   Music,
   Download,
+  Plane,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
 
@@ -95,6 +96,30 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const [personalizationLevel, setPersonalizationLevel] = useState<"minimal" | "balanced" | "guided">("balanced");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [autoSaveCaptures, setAutoSaveCaptures] = useState(() => getAutoSavePreference());
+
+  const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const handleTravelToggle = (isTraveling: boolean) => {
+    const updates: Record<string, any> = { is_traveling: isTraveling };
+    if (isTraveling) {
+      // Save current timezone and set home if not set
+      updates.current_timezone = currentTimezone;
+      if (!profile?.home_timezone) {
+        updates.home_timezone = currentTimezone;
+      }
+    } else {
+      updates.current_timezone = null;
+    }
+    updateProfileMutation.mutate(updates);
+    toast.success(isTraveling ? t("travelMode.activated") : t("travelMode.deactivated"));
+  };
+
+  // Auto-detect timezone on mount and save home_timezone if not set
+  useEffect(() => {
+    if (profile && !profile.home_timezone && open) {
+      updateProfileMutation.mutate({ home_timezone: currentTimezone });
+    }
+  }, [profile?.home_timezone, open]);
 
   const markAutoSavePrompted = () => {
     try { localStorage.setItem("vyv-auto-save-prompted", "true"); } catch { /* ignore */ }
@@ -341,6 +366,36 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
               {/* Social Budget */}
               <SocialBudgetSettings />
+
+              <Separator />
+
+              {/* Travel Mode */}
+              <div>
+                <SettingRow
+                  icon={Plane}
+                  label={t("travelMode.title")}
+                  description={
+                    profile?.is_traveling
+                      ? t("travelMode.active")
+                      : t("travelMode.description")
+                  }
+                  action={
+                    <Switch
+                      checked={profile?.is_traveling ?? false}
+                      onCheckedChange={handleTravelToggle}
+                      disabled={updateProfileMutation.isPending}
+                    />
+                  }
+                />
+                {profile?.is_traveling && profile?.home_timezone && currentTimezone !== profile.home_timezone && (
+                  <p className="text-xs text-muted-foreground ml-8 mt-1">
+                    {t("travelMode.differentTimezone", {
+                      current: currentTimezone.split("/").pop()?.replace("_", " "),
+                      home: profile.home_timezone.split("/").pop()?.replace("_", " "),
+                    })}
+                  </p>
+                )}
+              </div>
 
               <Separator />
 
