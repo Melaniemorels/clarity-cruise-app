@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Camera, X, SwitchCamera, Download } from "lucide-react";
+import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -75,7 +76,9 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const [isUploading, setIsUploading] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>("environment");
   const [showAutoSavePrompt, setShowAutoSavePrompt] = useState(false);
+  const [captureTapped, setCaptureTapped] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const captureButtonRef = useRef<HTMLButtonElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const pendingImageRef = useRef<string | null>(null);
   const { user } = useAuth();
@@ -371,13 +374,25 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 </div>
 
                 <Button 
-                  onClick={capturePhoto} 
+                  ref={captureButtonRef}
+                  onClick={() => {
+                    setCaptureTapped(true);
+                    capturePhoto();
+                  }} 
                   size="lg" 
                   className="mt-6 w-[84%] rounded-[30px] h-[54px] text-base font-semibold bg-gradient-to-b from-accent to-primary hover:opacity-90 transition-transform duration-150 hover:scale-[0.98]"
                 >
                   <Camera className="mr-2" size={18} strokeWidth={1.4} />
                   {t('camera.capture')}
                 </Button>
+                <FirstTapTooltip
+                  tapId="focusCapture"
+                  pageKey="focus"
+                  title="Registro, no perfección"
+                  body="Esto es para recordarte quién eres hoy."
+                  anchorRef={captureButtonRef}
+                  show={captureTapped}
+                />
               </>
             ) : (
               <>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState as useReactState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
 import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
@@ -15,6 +15,8 @@ import { openInAppBrowser } from "@/lib/browser";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
+import { FirstTapTooltip } from "@/components/FirstTapTooltip";
+import { useGuide } from "@/contexts/GuideContext";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -30,6 +32,9 @@ const Explore = () => {
   const device = useDevice();
   const navPadding = useNavPadding();
   const fonts = useResponsiveFontSize();
+  const [exploreCardTapped, setExploreCardTapped] = useReactState(false);
+  const exploreCardRef = useRef<HTMLDivElement>(null);
+  const { isFirstTap, markFirstTap } = useGuide();
 
   // Track time spent on Explore module
   const exploreTracker = useModuleTimeTracker("EXPLORE");
@@ -39,7 +44,15 @@ const Explore = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleContentClick = async (item: { url?: string }) => {
+  const handleContentClick = async (item: { url?: string }, cardEl?: HTMLDivElement | null) => {
+    // Track first card tap for tooltip
+    if (isFirstTap("exploreCard") && !exploreCardTapped) {
+      setExploreCardTapped(true);
+      if (cardEl) {
+        (exploreCardRef as React.MutableRefObject<HTMLDivElement | null>).current = cardEl;
+      }
+    }
+
     if (!item.url) {
       const { toast } = await import("sonner");
       toast(t('explore.unavailable.title'), {
@@ -181,7 +194,7 @@ const Explore = () => {
                       borderRadius: '18px',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                     }}
-                    onClick={() => handleContentClick(item)}
+                    onClick={(e) => handleContentClick(item, e.currentTarget)}
                   >
                     <div className={cn(
                       "bg-gradient-to-br flex items-center justify-center",
@@ -243,6 +256,15 @@ const Explore = () => {
         open={playerOpen}
         onOpenChange={setPlayerOpen}
         content={selectedContent}
+      />
+
+      <FirstTapTooltip
+        tapId="exploreCard"
+        pageKey="explore"
+        title="Explorar con intención"
+        body="Guarda lo que te hace bien. Evita lo que solo distrae."
+        anchorRef={exploreCardRef}
+        show={exploreCardTapped}
       />
 
       <ResponsiveNav />
