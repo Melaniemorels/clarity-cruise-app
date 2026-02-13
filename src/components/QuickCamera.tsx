@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { moderateContent } from "@/lib/moderation";
 
 type FilterType = "natural" | "bw";
 type FacingMode = "environment" | "user";
@@ -211,6 +212,21 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       const analysis = await analyzeImage(urlData.publicUrl);
       const activityTag = `${analysis.emoji} ${analysis.label}`;
+
+      // Moderate content before saving
+      const modResult = await moderateContent({
+        imageUrl: urlData.publicUrl,
+        userId: user.id,
+        contentType: "entry",
+      });
+
+      if (!modResult.approved) {
+        // Clean up uploaded image
+        await supabase.storage.from("quick-captures").remove([fileName]);
+        toast.error(modResult.message || t('moderation.contentRejected'));
+        setIsUploading(false);
+        return;
+      }
 
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,

@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Camera, RotateCcw, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { moderateContent } from "@/lib/moderation";
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -177,6 +178,20 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
         const { data: { publicUrl } } = supabase.storage
           .from("images")
           .getPublicUrl(fileName);
+
+        // Moderate content before publishing
+        const modResult = await moderateContent({
+          text: caption.trim() || undefined,
+          imageUrl: publicUrl,
+          userId: user.id,
+          contentType: "post",
+        });
+
+        if (!modResult.approved) {
+          // Clean up uploaded image
+          await supabase.storage.from("images").remove([fileName]);
+          throw new Error(modResult.message || t('moderation.contentRejected'));
+        }
 
         // Insert post into database
         const { error: insertError } = await supabase

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, AlertTriangle, Trash2, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { moderateContent } from "@/lib/moderation";
 import { 
   useUpdateCurrentUserProfile, 
   useUpdateAvatar, 
@@ -161,6 +163,19 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
     }
 
     try {
+      // Moderate bio text if changed
+      if (bio.trim() && bio.trim() !== (profile?.bio || "")) {
+        const modResult = await moderateContent({
+          text: bio.trim(),
+          userId: user.id,
+          contentType: "bio",
+        });
+        if (!modResult.approved) {
+          toast.error(modResult.message || t('moderation.contentRejected'));
+          return;
+        }
+      }
+
       await updateProfile.mutateAsync({
         handle: handleChanged ? handle : undefined,
         bio: bio.trim() || undefined,

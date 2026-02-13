@@ -745,5 +745,10 @@
     "noUrl": "Próximamente",
     "comingSoon": "Próximamente",
     "error": "Intenta de nuevo"
+  },
+  "moderation": {
+    "contentRejected": "Contenido rechazado: viola las normas de la comunidad.",
+    "accountSuspended": "Tu cuenta está suspendida por violaciones repetidas de las normas de la comunidad.",
+    "strikeWarning": "Advertencia: contenido inapropiado detectado. Strike {{current}}/{{max}}."
   }
 }
