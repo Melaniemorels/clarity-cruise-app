@@ -216,6 +216,39 @@ export function useCreateEntry() {
   });
 }
 
+// Update entry visibility
+export function useUpdateEntryVisibility() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      entryId,
+      visibility,
+    }: {
+      entryId: string;
+      visibility: "public" | "followers" | "private";
+    }) => {
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const { error } = await supabase
+        .from("entries")
+        .update({ visibility })
+        .eq("id", entryId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entries"] });
+      toast.success("Visibilidad actualizada");
+    },
+    onError: () => {
+      toast.error("Error al actualizar visibilidad");
+    },
+  });
+}
+
 // Delete entry
 export function useDeleteEntry() {
   const { user } = useAuth();

@@ -389,6 +389,16 @@
       "loginToLike": "Inicia sesión para dar like"
     }
   },
+  "captureDetail": {
+    "visibility": "Visibilidad",
+    "public": "Público",
+    "followers": "Seguidores",
+    "private": "Solo yo",
+    "delete": "Eliminar captura",
+    "deleteTitle": "¿Eliminar esta captura?",
+    "deleteDesc": "Esta acción no se puede deshacer. La captura será eliminada permanentemente.",
+    "visibilityUpdated": "Visibilidad actualizada"
+  },
   "editProfile": {
     "title": "Editar Perfil",
     "editPhoto": "Editar foto",
