@@ -635,6 +635,12 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <SectionHeader>{t("settings.support")}</SectionHeader>
                 <div className="space-y-1">
                   <LinkButton
+                    icon={Users}
+                    label="Encontrar amigos"
+                    description="Busca y conecta con personas"
+                    onClick={() => handleNavigate("/find-friends")}
+                  />
+                  <LinkButton
                     icon={RotateCcw}
                     label="Ver recorrido nuevamente"
                     description="Repetir el tour de bienvenida"

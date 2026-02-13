@@ -33,7 +33,8 @@ export type FirstTapId =
   | "focusCapture"
   | "exploreCard"
   | "addEventBtn"
-  | "editProfileBtn";
+  | "editProfileBtn"
+  | "profileShare";
 
 export type AnchorRect = { x: number; y: number; width: number; height: number };
 
@@ -90,6 +91,8 @@ type GuideState = {
   firstTourCompleted: boolean;
   firstTapSeen: Record<string, boolean>;
   allowReplayTour: boolean;
+  friendsOnboardingCompleted: boolean;
+  friendsOnboardingDismissed: boolean;
   tour: { running: boolean; stepIndex: number };
 };
 
@@ -105,12 +108,15 @@ const defaultFirstTapSeen: Record<FirstTapId, boolean> = {
   exploreCard: false,
   addEventBtn: false,
   editProfileBtn: false,
+  profileShare: false,
 };
 
 const initialState: GuideState = {
   firstTourCompleted: false,
   firstTapSeen: { ...defaultFirstTapSeen },
   allowReplayTour: true,
+  friendsOnboardingCompleted: false,
+  friendsOnboardingDismissed: false,
   tour: { running: false, stepIndex: 0 },
 };
 
@@ -124,6 +130,8 @@ type Action =
   | { type: "SKIP_TOUR" }
   | { type: "REPLAY_TOUR" }
   | { type: "MARK_FIRST_TAP"; payload: FirstTapId }
+  | { type: "FRIENDS_COMPLETED" }
+  | { type: "FRIENDS_DISMISSED" }
   | { type: "HYDRATE"; payload: Partial<GuideState> };
 
 function reducer(state: GuideState, action: Action): GuideState {
@@ -146,6 +154,10 @@ function reducer(state: GuideState, action: Action): GuideState {
       return { ...state, firstTourCompleted: false, tour: { running: true, stepIndex: 0 } };
     case "MARK_FIRST_TAP":
       return { ...state, firstTapSeen: { ...state.firstTapSeen, [action.payload]: true } };
+    case "FRIENDS_COMPLETED":
+      return { ...state, friendsOnboardingCompleted: true };
+    case "FRIENDS_DISMISSED":
+      return { ...state, friendsOnboardingDismissed: true };
     case "HYDRATE":
       return { ...state, ...action.payload };
     default:
@@ -180,6 +192,9 @@ interface GuideContextValue {
   getAnchorRect: (id: AnchorId) => AnchorRect | null;
   sessionTooltipShown: Set<string>;
   markSessionTooltip: (pageKey: string) => void;
+  shouldShowFriendsOnboarding: boolean;
+  completeFriendsOnboarding: () => void;
+  dismissFriendsOnboarding: () => void;
 }
 
 const GuideCtx = createContext<GuideContextValue | null>(null);
@@ -210,6 +225,8 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
           firstTourCompleted: parsed.firstTourCompleted ?? false,
           firstTapSeen: { ...defaultFirstTapSeen, ...(parsed.firstTapSeen || {}) },
           allowReplayTour: parsed.allowReplayTour ?? true,
+          friendsOnboardingCompleted: parsed.friendsOnboardingCompleted ?? false,
+          friendsOnboardingDismissed: parsed.friendsOnboardingDismissed ?? false,
         },
       });
     } catch { /* ignore */ }
@@ -224,6 +241,8 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
           firstTourCompleted: state.firstTourCompleted,
           firstTapSeen: state.firstTapSeen,
           allowReplayTour: state.allowReplayTour,
+          friendsOnboardingCompleted: state.friendsOnboardingCompleted,
+          friendsOnboardingDismissed: state.friendsOnboardingDismissed,
         })
       );
     } catch { /* ignore */ }
@@ -247,6 +266,9 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
   const markFirstTap = useCallback((id: FirstTapId) => dispatch({ type: "MARK_FIRST_TAP", payload: id }), []);
   const isFirstTap = useCallback((id: FirstTapId) => !state.firstTapSeen[id], [state.firstTapSeen]);
   const markSessionTooltip = useCallback((key: string) => { sessionTooltips.add(key); }, [sessionTooltips]);
+  const completeFriendsOnboarding = useCallback(() => dispatch({ type: "FRIENDS_COMPLETED" }), []);
+  const dismissFriendsOnboarding = useCallback(() => dispatch({ type: "FRIENDS_DISMISSED" }), []);
+  const shouldShowFriendsOnboarding = state.firstTourCompleted && !state.friendsOnboardingCompleted && !state.friendsOnboardingDismissed && !state.tour.running;
 
   const value = useMemo<GuideContextValue>(
     () => ({
@@ -264,8 +286,11 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
       getAnchorRect,
       sessionTooltipShown: sessionTooltips,
       markSessionTooltip,
+      shouldShowFriendsOnboarding,
+      completeFriendsOnboarding,
+      dismissFriendsOnboarding,
     }),
-    [state, startTour, nextStep, prevStep, skipTour, replayTour, markFirstTap, isFirstTap, registerAnchor, getAnchorRect, sessionTooltips, markSessionTooltip]
+    [state, startTour, nextStep, prevStep, skipTour, replayTour, markFirstTap, isFirstTap, registerAnchor, getAnchorRect, sessionTooltips, markSessionTooltip, shouldShowFriendsOnboarding, completeFriendsOnboarding, dismissFriendsOnboarding]
   );
 
   return <GuideCtx.Provider value={value}>{children}</GuideCtx.Provider>;
