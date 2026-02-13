@@ -15,10 +15,11 @@ import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
 import { useTranslation } from "react-i18next";
-import { useFocusMetrics } from "@/hooks/use-focus-metrics";
+import { useFocusMetrics, useTodayAllModulesUsage } from "@/hooks/use-focus-metrics";
 import { useTodayWorkoutSessions } from "@/hooks/use-workout-sessions";
 import { WorkoutBreakdownModal } from "@/components/WorkoutBreakdownModal";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
+import { ScreenTimeModal } from "@/components/ScreenTimeModal";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -32,22 +33,37 @@ const Profile = () => {
   const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
   const [captureDetailIndex, setCaptureDetailIndex] = useState<number | null>(null);
   const [workoutModalOpen, setWorkoutModalOpen] = useState(false);
-
+  const [screenTimeModalOpen, setScreenTimeModalOpen] = useState(false);
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
   const { data: profile } = useProfile();
   const { data: stats } = useProfileStats();
   const { health, isHealthLoading } = useFocusMetrics();
   const { data: workoutBreakdown } = useTodayWorkoutSessions();
+  const { data: todayModuleUsage = [] } = useTodayAllModulesUsage();
 
   // Use workout_sessions total if available, otherwise fall back to health_daily
   const workoutValue = workoutBreakdown && workoutBreakdown.totalMinutes > 0
     ? workoutBreakdown.totalMinutes
     : health.workout.value;
 
+  // Screen time from time_usage
+  const screenTimeSeconds = todayModuleUsage.reduce((acc, u) => acc + u.seconds_used, 0);
+  const screenTimeMinutes = Math.floor(screenTimeSeconds / 60);
+  const moduleUsageForModal = todayModuleUsage
+    .filter((u) => u.seconds_used > 0)
+    .sort((a, b) => b.seconds_used - a.seconds_used)
+    .map((u) => ({ module: u.module, seconds: u.seconds_used }));
+
+  // Sleep in hours for display
+  const sleepHours = (health.sleep.value / 60).toFixed(1);
+  const sleepGoalHours = (health.sleep.goal / 60).toFixed(1);
+
   const healthData = [
-    { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '', tappable: false },
-    { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: workoutValue, goal: health.workout.goal, unit: '', tappable: true },
+    { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '', tappable: false, format: 'number' as const },
+    { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: workoutValue, goal: health.workout.goal, unit: '', tappable: true, format: 'number' as const },
+    { key: 'sleep', label: `${t('devices.data.sleep')} (h)`, value: parseFloat(sleepHours), goal: parseFloat(sleepGoalHours), unit: 'h', tappable: false, format: 'decimal' as const },
+    { key: 'screenTime', label: 'Screen Time', value: screenTimeMinutes, goal: 0, unit: t('calendar.minShort'), tappable: true, format: 'number' as const },
   ];
 
   // Calculate activity based on real entries for each day
@@ -144,25 +160,35 @@ const Profile = () => {
           <h2 className="font-semibold">{t('profile.todayStats')}</h2>
           
           {healthData.map((data) => {
-            const progress = data.goal > 0 ? Math.min(100, (data.value / data.goal) * 100) : 0;
+            const isScreenTime = data.key === 'screenTime';
+            const progress = !isScreenTime && data.goal > 0 ? Math.min(100, (data.value / data.goal) * 100) : 0;
+            const displayValue = data.format === 'decimal' 
+              ? data.value.toFixed(1)
+              : data.value.toLocaleString();
+            const displayGoal = data.format === 'decimal'
+              ? data.goal.toFixed(1)
+              : data.goal.toLocaleString();
+
             return (
               <Card
                 key={data.key}
                 className={data.tappable ? "cursor-pointer hover:ring-1 hover:ring-primary/30 transition-all" : ""}
                 onClick={() => {
-                  if (data.tappable && data.key === 'workout') {
-                    setWorkoutModalOpen(true);
-                  }
+                  if (data.key === 'workout') setWorkoutModalOpen(true);
+                  if (data.key === 'screenTime') setScreenTimeModalOpen(true);
                 }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium">{data.label}</span>
                     <span className="text-sm text-muted-foreground">
-                      {data.value.toLocaleString()} / {data.goal.toLocaleString()}
+                      {isScreenTime
+                        ? `${displayValue} ${data.unit}`
+                        : `${displayValue} / ${displayGoal}`
+                      }
                     </span>
                   </div>
-                  <Progress value={progress} className="h-2" />
+                  {!isScreenTime && <Progress value={progress} className="h-2" />}
                 </CardContent>
               </Card>
             );
@@ -305,6 +331,13 @@ const Profile = () => {
           goal={health.workout.goal}
         />
       )}
+
+      <ScreenTimeModal
+        open={screenTimeModalOpen}
+        onOpenChange={setScreenTimeModalOpen}
+        moduleUsage={moduleUsageForModal}
+        totalSeconds={screenTimeSeconds}
+      />
 
       <BottomNav />
     </div>

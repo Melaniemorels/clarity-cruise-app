@@ -23,6 +23,7 @@ interface HealthDailyRow {
   workout_minutes: number;
   active_calories: number;
   distance_km: number;
+  sleep_minutes: number;
 }
 
 interface HealthGoalRow {
@@ -43,6 +44,7 @@ export interface HealthMetrics {
   steps: { value: number; goal: number };
   workout: { value: number; goal: number };
   calories: { value: number; goal: number };
+  sleep: { value: number; goal: number };
 }
 
 export interface WeeklyDayData {
@@ -166,7 +168,7 @@ export function useTodayHealth() {
 
       const { data, error } = await supabase
         .from("health_daily")
-        .select("steps, workout_minutes, active_calories, distance_km")
+        .select("steps, workout_minutes, active_calories, distance_km, sleep_minutes")
         .eq("user_id", user.id)
         .eq("date", today)
         .maybeSingle();
@@ -174,11 +176,13 @@ export function useTodayHealth() {
       if (error) throw error;
       if (!data) return null;
 
+      const row = data as any;
       return {
-        steps: safeNumber(data.steps),
-        workout_minutes: safeNumber(data.workout_minutes),
-        active_calories: safeNumber(data.active_calories),
-        distance_km: safeNumber(data.distance_km),
+        steps: safeNumber(row.steps),
+        workout_minutes: safeNumber(row.workout_minutes),
+        active_calories: safeNumber(row.active_calories),
+        distance_km: safeNumber(row.distance_km),
+        sleep_minutes: safeNumber(row.sleep_minutes),
       };
     },
     enabled: !!user,
@@ -338,6 +342,7 @@ export function useFocusMetrics() {
   const stepsGoal = healthGoals.find((g) => g.metric === "steps");
   const workoutGoal = healthGoals.find((g) => g.metric === "workout_minutes");
   const caloriesGoal = healthGoals.find((g) => g.metric === "active_calories");
+  const sleepGoal = healthGoals.find((g) => g.metric === "sleep_minutes");
 
   const health: HealthMetrics = {
     steps: {
@@ -351,6 +356,10 @@ export function useFocusMetrics() {
     calories: {
       value: safeNumber(healthData?.active_calories),
       goal: safeNumber(caloriesGoal?.target, 500),
+    },
+    sleep: {
+      value: safeNumber(healthData?.sleep_minutes),
+      goal: safeNumber(sleepGoal?.target, 480),
     },
   };
 
