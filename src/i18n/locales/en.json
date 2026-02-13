@@ -762,6 +762,23 @@
     "differentTimezone": "You seem to be in a different timezone ({{current}} vs {{home}})",
     "calendarDetected": "We detected travel events in today's calendar",
     "activate": "Activate travel mode",
+    "status": {
+      "label": "Detection mode",
+      "description": "Off disables travel detection, Auto detects automatically, On forces travel mode",
+      "off": "Off — never detect",
+      "auto": "Auto — detect by timezone & calendar",
+      "on": "On — always active"
+    },
+    "autoTimezone": {
+      "label": "Auto-shift schedule to local time",
+      "description": "Automatically adjust your routine schedule to match the local timezone"
+    },
+    "detectedBy": {
+      "timezone": "Detected by timezone change",
+      "distance": "Detected by location distance",
+      "calendar": "Detected by calendar events",
+      "manual": "Manually activated"
+    },
     "intensity": {
       "label": "Travel intensity",
       "description": "Controls how much your routine adapts while traveling",

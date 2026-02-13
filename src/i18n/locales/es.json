@@ -762,6 +762,23 @@
     "differentTimezone": "Parece que estás en una zona horaria diferente ({{current}} vs {{home}})",
     "calendarDetected": "Detectamos eventos de viaje en tu calendario de hoy",
     "activate": "Activar modo viaje",
+    "status": {
+      "label": "Modo de detección",
+      "description": "Off desactiva la detección, Auto detecta automáticamente, On fuerza el modo viaje",
+      "off": "Off — nunca detectar",
+      "auto": "Auto — detectar por timezone y calendario",
+      "on": "On — siempre activo"
+    },
+    "autoTimezone": {
+      "label": "Ajustar horario a hora local",
+      "description": "Ajusta automáticamente tu rutina al huso horario local"
+    },
+    "detectedBy": {
+      "timezone": "Detectado por cambio de zona horaria",
+      "distance": "Detectado por distancia de ubicación",
+      "calendar": "Detectado por eventos de calendario",
+      "manual": "Activado manualmente"
+    },
     "intensity": {
       "label": "Intensidad de viaje",
       "description": "Controla cuánto se adapta tu rutina mientras viajas",

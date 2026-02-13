@@ -102,13 +102,16 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const handleTravelToggle = (isTraveling: boolean) => {
     const updates: Record<string, any> = { is_traveling: isTraveling };
     if (isTraveling) {
-      // Save current timezone and set home if not set
       updates.current_timezone = currentTimezone;
+      updates.travel_detected_reason = "manual";
+      updates.travel_mode_status = "on";
       if (!profile?.home_timezone) {
         updates.home_timezone = currentTimezone;
       }
     } else {
       updates.current_timezone = null;
+      updates.travel_detected_reason = null;
+      updates.travel_mode_status = profile?.travel_mode_status === "on" ? "auto" : profile?.travel_mode_status;
     }
     updateProfileMutation.mutate(updates);
     toast.success(isTraveling ? t("travelMode.activated") : t("travelMode.deactivated"));
@@ -387,14 +390,78 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     />
                   }
                 />
+
+                {/* Travel Mode Status Selector */}
+                <div className="ml-8 mt-3">
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">
+                    {t("travelMode.status.label")}
+                  </Label>
+                  <Select
+                    value={profile?.travel_mode_status ?? "auto"}
+                    onValueChange={(value: "off" | "auto" | "on") => {
+                      const updates: Record<string, any> = { travel_mode_status: value };
+                      if (value === "on") {
+                        updates.is_traveling = true;
+                        updates.travel_detected_reason = "manual";
+                        updates.current_timezone = currentTimezone;
+                        if (!profile?.home_timezone) updates.home_timezone = currentTimezone;
+                      } else if (value === "off") {
+                        updates.is_traveling = false;
+                        updates.travel_detected_reason = null;
+                        updates.current_timezone = null;
+                      }
+                      updateProfileMutation.mutate(updates);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="off">{t("travelMode.status.off")}</SelectItem>
+                      <SelectItem value="auto">{t("travelMode.status.auto")}</SelectItem>
+                      <SelectItem value="on">{t("travelMode.status.on")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("travelMode.status.description")}
+                  </p>
+                </div>
+
+                {/* Auto timezone shift toggle */}
+                <div className="ml-8 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">
+                      {t("travelMode.autoTimezone.label")}
+                    </Label>
+                    <Switch
+                      checked={profile?.allow_auto_timezone_shift ?? true}
+                      onCheckedChange={(checked) => {
+                        updateProfileMutation.mutate({ allow_auto_timezone_shift: checked });
+                      }}
+                      disabled={updateProfileMutation.isPending}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {t("travelMode.autoTimezone.description")}
+                  </p>
+                </div>
+
                 {profile?.is_traveling && profile?.home_timezone && currentTimezone !== profile.home_timezone && (
-                  <p className="text-xs text-muted-foreground ml-8 mt-1">
+                  <p className="text-xs text-muted-foreground ml-8 mt-2">
                     {t("travelMode.differentTimezone", {
                       current: currentTimezone.split("/").pop()?.replace("_", " "),
                       home: profile.home_timezone.split("/").pop()?.replace("_", " "),
                     })}
                   </p>
                 )}
+
+                {/* Detection reason badge */}
+                {profile?.is_traveling && profile?.travel_detected_reason && (
+                  <p className="text-xs text-muted-foreground ml-8 mt-1 italic">
+                    {t(`travelMode.detectedBy.${profile.travel_detected_reason}`)}
+                  </p>
+                )}
+
                 {profile?.is_traveling && (
                   <div className="ml-8 mt-3">
                     <Label className="text-xs text-muted-foreground mb-1.5 block">
