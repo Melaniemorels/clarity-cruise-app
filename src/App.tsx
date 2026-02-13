@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
+import { GuideProvider } from "./contexts/GuideContext";
+import { GuideTourOverlay } from "./components/GuideTourOverlay";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -62,6 +64,7 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <VYVProvider>
+              <GuideProvider>
               <QueryErrorBoundary>
                 <Routes>
                   <Route path="/welcome" element={<Welcome />} />
@@ -84,6 +87,8 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </QueryErrorBoundary>
+              <GuideTourOverlay />
+              </GuideProvider>
               </VYVProvider>
             </AuthProvider>
           </BrowserRouter>
