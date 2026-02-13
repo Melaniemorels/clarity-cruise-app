@@ -389,6 +389,16 @@
       "loginToLike": "Sign in to like"
     }
   },
+  "captureDetail": {
+    "visibility": "Visibility",
+    "public": "Public",
+    "followers": "Followers",
+    "private": "Only me",
+    "delete": "Delete capture",
+    "deleteTitle": "Delete this capture?",
+    "deleteDesc": "This action cannot be undone. The capture will be permanently deleted.",
+    "visibilityUpdated": "Visibility updated"
+  },
   "editProfile": {
     "title": "Edit Profile",
     "editPhoto": "Edit photo",

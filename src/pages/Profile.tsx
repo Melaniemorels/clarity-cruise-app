@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { CaptureDetailModal } from "@/components/CaptureDetailModal";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
@@ -24,6 +25,7 @@ const Profile = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
+  const [captureDetailIndex, setCaptureDetailIndex] = useState<number | null>(null);
 
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
@@ -179,9 +181,10 @@ const Profile = () => {
           
           <div className="grid grid-cols-3 gap-2">
             {entries.length > 0 ? (
-              entries.slice(0, 9).map((entry) => (
+              entries.slice(0, 9).map((entry, idx) => (
                 <div
                   key={entry.id}
+                  onClick={() => setCaptureDetailIndex(idx)}
                   className="aspect-square rounded-lg bg-muted relative overflow-hidden group cursor-pointer"
                 >
                   {entry.photo_url ? (
@@ -246,6 +249,15 @@ const Profile = () => {
           onOpenChange={(open) => !open && setFollowListType(null)}
           userId={user.id}
           type={followListType || "followers"}
+        />
+      )}
+
+      {captureDetailIndex !== null && (
+        <CaptureDetailModal
+          open={captureDetailIndex !== null}
+          onOpenChange={(open) => !open && setCaptureDetailIndex(null)}
+          entries={entries}
+          initialIndex={captureDetailIndex}
         />
       )}
 
