@@ -217,6 +217,8 @@
     "legal": "Legal",
     "communityGuidelines": "Normas de la Comunidad",
     "dataPermissions": "Datos y Permisos",
+    "autoSaveCaptures": "Guardar capturas en dispositivo",
+    "autoSaveCapturesDesc": "Las fotos instantáneas se guardarán automáticamente en tu galería",
     "deleteAccount": "Eliminar Cuenta",
     "deleteAccountTitle": "¿Eliminar tu cuenta?",
     "deleteAccountDesc": "Esta acción no se puede deshacer. Todos tus datos, posts y conexiones serán eliminados permanentemente.",
@@ -349,7 +351,12 @@
     "saving": "Guardando...",
     "photoSaved": "Foto guardada en tu calendario y perfil",
     "cameraError": "No se pudo acceder a la cámara",
-    "uploadError": "Error al guardar la foto"
+    "uploadError": "Error al guardar la foto",
+    "autoSavePromptTitle": "¿Guardar capturas en tu dispositivo?",
+    "autoSavePromptDesc": "Podemos guardar automáticamente cada foto que tomes en tu galería.",
+    "autoSaveYes": "Sí, guardar",
+    "autoSaveNo": "No, gracias",
+    "savedToDevice": "Foto guardada en tu dispositivo"
   },
   "post": {
     "captureMoment": "Capturar Momento",
