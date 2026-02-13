@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
 import { GuideTourOverlay } from "./components/GuideTourOverlay";
+import { FindFriendsModal } from "./components/FindFriendsModal";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -28,6 +29,8 @@ import DeviceSettings from "./pages/DeviceSettings";
 import DeviceOnboarding from "./pages/DeviceOnboarding";
 import SecurityOnboarding from "./pages/SecurityOnboarding";
 import MediaConnections from "./pages/MediaConnections";
+import FindFriends from "./pages/FindFriends";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,6 +84,8 @@ const App = () => (
                   <Route path="/onboarding" element={<ProtectedRoute skipOnboardingCheck><DeviceOnboarding /></ProtectedRoute>} />
                   <Route path="/security-onboarding" element={<ProtectedRoute skipOnboardingCheck><SecurityOnboarding /></ProtectedRoute>} />
                   <Route path="/media-connections" element={<ProtectedRoute><MediaConnections /></ProtectedRoute>} />
+                  <Route path="/find-friends" element={<ProtectedRoute><FindFriends /></ProtectedRoute>} />
+                  <Route path="/u/:username" element={<PublicProfile />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-use" element={<TermsOfUse />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -88,6 +93,7 @@ const App = () => (
                 </Routes>
               </QueryErrorBoundary>
               <GuideTourOverlay />
+              <FindFriendsModal />
               </GuideProvider>
               </VYVProvider>
             </AuthProvider>

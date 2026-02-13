@@ -3,13 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CaptureDetailModal } from "@/components/CaptureDetailModal";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Share2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { DailyActivityModal } from "@/components/DailyActivityModal";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { FollowListModal } from "@/components/FollowListModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { ProfileShareSheet } from "@/components/ProfileShareSheet";
 import { Progress } from "@/components/ui/progress";
 import { subDays, format, isSameDay, parseISO } from "date-fns";
 import { useProfile, useProfileStats } from "@/hooks/use-profile";
@@ -20,6 +21,7 @@ import { useTodayWorkoutSessions } from "@/hooks/use-workout-sessions";
 import { WorkoutBreakdownModal } from "@/components/WorkoutBreakdownModal";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { ScreenTimeModal } from "@/components/ScreenTimeModal";
+import { useGuide } from "@/contexts/GuideContext";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -34,6 +36,10 @@ const Profile = () => {
   const [captureDetailIndex, setCaptureDetailIndex] = useState<number | null>(null);
   const [workoutModalOpen, setWorkoutModalOpen] = useState(false);
   const [screenTimeModalOpen, setScreenTimeModalOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTapped, setShareTapped] = useState(false);
+  const shareRef = useRef<HTMLButtonElement>(null);
+  const { isFirstTap, markFirstTap } = useGuide();
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
   const { data: profile } = useProfile();
@@ -102,9 +108,30 @@ const Profile = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">{t('profile.title')}</h1>
-          <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
-            <Settings className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              ref={shareRef}
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setShareTapped(true);
+                setShareOpen(true);
+              }}
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
+          <FirstTapTooltip
+            tapId="profileShare"
+            pageKey="profile-share"
+            title="Comparte con calma"
+            body="Comparte tu perfil cuando tú lo decidas."
+            anchorRef={shareRef}
+            show={shareTapped}
+          />
         </div>
 
         {/* Profile Card */}
@@ -342,6 +369,12 @@ const Profile = () => {
         onOpenChange={setScreenTimeModalOpen}
         moduleUsage={moduleUsageForModal}
         totalSeconds={screenTimeSeconds}
+      />
+
+      <ProfileShareSheet
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        handle={profile?.handle || "user"}
       />
 
       <BottomNav />
