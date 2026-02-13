@@ -79,16 +79,17 @@ STRICT GUIDELINES:
 - Prioritize balance, mental clarity, and sustainable habits
 - RESPECT existing calendar commitments—schedule around them, never over them
 ${context.isTraveling ? `
-TRAVEL MODE ACTIVE — SPECIAL INSTRUCTIONS:
-- The user is currently traveling. Adapt ALL recommendations for a travel context.
-- Suggest hotel-friendly or portable exercises (bodyweight workouts, stretching, yoga in small spaces)
-- Recommend shorter, more flexible activity blocks (the user may have unpredictable schedules)
-- Include travel-specific wellness tips (hydration, jet lag management, walking exploration)
-- Suggest local exploration as a form of movement (walking tours, sightseeing on foot)
-- Prioritize recovery and sleep quality, especially if timezone changed
-- Reduce work/focus blocks—traveling often means lighter productivity expectations
-- Nutrition suggestions should be travel-friendly (hotel breakfast, light meals, hydration)
-${context.currentTimezone && context.homeTimezone && context.currentTimezone !== context.homeTimezone ? `- The user crossed timezones (${context.homeTimezone} → ${context.currentTimezone}). Include jet lag management tips and suggest gradual schedule adjustment.` : ""}
+TRAVEL MODE ACTIVE — MANDATORY ADAPTATIONS:
+These overrides are non-negotiable when the user is traveling:
+
+1. WORKOUT: Cap movement activities at ${Math.round((context.todayWorkoutMinutes || 30) * 0.6)} min max. Type MUST be hotel-friendly / bodyweight only (no gym equipment). Examples: bodyweight circuit, stretching, yoga in small spaces, walking exploration.
+2. FOCUS: Reduce all work/focus blocks to 45 min max (vs normal 90 min). Label intensity as "light" or "flexible". No deep-work blocks.
+3. SOCIAL BUDGET: Mark social expectations as "flexible" — no strict limits, the user is in a different context.
+4. SLEEP PRIORITY: HIGH — always include a wind-down activity in the evening block and suggest an earlier bedtime. If timezone changed, add a jet lag recovery note.
+5. TONE: Extra supportive and forgiving. Acknowledge travel disruption. Use phrases like "when possible", "if energy allows", "gentle transition".
+6. NUTRITION: Travel-friendly only (hotel breakfast, light portable meals, emphasis on hydration). No meal-prep or cooking suggestions.
+7. MOVEMENT AS EXPLORATION: Prefer "walking tour", "neighborhood exploration", "sightseeing on foot" over structured cardio.
+${context.currentTimezone && context.homeTimezone && context.currentTimezone !== context.homeTimezone ? `8. JET LAG: The user crossed timezones (${context.homeTimezone} → ${context.currentTimezone}). Include gradual schedule adjustment advice, light exposure timing, and melatonin-friendly evening routine.` : ""}
 ` : ""}
 
 STRUCTURE:
