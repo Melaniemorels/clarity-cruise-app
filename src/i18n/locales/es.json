@@ -761,6 +761,13 @@
     "timezoneDetected": "Zona horaria detectada: {{timezone}}",
     "differentTimezone": "Parece que estás en una zona horaria diferente ({{current}} vs {{home}})",
     "calendarDetected": "Detectamos eventos de viaje en tu calendario de hoy",
-    "activate": "Activar modo viaje"
+    "activate": "Activar modo viaje",
+    "intensity": {
+      "label": "Intensidad de viaje",
+      "description": "Controla cuánto se adapta tu rutina mientras viajas",
+      "low": "Baja — actividad mínima, priorizar descanso",
+      "medium": "Media — adaptación equilibrada",
+      "high": "Alta — mantenerse activo, ajustes ligeros"
+    }
   }
 }

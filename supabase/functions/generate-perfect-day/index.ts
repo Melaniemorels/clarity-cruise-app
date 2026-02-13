@@ -6,6 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface RecommendationProfile {
+  workoutStyle: "normal" | "hotel_short" | "walk_mobility";
+  workoutMinutesTarget: number;
+  focusBlocks: "normal" | "lighter";
+  recoveryPriority: "normal" | "high";
+  tone: "standard" | "gentle";
+}
+
 interface UserContext {
   timeOfDay: string;
   todayWorkoutMinutes: number;
@@ -18,6 +26,7 @@ interface UserContext {
   isTraveling: boolean;
   currentTimezone: string | null;
   homeTimezone: string | null;
+  profile: RecommendationProfile;
 }
 
 interface TimeBlock {
@@ -79,14 +88,14 @@ STRICT GUIDELINES:
 - Prioritize balance, mental clarity, and sustainable habits
 - RESPECT existing calendar commitments—schedule around them, never over them
 ${context.isTraveling ? `
-TRAVEL MODE ACTIVE — MANDATORY ADAPTATIONS:
+TRAVEL MODE ACTIVE — MANDATORY ADAPTATIONS (based on user's recommendation profile):
 These overrides are non-negotiable when the user is traveling:
 
-1. WORKOUT: Cap movement activities at ${Math.round((context.todayWorkoutMinutes || 30) * 0.6)} min max. Type MUST be hotel-friendly / bodyweight only (no gym equipment). Examples: bodyweight circuit, stretching, yoga in small spaces, walking exploration.
-2. FOCUS: Reduce all work/focus blocks to 45 min max (vs normal 90 min). Label intensity as "light" or "flexible". No deep-work blocks.
+1. WORKOUT: Cap movement activities at ${context.profile.workoutMinutesTarget} min max. Style: ${context.profile.workoutStyle === "hotel_short" ? "hotel-friendly / bodyweight only (no gym equipment)" : "walk & mobility focused (walking exploration, stretching)"}. Examples: bodyweight circuit, stretching, yoga in small spaces, walking exploration.
+2. FOCUS: ${context.profile.focusBlocks === "lighter" ? "Reduce all work/focus blocks to 45 min max (vs normal 90 min). Label intensity as 'light' or 'flexible'. No deep-work blocks." : "Normal focus blocks allowed."}
 3. SOCIAL BUDGET: Mark social expectations as "flexible" — no strict limits, the user is in a different context.
-4. SLEEP PRIORITY: HIGH — always include a wind-down activity in the evening block and suggest an earlier bedtime. If timezone changed, add a jet lag recovery note.
-5. TONE: Extra supportive and forgiving. Acknowledge travel disruption. Use phrases like "when possible", "if energy allows", "gentle transition".
+4. SLEEP/RECOVERY PRIORITY: ${context.profile.recoveryPriority === "high" ? "HIGH — always include a wind-down activity in the evening block and suggest an earlier bedtime." : "Normal recovery."} If timezone changed, add a jet lag recovery note.
+5. TONE: ${context.profile.tone === "gentle" ? 'Extra supportive and forgiving. Acknowledge travel disruption. Use phrases like "when possible", "if energy allows", "gentle transition".' : "Standard professional tone."}
 6. NUTRITION: Travel-friendly only (hotel breakfast, light portable meals, emphasis on hydration). No meal-prep or cooking suggestions.
 7. MOVEMENT AS EXPLORATION: Prefer "walking tour", "neighborhood exploration", "sightseeing on foot" over structured cardio.
 ${context.currentTimezone && context.homeTimezone && context.currentTimezone !== context.homeTimezone ? `8. JET LAG: The user crossed timezones (${context.homeTimezone} → ${context.currentTimezone}). Include gradual schedule adjustment advice, light exposure timing, and melatonin-friendly evening routine.` : ""}
@@ -219,7 +228,7 @@ serve(async (req) => {
         .lte("start_at", `${today}T23:59:59`),
       supabase
         .from("profiles")
-        .select("is_traveling, home_timezone, current_timezone")
+        .select("is_traveling, home_timezone, current_timezone, travel_intensity")
         .eq("user_id", user.id)
         .single(),
     ]);
@@ -252,6 +261,31 @@ serve(async (req) => {
       // No body or invalid JSON, use default
     }
 
+    // Build recommendation profile
+    const isTraveling = profileData?.is_traveling || false;
+    const usualWorkoutMinutes = healthData?.workout_minutes || 30;
+    const travelIntensity = (profileData?.travel_intensity as "low" | "medium" | "high") || "medium";
+    
+    let recProfile: RecommendationProfile;
+    if (!isTraveling) {
+      recProfile = {
+        workoutStyle: "normal",
+        workoutMinutesTarget: usualWorkoutMinutes,
+        focusBlocks: "normal",
+        recoveryPriority: "normal",
+        tone: "standard",
+      };
+    } else {
+      const factor = travelIntensity === "low" ? 0.5 : travelIntensity === "high" ? 0.8 : 0.65;
+      recProfile = {
+        workoutStyle: travelIntensity === "low" ? "walk_mobility" : "hotel_short",
+        workoutMinutesTarget: Math.max(10, Math.round(usualWorkoutMinutes * factor)),
+        focusBlocks: "lighter",
+        recoveryPriority: "high",
+        tone: "gentle",
+      };
+    }
+
     const context: UserContext = {
       timeOfDay,
       todayWorkoutMinutes: healthData?.workout_minutes || 0,
@@ -264,9 +298,10 @@ serve(async (req) => {
       })) || [],
       focusSessionsToday: scheduleBlocks?.length || 0,
       userLanguage,
-      isTraveling: profileData?.is_traveling || false,
+      isTraveling,
       currentTimezone: profileData?.current_timezone || null,
       homeTimezone: profileData?.home_timezone || null,
+      profile: recProfile,
     };
 
     // Generate perfect day using AI

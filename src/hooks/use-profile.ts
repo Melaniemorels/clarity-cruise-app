@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export type TravelIntensity = "low" | "medium" | "high";
+
 export interface Profile {
   id: string;
   user_id: string;
@@ -14,6 +16,7 @@ export interface Profile {
   is_traveling: boolean;
   home_timezone: string | null;
   current_timezone: string | null;
+  travel_intensity: TravelIntensity;
   created_at: string;
   updated_at: string;
 }
@@ -96,7 +99,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private" | "is_traveling" | "home_timezone" | "current_timezone">>) => {
+    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private" | "is_traveling" | "home_timezone" | "current_timezone" | "travel_intensity">>) => {
       if (!user) throw new Error("Usuario no autenticado");
 
       const { data, error } = await supabase

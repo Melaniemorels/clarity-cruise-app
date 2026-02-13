@@ -761,6 +761,13 @@
     "timezoneDetected": "Timezone detected: {{timezone}}",
     "differentTimezone": "You seem to be in a different timezone ({{current}} vs {{home}})",
     "calendarDetected": "We detected travel events in today's calendar",
-    "activate": "Activate travel mode"
+    "activate": "Activate travel mode",
+    "intensity": {
+      "label": "Travel intensity",
+      "description": "Controls how much your routine adapts while traveling",
+      "low": "Low — minimal activity, focus on rest",
+      "medium": "Medium — balanced adaptation",
+      "high": "High — stay active, lighter adjustments"
+    }
   }
 }
