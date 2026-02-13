@@ -16,6 +16,8 @@ import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
 import { useTranslation } from "react-i18next";
 import { useFocusMetrics } from "@/hooks/use-focus-metrics";
+import { useTodayWorkoutSessions } from "@/hooks/use-workout-sessions";
+import { WorkoutBreakdownModal } from "@/components/WorkoutBreakdownModal";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 
 const Profile = () => {
@@ -29,16 +31,23 @@ const Profile = () => {
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
   const [captureDetailIndex, setCaptureDetailIndex] = useState<number | null>(null);
+  const [workoutModalOpen, setWorkoutModalOpen] = useState(false);
 
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
   const { data: profile } = useProfile();
   const { data: stats } = useProfileStats();
   const { health, isHealthLoading } = useFocusMetrics();
+  const { data: workoutBreakdown } = useTodayWorkoutSessions();
+
+  // Use workout_sessions total if available, otherwise fall back to health_daily
+  const workoutValue = workoutBreakdown && workoutBreakdown.totalMinutes > 0
+    ? workoutBreakdown.totalMinutes
+    : health.workout.value;
 
   const healthData = [
-    { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '' },
-    { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: health.workout.value, goal: health.workout.goal, unit: '' },
+    { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '', tappable: false },
+    { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: workoutValue, goal: health.workout.goal, unit: '', tappable: true },
   ];
 
   // Calculate activity based on real entries for each day
@@ -137,7 +146,15 @@ const Profile = () => {
           {healthData.map((data) => {
             const progress = data.goal > 0 ? Math.min(100, (data.value / data.goal) * 100) : 0;
             return (
-              <Card key={data.key}>
+              <Card
+                key={data.key}
+                className={data.tappable ? "cursor-pointer hover:ring-1 hover:ring-primary/30 transition-all" : ""}
+                onClick={() => {
+                  if (data.tappable && data.key === 'workout') {
+                    setWorkoutModalOpen(true);
+                  }
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium">{data.label}</span>
@@ -277,6 +294,15 @@ const Profile = () => {
           onOpenChange={(open) => !open && setCaptureDetailIndex(null)}
           entries={entries}
           initialIndex={captureDetailIndex}
+        />
+      )}
+
+      {workoutBreakdown && (
+        <WorkoutBreakdownModal
+          open={workoutModalOpen}
+          onOpenChange={setWorkoutModalOpen}
+          data={workoutBreakdown}
+          goal={health.workout.goal}
         />
       )}
 
