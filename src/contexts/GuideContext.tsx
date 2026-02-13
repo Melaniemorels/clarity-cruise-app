@@ -6,119 +6,156 @@ import React, {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from "react";
 
 /* ────────────────────────────────
  * Types
  * ──────────────────────────────── */
-export type GuideArea = "HOME" | "FEED" | "CALENDAR" | "EXPLORE" | "FOCUS" | "SETTINGS";
-
 export type AnchorId =
   | "nav_feed"
   | "nav_calendar"
   | "nav_explore"
   | "nav_focus"
+  | "nav_profile"
   | "capture_vibe"
   | "profile_privacy"
   | "social_time_bar"
   | "travel_toggle"
   | "language_toggle";
 
-export type GuideStep = {
-  id: string;
-  area: GuideArea;
-  anchor: AnchorId;
-  title: string;
-  body: string;
-  when?: (ctx: GuideContextSnapshot) => boolean;
-};
+export type FirstTapId =
+  | "homeNav"
+  | "exploreNav"
+  | "focusNav"
+  | "calendarNav"
+  | "profileNav"
+  | "focusCapture"
+  | "exploreCard"
+  | "addEventBtn"
+  | "editProfileBtn";
 
-export type GuideContextSnapshot = {
-  travelEnabled?: boolean;
-  socialLocked?: boolean;
-  firstSession?: boolean;
-};
-
-type GuideState = {
-  enabled: boolean;
-  completed: Record<string, true>;
-  active: {
-    running: boolean;
-    area: GuideArea | null;
-    stepIndex: number;
-    stepIds: string[];
-  };
-};
-
-type Action =
-  | { type: "ENABLE"; payload: boolean }
-  | { type: "MARK_COMPLETED"; payload: { stepId: string } }
-  | { type: "START"; payload: { area: GuideArea; stepIds: string[] } }
-  | { type: "STOP" }
-  | { type: "NEXT" }
-  | { type: "PREV" }
-  | { type: "RESET_ALL" }
-  | { type: "HYDRATE"; payload: { enabled: boolean; completed: Record<string, true> } };
+export type AnchorRect = { x: number; y: number; width: number; height: number };
 
 /* ────────────────────────────────
- * Constants
+ * Tour Steps
  * ──────────────────────────────── */
-const STORAGE_KEY = "vyv_guide_v1";
+export type TourStep = {
+  title: string;
+  body: string;
+  anchor?: AnchorId;
+  route?: string;
+};
+
+export const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Bienvenida a VYV",
+    body: "VYV es tu sistema para vivir con intención. Te muestro lo esencial en 30 segundos.",
+  },
+  {
+    title: "Inicio",
+    body: "Tu estado del día: energía, hábitos y dirección. Todo empieza aquí.",
+    anchor: "nav_feed",
+    route: "/",
+  },
+  {
+    title: "Explorar",
+    body: "Recomendaciones alineadas a tu ritmo. Menos ruido, más valor.",
+    anchor: "nav_explore",
+    route: "/explore",
+  },
+  {
+    title: "Enfoque",
+    body: "Tu espacio para presencia. Captura tu momento y vuelve a lo importante.",
+    anchor: "nav_focus",
+  },
+  {
+    title: "Calendario",
+    body: "Organiza tu vida visualmente. Eventos, ritmo y balance en un solo lugar.",
+    anchor: "nav_calendar",
+    route: "/calendar",
+  },
+  {
+    title: "Perfil",
+    body: "Tu progreso es tuyo. Tú eliges qué compartir y qué guardar en privado.",
+    anchor: "nav_profile",
+    route: "/profile",
+  },
+];
+
+/* ────────────────────────────────
+ * State
+ * ──────────────────────────────── */
+type GuideState = {
+  firstTourCompleted: boolean;
+  firstTapSeen: Record<string, boolean>;
+  allowReplayTour: boolean;
+  tour: { running: boolean; stepIndex: number };
+};
+
+const STORAGE_KEY = "vyv_guide_v2";
+
+const defaultFirstTapSeen: Record<FirstTapId, boolean> = {
+  homeNav: false,
+  exploreNav: false,
+  focusNav: false,
+  calendarNav: false,
+  profileNav: false,
+  focusCapture: false,
+  exploreCard: false,
+  addEventBtn: false,
+  editProfileBtn: false,
+};
 
 const initialState: GuideState = {
-  enabled: true,
-  completed: {},
-  active: { running: false, area: null, stepIndex: 0, stepIds: [] },
+  firstTourCompleted: false,
+  firstTapSeen: { ...defaultFirstTapSeen },
+  allowReplayTour: true,
+  tour: { running: false, stepIndex: 0 },
 };
 
 /* ────────────────────────────────
  * Reducer
  * ──────────────────────────────── */
+type Action =
+  | { type: "START_TOUR" }
+  | { type: "NEXT_STEP" }
+  | { type: "PREV_STEP" }
+  | { type: "SKIP_TOUR" }
+  | { type: "REPLAY_TOUR" }
+  | { type: "MARK_FIRST_TAP"; payload: FirstTapId }
+  | { type: "HYDRATE"; payload: Partial<GuideState> };
+
 function reducer(state: GuideState, action: Action): GuideState {
   switch (action.type) {
-    case "ENABLE":
-      return { ...state, enabled: action.payload };
-    case "MARK_COMPLETED":
-      return { ...state, completed: { ...state.completed, [action.payload.stepId]: true } };
-    case "START":
-      return {
-        ...state,
-        active: { running: true, area: action.payload.area, stepIndex: 0, stepIds: action.payload.stepIds },
-      };
-    case "STOP":
-      return { ...state, active: { running: false, area: null, stepIndex: 0, stepIds: [] } };
-    case "NEXT": {
-      const nextIdx = state.active.stepIndex + 1;
-      if (nextIdx >= state.active.stepIds.length) {
-        // Mark all steps as completed and stop
-        const newCompleted = { ...state.completed };
-        state.active.stepIds.forEach((id) => { newCompleted[id] = true; });
-        return { ...state, completed: newCompleted, active: { running: false, area: null, stepIndex: 0, stepIds: [] } };
+    case "START_TOUR":
+      if (state.firstTourCompleted) return state;
+      return { ...state, tour: { running: true, stepIndex: 0 } };
+    case "NEXT_STEP": {
+      const next = state.tour.stepIndex + 1;
+      if (next >= TOUR_STEPS.length) {
+        return { ...state, firstTourCompleted: true, tour: { running: false, stepIndex: 0 } };
       }
-      // Mark current step completed
-      const currentStepId = state.active.stepIds[state.active.stepIndex];
-      return {
-        ...state,
-        completed: { ...state.completed, [currentStepId]: true },
-        active: { ...state.active, stepIndex: nextIdx },
-      };
+      return { ...state, tour: { ...state.tour, stepIndex: next } };
     }
-    case "PREV":
-      return { ...state, active: { ...state.active, stepIndex: Math.max(state.active.stepIndex - 1, 0) } };
-    case "RESET_ALL":
-      return initialState;
+    case "PREV_STEP":
+      return { ...state, tour: { ...state.tour, stepIndex: Math.max(0, state.tour.stepIndex - 1) } };
+    case "SKIP_TOUR":
+      return { ...state, firstTourCompleted: true, tour: { running: false, stepIndex: 0 } };
+    case "REPLAY_TOUR":
+      return { ...state, firstTourCompleted: false, tour: { running: true, stepIndex: 0 } };
+    case "MARK_FIRST_TAP":
+      return { ...state, firstTapSeen: { ...state.firstTapSeen, [action.payload]: true } };
     case "HYDRATE":
-      return { ...state, enabled: action.payload.enabled, completed: action.payload.completed };
+      return { ...state, ...action.payload };
     default:
       return state;
   }
 }
 
 /* ────────────────────────────────
- * Anchor helpers
+ * Helpers
  * ──────────────────────────────── */
-export type AnchorRect = { x: number; y: number; width: number; height: number };
-
 function getRect(el: HTMLElement | null): AnchorRect | null {
   if (!el) return null;
   const r = el.getBoundingClientRect();
@@ -126,68 +163,23 @@ function getRect(el: HTMLElement | null): AnchorRect | null {
 }
 
 /* ────────────────────────────────
- * Default steps
- * ──────────────────────────────── */
-const DEFAULT_STEPS: GuideStep[] = [
-  {
-    id: "home-nav",
-    area: "HOME",
-    anchor: "nav_calendar",
-    title: "Tu día en un vistazo",
-    body: "Calendar es tu base: planes, hábitos y ritmo del día.",
-  },
-  {
-    id: "home-focus",
-    area: "HOME",
-    anchor: "nav_focus",
-    title: "Focus sin fricción",
-    body: "Activá Focus para bloquear distracciones y avanzar de verdad.",
-  },
-  {
-    id: "home-explore",
-    area: "HOME",
-    anchor: "nav_explore",
-    title: "Explore curado por vos",
-    body: "Contenido y recursos que suman, sin ruido.",
-  },
-  {
-    id: "feed-social-time",
-    area: "FEED",
-    anchor: "social_time_bar",
-    title: "Tiempo social inteligente",
-    body: "Tu feed funciona por ventanas. Te cuida sin castigarte.",
-  },
-  {
-    id: "feed-capture",
-    area: "FEED",
-    anchor: "capture_vibe",
-    title: "Capture your vibe",
-    body: "Una foto rápida para guardar tu momento (y tu registro).",
-  },
-  {
-    id: "settings-travel",
-    area: "SETTINGS",
-    anchor: "travel_toggle",
-    title: "Modo viaje",
-    body: "Ajusta horarios y sugerencias a tu zona local. Sin esfuerzo.",
-  },
-];
-
-/* ────────────────────────────────
  * Context
  * ──────────────────────────────── */
 interface GuideContextValue {
   state: GuideState;
-  steps: GuideStep[];
-  snapshot: GuideContextSnapshot;
-  start: (area: GuideArea) => void;
-  stop: () => void;
-  next: () => void;
-  prev: () => void;
-  setEnabled: (v: boolean) => void;
-  resetAll: () => void;
+  tourSteps: TourStep[];
+  startTour: () => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  skipTour: () => void;
+  replayTour: () => void;
+  markFirstTap: (id: FirstTapId) => void;
+  isFirstTap: (id: FirstTapId) => boolean;
+  isTourRunning: boolean;
   registerAnchor: (id: AnchorId, el: HTMLElement | null) => void;
   getAnchorRect: (id: AnchorId) => AnchorRect | null;
+  sessionTooltipShown: Set<string>;
+  markSessionTooltip: (pageKey: string) => void;
 }
 
 const GuideCtx = createContext<GuideContextValue | null>(null);
@@ -201,17 +193,10 @@ export function useGuide() {
 /* ────────────────────────────────
  * Provider
  * ──────────────────────────────── */
-export function GuideProvider({
-  children,
-  steps = DEFAULT_STEPS,
-  snapshot = {},
-}: {
-  children: React.ReactNode;
-  steps?: GuideStep[];
-  snapshot?: GuideContextSnapshot;
-}) {
+export function GuideProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const anchorsRef = useRef<Map<AnchorId, HTMLElement>>(new Map());
+  const [sessionTooltips] = useState(() => new Set<string>());
 
   // Hydrate from localStorage
   useEffect(() => {
@@ -219,85 +204,90 @@ export function GuideProvider({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (typeof parsed?.enabled === "boolean" && parsed.completed) {
-        dispatch({ type: "HYDRATE", payload: { enabled: parsed.enabled, completed: parsed.completed } });
-      }
+      dispatch({
+        type: "HYDRATE",
+        payload: {
+          firstTourCompleted: parsed.firstTourCompleted ?? false,
+          firstTapSeen: { ...defaultFirstTapSeen, ...(parsed.firstTapSeen || {}) },
+          allowReplayTour: parsed.allowReplayTour ?? true,
+        },
+      });
     } catch { /* ignore */ }
   }, []);
 
   // Persist
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabled: state.enabled, completed: state.completed }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          firstTourCompleted: state.firstTourCompleted,
+          firstTapSeen: state.firstTapSeen,
+          allowReplayTour: state.allowReplayTour,
+        })
+      );
     } catch { /* ignore */ }
-  }, [state.enabled, state.completed]);
+  }, [state.firstTourCompleted, state.firstTapSeen, state.allowReplayTour]);
 
   const registerAnchor = useCallback((id: AnchorId, el: HTMLElement | null) => {
-    if (!el) {
-      anchorsRef.current.delete(id);
-    } else {
-      anchorsRef.current.set(id, el);
-    }
+    if (!el) anchorsRef.current.delete(id);
+    else anchorsRef.current.set(id, el);
   }, []);
 
-  const getAnchorRect = useCallback((id: AnchorId) => {
-    return getRect(anchorsRef.current.get(id) || null);
-  }, []);
+  const getAnchorRect = useCallback(
+    (id: AnchorId) => getRect(anchorsRef.current.get(id) || null),
+    []
+  );
 
-  const start = useCallback((area: GuideArea) => {
-    if (!state.enabled) return;
-    const stepIds = steps
-      .filter((s) => s.area === area)
-      .filter((s) => !state.completed[s.id])
-      .filter((s) => (s.when ? s.when(snapshot) : true))
-      .map((s) => s.id);
-    if (!stepIds.length) return;
-    dispatch({ type: "START", payload: { area, stepIds } });
-  }, [state.enabled, state.completed, steps, snapshot]);
-
-  const stop = useCallback(() => {
-    // Mark current step as completed before stopping
-    if (state.active.running && state.active.stepIds.length > 0) {
-      const currentStepId = state.active.stepIds[state.active.stepIndex];
-      dispatch({ type: "MARK_COMPLETED", payload: { stepId: currentStepId } });
-    }
-    dispatch({ type: "STOP" });
-  }, [state.active]);
-
-  const next = useCallback(() => dispatch({ type: "NEXT" }), []);
-  const prev = useCallback(() => dispatch({ type: "PREV" }), []);
-  const setEnabled = useCallback((v: boolean) => dispatch({ type: "ENABLE", payload: v }), []);
-  const resetAll = useCallback(() => dispatch({ type: "RESET_ALL" }), []);
+  const startTour = useCallback(() => dispatch({ type: "START_TOUR" }), []);
+  const nextStep = useCallback(() => dispatch({ type: "NEXT_STEP" }), []);
+  const prevStep = useCallback(() => dispatch({ type: "PREV_STEP" }), []);
+  const skipTour = useCallback(() => dispatch({ type: "SKIP_TOUR" }), []);
+  const replayTour = useCallback(() => dispatch({ type: "REPLAY_TOUR" }), []);
+  const markFirstTap = useCallback((id: FirstTapId) => dispatch({ type: "MARK_FIRST_TAP", payload: id }), []);
+  const isFirstTap = useCallback((id: FirstTapId) => !state.firstTapSeen[id], [state.firstTapSeen]);
+  const markSessionTooltip = useCallback((key: string) => { sessionTooltips.add(key); }, [sessionTooltips]);
 
   const value = useMemo<GuideContextValue>(
-    () => ({ state, steps, snapshot, start, stop, next, prev, setEnabled, resetAll, registerAnchor, getAnchorRect }),
-    [state, steps, snapshot, start, stop, next, prev, setEnabled, resetAll, registerAnchor, getAnchorRect]
+    () => ({
+      state,
+      tourSteps: TOUR_STEPS,
+      startTour,
+      nextStep,
+      prevStep,
+      skipTour,
+      replayTour,
+      markFirstTap,
+      isFirstTap,
+      isTourRunning: state.tour.running,
+      registerAnchor,
+      getAnchorRect,
+      sessionTooltipShown: sessionTooltips,
+      markSessionTooltip,
+    }),
+    [state, startTour, nextStep, prevStep, skipTour, replayTour, markFirstTap, isFirstTap, registerAnchor, getAnchorRect, sessionTooltips, markSessionTooltip]
   );
 
   return <GuideCtx.Provider value={value}>{children}</GuideCtx.Provider>;
 }
 
 /* ────────────────────────────────
- * Hook to attach anchors
+ * Anchor hook
  * ──────────────────────────────── */
 export function useGuideAnchor(id: AnchorId) {
   const { registerAnchor } = useGuide();
-  const refCb = useCallback(
-    (el: HTMLElement | null) => registerAnchor(id, el),
-    [registerAnchor, id]
-  );
-  return refCb;
+  return useCallback((el: HTMLElement | null) => registerAnchor(id, el), [registerAnchor, id]);
 }
 
 /* ────────────────────────────────
- * Auto-start hook
+ * Auto-start tour hook
  * ──────────────────────────────── */
-export function useAutoStartGuide(area: GuideArea, condition: boolean = true) {
-  const { start, state } = useGuide();
+export function useAutoStartTour() {
+  const { startTour, state } = useGuide();
   useEffect(() => {
-    if (!condition || !state.enabled) return;
-    const id = setTimeout(() => start(area), 400);
+    if (state.firstTourCompleted) return;
+    const id = setTimeout(() => startTour(), 600);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [area, condition]);
+  }, []);
 }

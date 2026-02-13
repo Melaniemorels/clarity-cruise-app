@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
+import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -28,6 +29,8 @@ const Calendar = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [daySummaryOpen, setDaySummaryOpen] = useState(false);
   const [summaryDate, setSummaryDate] = useState<Date | null>(null);
+  const [addEventTapped, setAddEventTapped] = useState(false);
+  const addEventRef = useRef<HTMLButtonElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
@@ -280,9 +283,24 @@ const Calendar = () => {
               {format(currentDate, lang === 'es' ? "d 'de' MMMM, yyyy" : "MMMM d, yyyy", { locale: dateLocale })}
             </p>
           </div>
-          <Button size="icon" onClick={() => handleNewEvent()}>
+          <Button
+            ref={addEventRef}
+            size="icon"
+            onClick={() => {
+              setAddEventTapped(true);
+              handleNewEvent();
+            }}
+          >
             <Plus className="h-5 w-5" />
           </Button>
+          <FirstTapTooltip
+            tapId="addEventBtn"
+            pageKey="calendar"
+            title="Tu día, tu sistema"
+            body="Planifica con claridad. Menos decisiones después."
+            anchorRef={addEventRef}
+            show={addEventTapped}
+          />
         </div>
 
         {/* View Tabs */}

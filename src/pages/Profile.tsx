@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CaptureDetailModal } from "@/components/CaptureDetailModal";
 import { BottomNav } from "@/components/BottomNav";
@@ -16,12 +16,15 @@ import { useProfile, useProfileStats } from "@/hooks/use-profile";
 import { useUserEntries } from "@/hooks/use-entries";
 import { useTranslation } from "react-i18next";
 import { useFocusMetrics } from "@/hooks/use-focus-metrics";
+import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 
 const Profile = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editProfileTapped, setEditProfileTapped] = useState(false);
+  const editProfileRef = useRef<HTMLButtonElement>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
@@ -105,9 +108,25 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-            <Button className="w-full" variant="outline" onClick={() => setEditProfileOpen(true)}>
+            <Button
+              ref={editProfileRef}
+              className="w-full"
+              variant="outline"
+              onClick={() => {
+                setEditProfileTapped(true);
+                setEditProfileOpen(true);
+              }}
+            >
               {t('profile.editProfile')}
             </Button>
+            <FirstTapTooltip
+              tapId="editProfileBtn"
+              pageKey="profile"
+              title="Tu identidad VYV"
+              body="Ajusta lo que quieres mostrar. El resto puede quedar privado."
+              anchorRef={editProfileRef}
+              show={editProfileTapped}
+            />
           </CardContent>
         </Card>
 

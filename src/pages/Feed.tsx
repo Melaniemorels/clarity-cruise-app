@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
 import vyvIcon from "@/assets/vyv-icon.jpeg";
-import { useGuideAnchor, useAutoStartGuide } from "@/contexts/GuideContext";
+import { useGuideAnchor, useAutoStartTour } from "@/contexts/GuideContext";
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
@@ -45,8 +45,8 @@ const Feed = () => {
   const lastRefreshRef = useRef<number>(Date.now());
   const captureAnchor = useGuideAnchor("capture_vibe");
 
-  // Auto-start HOME guide tour on first visit
-  useAutoStartGuide("HOME");
+  // Auto-start tour on first visit
+  useAutoStartTour();
 
   // Check and manage cooldown state
   useEffect(() => {

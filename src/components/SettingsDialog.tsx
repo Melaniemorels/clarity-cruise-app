@@ -66,8 +66,10 @@ import {
   Music,
   Download,
   Plane,
+  RotateCcw,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
+import { useGuide } from "@/contexts/GuideContext";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -83,6 +85,7 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const { data: profile } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const navigate = useNavigate();
+  const { replayTour } = useGuide();
 
   // Local state for toggles (these would connect to real settings in production)
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -631,6 +634,15 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
               <div>
                 <SectionHeader>{t("settings.support")}</SectionHeader>
                 <div className="space-y-1">
+                  <LinkButton
+                    icon={RotateCcw}
+                    label="Ver recorrido nuevamente"
+                    description="Repetir el tour de bienvenida"
+                    onClick={() => {
+                      onOpenChange(false);
+                      replayTour();
+                    }}
+                  />
                   <LinkButton
                     icon={HelpCircle}
                     label={t("settings.helpFaq")}
