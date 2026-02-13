@@ -745,5 +745,10 @@
     "noUrl": "Coming soon",
     "comingSoon": "Coming soon",
     "error": "Try again"
+  },
+  "moderation": {
+    "contentRejected": "Content rejected: violates community guidelines.",
+    "accountSuspended": "Your account has been suspended for repeated community guideline violations.",
+    "strikeWarning": "Warning: inappropriate content detected. Strike {{current}}/{{max}}."
   }
 }
