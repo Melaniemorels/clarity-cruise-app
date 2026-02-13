@@ -759,6 +759,8 @@
     "activated": "Travel mode activated",
     "deactivated": "Travel mode deactivated",
     "timezoneDetected": "Timezone detected: {{timezone}}",
-    "differentTimezone": "You seem to be in a different timezone ({{current}} vs {{home}})"
+    "differentTimezone": "You seem to be in a different timezone ({{current}} vs {{home}})",
+    "calendarDetected": "We detected travel events in today's calendar",
+    "activate": "Activate travel mode"
   }
 }

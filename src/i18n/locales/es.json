@@ -759,6 +759,8 @@
     "activated": "Modo viaje activado",
     "deactivated": "Modo viaje desactivado",
     "timezoneDetected": "Zona horaria detectada: {{timezone}}",
-    "differentTimezone": "Parece que estás en una zona horaria diferente ({{current}} vs {{home}})"
+    "differentTimezone": "Parece que estás en una zona horaria diferente ({{current}} vs {{home}})",
+    "calendarDetected": "Detectamos eventos de viaje en tu calendario de hoy",
+    "activate": "Activar modo viaje"
   }
 }

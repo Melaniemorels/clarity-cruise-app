@@ -13,6 +13,7 @@ import { QuickCamera } from "@/components/QuickCamera";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
+import { TravelDetectionBanner } from "@/components/TravelDetectionBanner";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { Plus, Search, Camera, Loader2, Hexagon } from "lucide-react";
 import { toast } from "sonner";
@@ -276,6 +277,8 @@ const Feed = () => {
             </div>
           </div>
         </div>
+
+        <TravelDetectionBanner />
 
         <div className="relative">
           {/* Social time completed state - replaces feed content when limit reached */}
