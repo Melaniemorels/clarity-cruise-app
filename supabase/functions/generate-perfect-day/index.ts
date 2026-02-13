@@ -195,14 +195,8 @@ serve(async (req) => {
     // Gather user context
     const today = new Date().toISOString().split("T")[0];
     const now = new Date();
-    const hour = now.getUTCHours();
-    
-    let timeOfDay = "morning";
-    if (hour >= 12 && hour < 14) timeOfDay = "midday";
-    else if (hour >= 14 && hour < 18) timeOfDay = "afternoon";
-    else if (hour >= 18) timeOfDay = "evening";
 
-    // Get health data
+    // Get health data + profile
     const [{ data: healthData }, { data: events }, { data: scheduleBlocks }, { data: profileData }] = await Promise.all([
       supabase
         .from("health_daily")
@@ -229,6 +223,25 @@ serve(async (req) => {
         .eq("user_id", user.id)
         .single(),
     ]);
+
+    // Determine local hour based on user's timezone (travel-aware)
+    let localHour: number;
+    const userTimezone = profileData?.current_timezone || profileData?.home_timezone;
+    if (userTimezone) {
+      try {
+        const localTimeStr = now.toLocaleString("en-US", { timeZone: userTimezone, hour12: false, hour: "2-digit" });
+        localHour = parseInt(localTimeStr, 10);
+      } catch {
+        localHour = now.getUTCHours();
+      }
+    } else {
+      localHour = now.getUTCHours();
+    }
+    
+    let timeOfDay = "morning";
+    if (localHour >= 12 && localHour < 14) timeOfDay = "midday";
+    else if (localHour >= 14 && localHour < 18) timeOfDay = "afternoon";
+    else if (localHour >= 18) timeOfDay = "evening";
 
     // Get user language from request body
     let userLanguage = "en";
