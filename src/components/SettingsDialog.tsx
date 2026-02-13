@@ -395,6 +395,31 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     })}
                   </p>
                 )}
+                {profile?.is_traveling && (
+                  <div className="ml-8 mt-3">
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">
+                      {t("travelMode.intensity.label")}
+                    </Label>
+                    <Select
+                      value={profile?.travel_intensity ?? "medium"}
+                      onValueChange={(value: "low" | "medium" | "high") => {
+                        updateProfileMutation.mutate({ travel_intensity: value });
+                      }}
+                    >
+                      <SelectTrigger className="h-8 text-xs w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">{t("travelMode.intensity.low")}</SelectItem>
+                        <SelectItem value="medium">{t("travelMode.intensity.medium")}</SelectItem>
+                        <SelectItem value="high">{t("travelMode.intensity.high")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("travelMode.intensity.description")}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Separator />
