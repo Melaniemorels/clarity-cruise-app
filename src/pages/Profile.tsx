@@ -55,14 +55,19 @@ const Profile = () => {
     .sort((a, b) => b.seconds_used - a.seconds_used)
     .map((u) => ({ module: u.module, seconds: u.seconds_used }));
 
-  // Sleep in hours for display
-  const sleepHours = (health.sleep.value / 60).toFixed(1);
-  const sleepGoalHours = (health.sleep.goal / 60).toFixed(1);
+  // Sleep: robust parsing from health_daily sleep_minutes
+  const rawSleepMin = health.sleep.value;
+  const sleepH = Number.isFinite(rawSleepMin) && rawSleepMin > 0
+    ? Math.round((rawSleepMin / 60) * 10) / 10
+    : 0;
+  const sleepGoalH = Number.isFinite(health.sleep.goal) && health.sleep.goal > 0
+    ? Math.round((health.sleep.goal / 60) * 10) / 10
+    : 8;
 
   const healthData = [
     { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '', tappable: false, format: 'number' as const },
     { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: workoutValue, goal: health.workout.goal, unit: '', tappable: true, format: 'number' as const },
-    { key: 'sleep', label: `${t('devices.data.sleep')} (h)`, value: parseFloat(sleepHours), goal: parseFloat(sleepGoalHours), unit: 'h', tappable: false, format: 'decimal' as const },
+    { key: 'sleep', label: `${t('devices.data.sleep')} (h)`, value: sleepH, goal: sleepGoalH, unit: 'h', tappable: false, format: 'decimal' as const },
     { key: 'screenTime', label: 'Screen Time', value: screenTimeMinutes, goal: 0, unit: t('calendar.minShort'), tappable: true, format: 'number' as const },
   ];
 
