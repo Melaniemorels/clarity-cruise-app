@@ -789,35 +789,26 @@
   },
   "elevate": {
     "title": "Elevate",
-    "subtitle": "Master your time & energy",
-    "microInsights": "Micro Insights",
-    "weeklyChallenge": "Weekly Challenge",
-    "aiRecommendations": "Recommendations",
-    "days": "days",
-    "day": "Day",
-    "startChallenge": "Start challenge",
-    "dismiss": "Not now",
-    "aiSuggestion": "Your focus completion was low this week. Would you like to try a 20-minute deep work reset?",
-    "insights": {
-      "energyTime": "Energy > Time Management",
-      "weeklyPlanning": "80/20 Weekly Planning",
-      "deepWork": "Deep Work Basics",
-      "digitalDiscipline": "Digital Discipline",
-      "idealDay": "Designing Your Ideal Day",
-      "focusTravel": "Focus While Traveling"
+    "subtitle": "Productivity & Mind Design",
+    "items": {
+      "deepWork": "Deep Work",
+      "weekStructure": "Week Structure",
+      "digitalDistraction": "Digital Distraction",
+      "idealMorning": "Ideal Morning",
+      "energyManagement": "Energy Management",
+      "mentalClarity": "Mental Clarity",
+      "focusPsychology": "Focus Psychology",
+      "travelProductivity": "Travel Productivity"
     },
-    "challenge": {
-      "singleTasking": "7 Days Single-Tasking",
-      "singleTaskingDesc": "One task at a time. No multitasking. Automatic focus blocks and gentle social time reduction."
-    },
-    "actions": {
-      "applyToWeek": "Apply to my week",
-      "scheduleCalendar": "Schedule in Calendar",
-      "startFocusBlock": "Start Focus Block"
-    },
-    "toast": {
-      "applied": "Applied to your week",
-      "challengeStarted": "Challenge activated"
+    "descs": {
+      "deepWork": "Fundamentals explained simply",
+      "weekStructure": "How to plan with the 80/20 method",
+      "digitalDistraction": "Strategies to avoid interruptions",
+      "idealMorning": "Design your morning routine",
+      "energyManagement": "Optimize energy, not time",
+      "mentalClarity": "Quick clarity techniques",
+      "focusPsychology": "The science behind concentration",
+      "travelProductivity": "Keep your rhythm while traveling"
     }
   }
 }

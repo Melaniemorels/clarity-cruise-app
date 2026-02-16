@@ -789,35 +789,26 @@
   },
   "elevate": {
     "title": "Elevate",
-    "subtitle": "Domina tu tiempo y energía",
-    "microInsights": "Micro Insights",
-    "weeklyChallenge": "Reto semanal",
-    "aiRecommendations": "Recomendaciones",
-    "days": "días",
-    "day": "Día",
-    "startChallenge": "Iniciar reto",
-    "dismiss": "No ahora",
-    "aiSuggestion": "Tu nivel de enfoque fue bajo esta semana. ¿Te gustaría probar un reset de 20 minutos de trabajo profundo?",
-    "insights": {
-      "energyTime": "Energía > Gestión del tiempo",
-      "weeklyPlanning": "Planificación semanal 80/20",
-      "deepWork": "Fundamentos de Deep Work",
-      "digitalDiscipline": "Disciplina digital",
-      "idealDay": "Diseña tu día ideal",
-      "focusTravel": "Enfoque mientras viajas"
+    "subtitle": "Productividad y diseño mental",
+    "items": {
+      "deepWork": "Deep Work",
+      "weekStructure": "Estructura semanal",
+      "digitalDistraction": "Distracción digital",
+      "idealMorning": "Mañana ideal",
+      "energyManagement": "Gestión de energía",
+      "mentalClarity": "Claridad mental",
+      "focusPsychology": "Psicología del enfoque",
+      "travelProductivity": "Productividad viajando"
     },
-    "challenge": {
-      "singleTasking": "7 días de Single-Tasking",
-      "singleTaskingDesc": "Una tarea a la vez. Sin multitarea. Bloques de enfoque automáticos y reducción suave de tiempo social."
-    },
-    "actions": {
-      "applyToWeek": "Aplicar a mi semana",
-      "scheduleCalendar": "Agendar en Calendario",
-      "startFocusBlock": "Iniciar bloque de enfoque"
-    },
-    "toast": {
-      "applied": "Aplicado a tu semana",
-      "challengeStarted": "Reto activado"
+    "descs": {
+      "deepWork": "Fundamentos explicados de forma simple",
+      "weekStructure": "Cómo planificar con el método 80/20",
+      "digitalDistraction": "Estrategias para evitar interrupciones",
+      "idealMorning": "Diseña tu rutina matutina",
+      "energyManagement": "Optimiza tu energía, no tu tiempo",
+      "mentalClarity": "Técnicas rápidas de claridad",
+      "focusPsychology": "La ciencia detrás de la concentración",
+      "travelProductivity": "Mantén el ritmo mientras viajas"
     }
   }
 }
