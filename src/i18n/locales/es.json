@@ -115,6 +115,22 @@
       "mealPrep": "Preparación Semanal",
       "healthyRecipes": "Recetas Saludables",
       "quickMeals": "Comidas Rápidas"
+    },
+    "providers": {
+      "youtube": "YouTube",
+      "spotify": "Spotify",
+      "applePodcasts": "Apple Podcasts",
+      "audible": "Audible",
+      "huberman": "Huberman Lab",
+      "other": "Artículo"
+    },
+    "open": "Abrir",
+    "integrationComingSoon": "Conexión directa próximamente.",
+    "unavailable": {
+      "title": "No disponible aún",
+      "noUrl": "Próximamente",
+      "comingSoon": "Próximamente",
+      "error": "No se pudo abrir el enlace. Intenta de nuevo."
     }
   },
   "calendar": {
@@ -743,12 +759,6 @@
     "privacyNote": "Solo accedemos a datos de lectura. Nunca publicamos ni modificamos nada en tus cuentas.",
     "skip": "Ahora no",
     "continue": "Entendido"
-  },
-  "explore.unavailable": {
-    "title": "No disponible aún",
-    "noUrl": "Próximamente",
-    "comingSoon": "Próximamente",
-    "error": "Intenta de nuevo"
   },
   "moderation": {
     "contentRejected": "Contenido rechazado: viola las normas de la comunidad.",
