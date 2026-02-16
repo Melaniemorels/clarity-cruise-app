@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ const PROVIDERS = [
 export function MediaConnectionBanner() {
   const { t } = useTranslation();
   const device = useDevice();
+  const navigate = useNavigate();
   const { data: connections = [] } = useMediaConnections();
 
   const connectedProviders = connections.map((c) => c.provider);
@@ -42,12 +44,8 @@ export function MediaConnectionBanner() {
 
   if (unconnectedProviders.length === 0) return null;
 
-  const handleConnect = (providerId: string) => {
-    // Phase 2: Implement OAuth PKCE flow
-    // For now, show that credentials are needed
-    import("sonner").then(({ toast }) => {
-      toast.info(t("mediaConnections.credentialsNeeded"));
-    });
+  const handleConnect = () => {
+    navigate("/media-connections");
   };
 
   return (
@@ -117,7 +115,7 @@ export function MediaConnectionBanner() {
                     size="sm"
                     variant="outline"
                     className="rounded-full text-xs gap-1.5"
-                    onClick={() => handleConnect(provider.id)}
+                    onClick={() => handleConnect()}
                   >
                     <ExternalLink className="h-3 w-3" />
                     {t("mediaConnections.connect")}
