@@ -8,6 +8,7 @@ import { Bookmark, Sparkles } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
+import { ElevateSection } from "@/components/explore/ElevateSection";
 import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -163,6 +164,9 @@ const Explore = () => {
 
         {/* AI Recommendations Section */}
         <AIRecommendationsSection />
+
+        {/* Elevate Section */}
+        <ElevateSection />
 
         {/* First-time onboarding dialog */}
         <ExploreOnboardingDialog />
