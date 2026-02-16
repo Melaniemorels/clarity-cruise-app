@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export type RecommendationGoal = "focus" | "energy" | "calm" | "recovery" | "motivation" | "sleep" | "auto";
 export type RecommendationType = "playlist" | "podcast" | "ambient" | "guided";
@@ -38,9 +39,11 @@ export interface MediaConsent {
 
 export function useRecommendations(goal: RecommendationGoal = "auto") {
   const { user, session } = useAuth();
+  const { i18n } = useTranslation();
+  const language = i18n.language?.split('-')[0] || 'en';
 
   return useQuery({
-    queryKey: ["recommendations", goal, user?.id],
+    queryKey: ["recommendations", goal, user?.id, language],
     queryFn: async (): Promise<RecommendationResponse> => {
       if (!session?.access_token) {
         throw new Error("Not authenticated");
@@ -54,7 +57,7 @@ export function useRecommendations(goal: RecommendationGoal = "auto") {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ goal: goal === "auto" ? null : goal }),
+          body: JSON.stringify({ goal: goal === "auto" ? null : goal, language }),
         }
       );
 
@@ -73,6 +76,7 @@ export function useRecommendations(goal: RecommendationGoal = "auto") {
 
 export function useRefreshRecommendations() {
   const { session } = useAuth();
+  const { i18n } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -80,6 +84,8 @@ export function useRefreshRecommendations() {
       if (!session?.access_token) {
         throw new Error("Not authenticated");
       }
+
+      const language = i18n.language?.split('-')[0] || 'en';
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-recommendations`,
@@ -92,6 +98,7 @@ export function useRefreshRecommendations() {
           body: JSON.stringify({ 
             goal: goal === "auto" ? null : goal,
             forceRefresh: true,
+            language,
           }),
         }
       );

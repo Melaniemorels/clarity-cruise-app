@@ -36,8 +36,14 @@ function detectTimeOfDay(): ContextSignals["timeOfDay"] {
   return "night";
 }
 
-function buildSystemPrompt(signals: ContextSignals): string {
+function buildSystemPrompt(signals: ContextSignals, language: string): string {
+  const langInstruction = language === "es"
+    ? `LANGUAGE: You MUST write ALL text (titles, descriptions, tags) in Spanish. Do NOT mix English and Spanish. Proper nouns (e.g. artist names, podcast names) may remain in their original language, but descriptions and tags must be entirely in Spanish.`
+    : `LANGUAGE: You MUST write ALL text (titles, descriptions, tags) in English. Do NOT mix languages.`;
+
   return `You are a wellness-focused AI recommendation engine for VYV, a healthy lifestyle app. Your goal is to suggest media content (music, podcasts, ambient sounds) that supports the user's wellbeing—NOT to maximize engagement or create addiction.
+
+${langInstruction}
 
 CORE PRINCIPLES:
 - Prioritize user intent over engagement
@@ -73,11 +79,11 @@ OUTPUT FORMAT (JSON array):
   {
     "type": "playlist" | "podcast" | "ambient" | "guided",
     "title": "Exact name of the real content",
-    "description": "Why this fits their current context (1-2 sentences)",
+    "description": "Why this fits their current context (1-2 sentences, in ${language === 'es' ? 'Spanish' : 'English'})",
     "duration": "30 min" | "1 hour" | etc,
     "mood": "calm" | "energizing" | "focused" | "uplifting" | "relaxing",
     "externalUrl": "https://open.spotify.com/playlist/... or https://www.youtube.com/watch?v=...",
-    "tags": ["focus", "instrumental", "lo-fi"] // 2-4 tags
+    "tags": ["focus", "instrumental", "lo-fi"] // 2-4 tags, in ${language === 'es' ? 'Spanish' : 'English'}
   }
 ]`;
 }
@@ -111,7 +117,7 @@ serve(async (req) => {
       });
     }
 
-    const { goal, forceRefresh } = await req.json();
+    const { goal, forceRefresh, language = "en" } = await req.json();
 
     // Check for cached recommendations (unless force refresh)
     if (!forceRefresh) {
@@ -198,12 +204,12 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: buildSystemPrompt(signals) },
+          { role: "system", content: buildSystemPrompt(signals, language) },
           { 
             role: "user", 
             content: goal 
-              ? `Generate recommendations for my goal: ${goal}. Consider my current context but prioritize my stated goal.`
-              : `Based on my current context, suggest the best media content for me right now. Auto-detect what would be most helpful.`
+              ? `Generate recommendations for my goal: ${goal}. Consider my current context but prioritize my stated goal. Respond entirely in ${language === 'es' ? 'Spanish' : 'English'}.`
+              : `Based on my current context, suggest the best media content for me right now. Auto-detect what would be most helpful. Respond entirely in ${language === 'es' ? 'Spanish' : 'English'}.`
           },
         ],
         temperature: 0.7,
