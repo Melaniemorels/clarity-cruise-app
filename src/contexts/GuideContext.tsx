@@ -252,7 +252,7 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
         })
       );
     } catch { /* ignore */ }
-  }, [state.firstTourCompleted, state.firstTapSeen, state.allowReplayTour]);
+  }, [state.firstTourCompleted, state.firstTapSeen, state.allowReplayTour, state.friendsOnboardingCompleted, state.friendsOnboardingDismissed]);
 
   const registerAnchor = useCallback((id: AnchorId, el: HTMLElement | null) => {
     if (!el) anchorsRef.current.delete(id);
