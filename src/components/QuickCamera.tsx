@@ -388,8 +388,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 <FirstTapTooltip
                   tapId="focusCapture"
                   pageKey="focus"
-                  title="Registro, no perfección"
-                  body="Esto es para recordarte quién eres hoy."
+                  title={t("guide.tips.focusCaptureTitle")}
+                  body={t("guide.tips.focusCaptureBody")}
                   anchorRef={captureButtonRef}
                   show={captureTapped}
                 />

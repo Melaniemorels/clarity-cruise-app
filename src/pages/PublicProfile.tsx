@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { ChevronLeft, Lock } from "lucide-react";
 
 const PublicProfile = () => {
+  const { t } = useTranslation();
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -52,13 +54,11 @@ const PublicProfile = () => {
     enabled: !!username,
   });
 
-  // Redirect logged-in user to their own profile page
   if (profile && user && profile.user_id === user.id) {
     navigate("/profile", { replace: true });
     return null;
   }
 
-  // Redirect to full profile view if logged in
   if (profile && user && profile.user_id !== user.id) {
     navigate(`/profile/${profile.user_id}`, { replace: true });
     return null;
@@ -75,8 +75,8 @@ const PublicProfile = () => {
   if (!profile) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
-        <p className="text-lg text-muted-foreground">Usuario no encontrado</p>
-        <Button variant="outline" onClick={() => navigate("/")}>Ir al inicio</Button>
+        <p className="text-lg text-muted-foreground">{t("publicProfile.notFound")}</p>
+        <Button variant="outline" onClick={() => navigate("/")}>{t("publicProfile.goHome")}</Button>
       </div>
     );
   }
@@ -99,7 +99,7 @@ const PublicProfile = () => {
           {profile.is_private ? (
             <div className="flex flex-col items-center gap-2 py-4">
               <Lock className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Perfil privado</p>
+              <p className="text-sm text-muted-foreground">{t("publicProfile.privateProfile")}</p>
               {user && (
                 <FollowButton
                   targetUserId={profile.user_id}
@@ -112,15 +112,15 @@ const PublicProfile = () => {
             <div className="text-sm text-muted-foreground">
               {profile.bio && <p className="mb-3">{profile.bio}</p>}
               <div className="flex justify-center gap-4">
-                <span><strong>{profile.posts_count}</strong> posts</span>
-                <span><strong>{profile.followers_count}</strong> seguidores</span>
-                <span><strong>{profile.following_count}</strong> siguiendo</span>
+                <span><strong>{profile.posts_count}</strong> {t("publicProfile.posts")}</span>
+                <span><strong>{profile.followers_count}</strong> {t("publicProfile.followers")}</span>
+                <span><strong>{profile.following_count}</strong> {t("publicProfile.following")}</span>
               </div>
             </div>
           )}
           {!user && (
             <Button className="w-full mt-4" onClick={() => navigate("/auth")}>
-              Únete a VYV
+              {t("publicProfile.joinVYV")}
             </Button>
           )}
         </CardContent>

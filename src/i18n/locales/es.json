@@ -232,7 +232,11 @@
     "security": "Seguridad",
     "logOutAllDevices": "Cerrar sesión en todos los dispositivos",
     "logOutAllDevicesDesc": "Finalizar sesiones en otros dispositivos",
-    "loggedOutAllDevices": "Sesión cerrada en todos los dispositivos"
+    "loggedOutAllDevices": "Sesión cerrada en todos los dispositivos",
+    "findFriends": "Encontrar amigos",
+    "findFriendsDesc": "Busca y conecta con personas",
+    "replayTour": "Ver recorrido nuevamente",
+    "replayTourDesc": "Repetir el tour de bienvenida"
   },
   "devices": {
     "title": "Dispositivos de Salud",
@@ -810,5 +814,86 @@
       "focusPsychology": "La ciencia detrás de la concentración",
       "travelProductivity": "Mantén el ritmo mientras viajas"
     }
+  },
+  "guide": {
+    "tour": {
+      "welcomeTitle": "Bienvenida a VYV",
+      "welcomeBody": "VYV es tu sistema para vivir con intención. Te muestro lo esencial en 30 segundos.",
+      "homeTitle": "Inicio",
+      "homeBody": "Tu estado del día: energía, hábitos y dirección. Todo empieza aquí.",
+      "exploreTitle": "Explorar",
+      "exploreBody": "Recomendaciones alineadas a tu ritmo. Menos ruido, más valor.",
+      "focusTitle": "Enfoque",
+      "focusBody": "Tu espacio para presencia. Captura tu momento y vuelve a lo importante.",
+      "calendarTitle": "Calendario",
+      "calendarBody": "Organiza tu vida visualmente. Eventos, ritmo y balance en un solo lugar.",
+      "profileTitle": "Perfil",
+      "profileBody": "Tu progreso es tuyo. Tú eliges qué compartir y qué guardar en privado.",
+      "skip": "Saltar",
+      "start": "Comenzar",
+      "next": "Siguiente",
+      "back": "Atrás",
+      "finish": "Finalizar",
+      "finishToast": "Listo. Empieza con intención."
+    },
+    "tips": {
+      "exploreCardTitle": "Explorar con intención",
+      "exploreCardBody": "Guarda lo que te hace bien. Evita lo que solo distrae.",
+      "focusCaptureTitle": "Registro, no perfección",
+      "focusCaptureBody": "Esto es para recordarte quién eres hoy.",
+      "calendarAddTitle": "Tu día, tu sistema",
+      "calendarAddBody": "Planifica con claridad. Menos decisiones después.",
+      "profileEditTitle": "Tu identidad VYV",
+      "profileEditBody": "Ajusta lo que quieres mostrar. El resto puede quedar privado.",
+      "profileShareTitle": "Comparte con calma",
+      "profileShareBody": "Comparte tu perfil cuando tú lo decidas."
+    },
+    "focusIntro": {
+      "line1": "Captura tu momento.",
+      "line2": "No lo fabriques.",
+      "subtitle": "Sin edición infinita. Sin presión social. Solo presencia.",
+      "later": "Más tarde",
+      "begin": "Comenzar"
+    },
+    "friends": {
+      "title": "Encuentra a tu gente",
+      "body": "Conecta con personas que ya conoces. Puedes hacerlo ahora o más tarde.",
+      "notNow": "Ahora no",
+      "findFriends": "Encontrar amigos",
+      "settingsHint": "Puedes cambiar esto en Configuración."
+    }
+  },
+  "findFriends": {
+    "title": "Encontrar amigos",
+    "searchByUser": "Buscar por usuario",
+    "searchPlaceholder": "Buscar @usuario",
+    "searching": "Buscando…",
+    "noResults": "Sin resultados",
+    "following": "Siguiendo",
+    "follow": "Seguir",
+    "syncContacts": "Sincronizar contactos",
+    "noPermission": "Sin permiso no podemos sugerirte contactos. Puedes buscar por usuario o invitar con link.",
+    "connectContacts": "Conectar contactos",
+    "comingSoon": "Próximamente",
+    "inviteWithLink": "Invitar con link",
+    "copyLink": "Copiar link",
+    "share": "Compartir…",
+    "linkCopied": "Link copiado",
+    "joinVYV": "Únete a VYV"
+  },
+  "shareProfile": {
+    "title": "Compartir perfil",
+    "copyLink": "Copiar link del perfil",
+    "share": "Compartir…",
+    "linkCopied": "Link copiado"
+  },
+  "publicProfile": {
+    "notFound": "Usuario no encontrado",
+    "goHome": "Ir al inicio",
+    "privateProfile": "Perfil privado",
+    "posts": "posts",
+    "followers": "seguidores",
+    "following": "siguiendo",
+    "joinVYV": "Únete a VYV"
   }
 }

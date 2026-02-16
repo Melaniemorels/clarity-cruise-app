@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import i18n from "@/i18n";
 
 /* ────────────────────────────────
  * Types
@@ -48,41 +49,46 @@ export type TourStep = {
   route?: string;
 };
 
-export const TOUR_STEPS: TourStep[] = [
-  {
-    title: "Bienvenida a VYV",
-    body: "VYV es tu sistema para vivir con intención. Te muestro lo esencial en 30 segundos.",
-  },
-  {
-    title: "Inicio",
-    body: "Tu estado del día: energía, hábitos y dirección. Todo empieza aquí.",
-    anchor: "nav_feed",
-    route: "/",
-  },
-  {
-    title: "Explorar",
-    body: "Recomendaciones alineadas a tu ritmo. Menos ruido, más valor.",
-    anchor: "nav_explore",
-    route: "/explore",
-  },
-  {
-    title: "Enfoque",
-    body: "Tu espacio para presencia. Captura tu momento y vuelve a lo importante.",
-    anchor: "nav_focus",
-  },
-  {
-    title: "Calendario",
-    body: "Organiza tu vida visualmente. Eventos, ritmo y balance en un solo lugar.",
-    anchor: "nav_calendar",
-    route: "/calendar",
-  },
-  {
-    title: "Perfil",
-    body: "Tu progreso es tuyo. Tú eliges qué compartir y qué guardar en privado.",
-    anchor: "nav_profile",
-    route: "/profile",
-  },
-];
+function getTourSteps(): TourStep[] {
+  const t = (key: string) => i18n.t(key);
+  return [
+    {
+      title: t("guide.tour.welcomeTitle"),
+      body: t("guide.tour.welcomeBody"),
+    },
+    {
+      title: t("guide.tour.homeTitle"),
+      body: t("guide.tour.homeBody"),
+      anchor: "nav_feed",
+      route: "/",
+    },
+    {
+      title: t("guide.tour.exploreTitle"),
+      body: t("guide.tour.exploreBody"),
+      anchor: "nav_explore",
+      route: "/explore",
+    },
+    {
+      title: t("guide.tour.focusTitle"),
+      body: t("guide.tour.focusBody"),
+      anchor: "nav_focus",
+    },
+    {
+      title: t("guide.tour.calendarTitle"),
+      body: t("guide.tour.calendarBody"),
+      anchor: "nav_calendar",
+      route: "/calendar",
+    },
+    {
+      title: t("guide.tour.profileTitle"),
+      body: t("guide.tour.profileBody"),
+      anchor: "nav_profile",
+      route: "/profile",
+    },
+  ];
+}
+
+export const TOUR_STEPS: TourStep[] = getTourSteps();
 
 /* ────────────────────────────────
  * State
@@ -141,7 +147,7 @@ function reducer(state: GuideState, action: Action): GuideState {
       return { ...state, tour: { running: true, stepIndex: 0 } };
     case "NEXT_STEP": {
       const next = state.tour.stepIndex + 1;
-      if (next >= TOUR_STEPS.length) {
+      if (next >= getTourSteps().length) {
         return { ...state, firstTourCompleted: true, tour: { running: false, stepIndex: 0 } };
       }
       return { ...state, tour: { ...state.tour, stepIndex: next } };
@@ -273,7 +279,7 @@ export function GuideProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GuideContextValue>(
     () => ({
       state,
-      tourSteps: TOUR_STEPS,
+      tourSteps: getTourSteps(),
       startTour,
       nextStep,
       prevStep,
