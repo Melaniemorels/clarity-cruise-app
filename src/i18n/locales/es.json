@@ -786,5 +786,38 @@
       "medium": "Media — adaptación equilibrada",
       "high": "Alta — mantenerse activo, ajustes ligeros"
     }
+  },
+  "elevate": {
+    "title": "Elevate",
+    "subtitle": "Domina tu tiempo y energía",
+    "microInsights": "Micro Insights",
+    "weeklyChallenge": "Reto semanal",
+    "aiRecommendations": "Recomendaciones",
+    "days": "días",
+    "day": "Día",
+    "startChallenge": "Iniciar reto",
+    "dismiss": "No ahora",
+    "aiSuggestion": "Tu nivel de enfoque fue bajo esta semana. ¿Te gustaría probar un reset de 20 minutos de trabajo profundo?",
+    "insights": {
+      "energyTime": "Energía > Gestión del tiempo",
+      "weeklyPlanning": "Planificación semanal 80/20",
+      "deepWork": "Fundamentos de Deep Work",
+      "digitalDiscipline": "Disciplina digital",
+      "idealDay": "Diseña tu día ideal",
+      "focusTravel": "Enfoque mientras viajas"
+    },
+    "challenge": {
+      "singleTasking": "7 días de Single-Tasking",
+      "singleTaskingDesc": "Una tarea a la vez. Sin multitarea. Bloques de enfoque automáticos y reducción suave de tiempo social."
+    },
+    "actions": {
+      "applyToWeek": "Aplicar a mi semana",
+      "scheduleCalendar": "Agendar en Calendario",
+      "startFocusBlock": "Iniciar bloque de enfoque"
+    },
+    "toast": {
+      "applied": "Aplicado a tu semana",
+      "challengeStarted": "Reto activado"
+    }
   }
 }
