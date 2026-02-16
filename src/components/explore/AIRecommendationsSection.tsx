@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { openInAppBrowser } from "@/lib/browser";
+import { openExternal, detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
 import {
   useRecommendations,
   useRefreshRecommendations,
@@ -26,6 +26,7 @@ import {
   Brain,
   Clock,
   Bookmark,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,6 +70,8 @@ function RecommendationCard({
 
   const { t } = useTranslation();
   const externalLink = recommendation.externalUrl || recommendation.spotifyUri;
+  const provider = externalLink ? detectProvider(externalLink) : 'other';
+  const showComingSoon = externalLink ? COMING_SOON_PROVIDERS.includes(provider) : false;
 
   const handleClick = async () => {
     if (!externalLink) {
@@ -79,7 +82,7 @@ function RecommendationCard({
       return;
     }
     try {
-      await openInAppBrowser(externalLink);
+      await openExternal(externalLink);
     } catch {
       toast(t("explore.unavailable.title"), {
         description: t("explore.unavailable.error"),
@@ -110,7 +113,6 @@ function RecommendationCard({
         <div className={device.isMobile ? "text-3xl" : "text-4xl"}>
           {meta.emoji}
         </div>
-        {/* Duration badge */}
         <div className="absolute bottom-2 right-2">
           <Badge
             variant="secondary"
@@ -124,7 +126,7 @@ function RecommendationCard({
       <CardContent className={device.isMobile ? "p-3" : "p-4"}>
         <h3
           className={cn(
-            "font-medium mb-1 truncate text-theme-textPrimary",
+            "font-medium mb-0.5 truncate text-theme-textPrimary",
             fonts.small
           )}
         >
@@ -133,13 +135,27 @@ function RecommendationCard({
         <p className="text-[10px] text-theme-textSecondary line-clamp-2 mb-1.5 whitespace-normal">
           {recommendation.description}
         </p>
-        <div className="flex items-center justify-between">
-          <Badge
-            variant="outline"
-            className="text-[9px] capitalize px-1.5 py-0"
-          >
+        <div className="flex items-center gap-1 mb-1.5">
+          <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">
+            {t(PROVIDER_LABEL_KEYS[provider])}
+          </Badge>
+          <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">
             {recommendation.type}
           </Badge>
+        </div>
+        <div className="flex items-center justify-between">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 gap-1 text-[10px] text-theme-textSecondary hover:text-theme-textPrimary"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
+          >
+            <ExternalLink className="h-3 w-3" />
+            {t('explore.open')}
+          </Button>
           <Button
             size="icon"
             variant="ghost"
@@ -151,6 +167,11 @@ function RecommendationCard({
             <Bookmark className="h-3 w-3" />
           </Button>
         </div>
+        {showComingSoon && (
+          <p className="text-[9px] text-theme-textSecondary/60 mt-1.5 leading-tight">
+            {t('explore.integrationComingSoon')}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
