@@ -569,6 +569,12 @@
       "calm": "Calm",
       "recovery": "Recovery",
       "sleep": "Sleep"
+    },
+    "types": {
+      "playlist": "Playlist",
+      "podcast": "Podcast",
+      "ambient": "Ambient",
+      "guided": "Guided"
     }
   },
   "mediaConnections": {

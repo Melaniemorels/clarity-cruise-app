@@ -140,7 +140,7 @@ function RecommendationCard({
             {t(PROVIDER_LABEL_KEYS[provider])}
           </Badge>
           <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">
-            {recommendation.type}
+            {t(`recommendations.types.${recommendation.type}`, recommendation.type)}
           </Badge>
         </div>
         <div className="flex items-center justify-between">
