@@ -636,14 +636,14 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <div className="space-y-1">
                   <LinkButton
                     icon={Users}
-                    label="Encontrar amigos"
-                    description="Busca y conecta con personas"
+                    label={t("settings.findFriends")}
+                    description={t("settings.findFriendsDesc")}
                     onClick={() => handleNavigate("/find-friends")}
                   />
                   <LinkButton
                     icon={RotateCcw}
-                    label="Ver recorrido nuevamente"
-                    description="Repetir el tour de bienvenida"
+                    label={t("settings.replayTour")}
+                    description={t("settings.replayTourDesc")}
                     onClick={() => {
                       onOpenChange(false);
                       replayTour();

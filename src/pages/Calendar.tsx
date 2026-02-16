@@ -296,8 +296,8 @@ const Calendar = () => {
           <FirstTapTooltip
             tapId="addEventBtn"
             pageKey="calendar"
-            title="Tu día, tu sistema"
-            body="Planifica con claridad. Menos decisiones después."
+            title={t("guide.tips.calendarAddTitle")}
+            body={t("guide.tips.calendarAddBody")}
             anchorRef={addEventRef}
             show={addEventTapped}
           />

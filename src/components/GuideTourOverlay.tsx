@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useGuide } from "@/contexts/GuideContext";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { X, ChevronLeft, ChevronRight, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export function GuideTourOverlay() {
+  const { t } = useTranslation();
   const { state, tourSteps, nextStep, prevStep, skipTour, getAnchorRect } = useGuide();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,7 +23,6 @@ export function GuideTourOverlay() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ESC to skip
   useEffect(() => {
     if (!state.tour.running) return;
     const onKey = (e: KeyboardEvent) => {
@@ -31,7 +32,6 @@ export function GuideTourOverlay() {
     return () => window.removeEventListener("keydown", onKey);
   }, [state.tour.running, skipTour]);
 
-  // Navigate to step route when step changes
   useEffect(() => {
     if (!state.tour.running) return;
     const step = tourSteps[state.tour.stepIndex];
@@ -52,13 +52,12 @@ export function GuideTourOverlay() {
   const handleNext = () => {
     if (isLast) {
       skipTour();
-      toast("Listo. Empieza con intención.", { duration: 3000 });
+      toast(t("guide.tour.finishToast"), { duration: 3000 });
     } else {
       nextStep();
     }
   };
 
-  // ─── WELCOME MODAL (Step 1 / centered) ───
   if (isWelcome) {
     return (
       <div
@@ -74,7 +73,6 @@ export function GuideTourOverlay() {
           </div>
           <h2 className="text-lg font-semibold text-foreground mb-2">{step.title}</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">{step.body}</p>
-          {/* Progress */}
           <div className="flex justify-center gap-1.5 mb-5">
             {tourSteps.map((_, i) => (
               <div
@@ -91,13 +89,13 @@ export function GuideTourOverlay() {
               onClick={skipTour}
               className="flex-1 py-2.5 rounded-2xl border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors"
             >
-              Saltar
+              {t("guide.tour.skip")}
             </button>
             <button
               onClick={handleNext}
               className="flex-1 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Comenzar
+              {t("guide.tour.start")}
             </button>
           </div>
         </div>
@@ -105,7 +103,6 @@ export function GuideTourOverlay() {
     );
   }
 
-  // ─── SPOTLIGHT STEPS (Steps 2-6) ───
   const rect = step.anchor ? getAnchorRect(step.anchor) : null;
   const padding = 12;
   const spotlight = rect
@@ -134,10 +131,8 @@ export function GuideTourOverlay() {
       onClick={(e) => {
         const t = e.target as HTMLElement;
         if (t.closest("[data-guide-tooltip]")) return;
-        // Block all taps outside tooltip during tour
       }}
     >
-      {/* Spotlight hole via box-shadow */}
       {spotlight ? (
         <div
           className="absolute rounded-2xl transition-all duration-300 ease-out"
@@ -154,13 +149,11 @@ export function GuideTourOverlay() {
         <div className="absolute inset-0 bg-background/80" />
       )}
 
-      {/* Tooltip */}
       <div
         data-guide-tooltip
         className="absolute animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-2xl border border-border bg-card shadow-2xl"
         style={{ left: tipX, top: tipY, width: tipWidth }}
       >
-        {/* Progress dots */}
         <div className="flex items-center justify-between px-4 pt-3.5">
           <div className="flex gap-1.5">
             {tourSteps.map((_, i) => (
@@ -185,20 +178,18 @@ export function GuideTourOverlay() {
           </button>
         </div>
 
-        {/* Content */}
         <div className="px-4 pt-2.5 pb-1">
           <h3 className="text-sm font-semibold text-foreground leading-tight">{step.title}</h3>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{step.body}</p>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between px-4 pb-3.5 pt-2">
           {idx <= 2 ? (
             <button
               onClick={skipTour}
               className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
             >
-              Saltar
+              {t("guide.tour.skip")}
             </button>
           ) : (
             <div />
@@ -210,7 +201,7 @@ export function GuideTourOverlay() {
                 className="flex items-center gap-1 text-[11px] text-foreground px-2.5 py-1.5 rounded-full border border-border hover:bg-secondary transition-colors"
               >
                 <ChevronLeft className="h-3 w-3" />
-                Atrás
+                {t("guide.tour.back")}
               </button>
             )}
             <button
@@ -219,12 +210,12 @@ export function GuideTourOverlay() {
             >
               {isLast ? (
                 <>
-                  Finalizar
+                  {t("guide.tour.finish")}
                   <Check className="h-3 w-3" />
                 </>
               ) : (
                 <>
-                  Siguiente
+                  {t("guide.tour.next")}
                   <ChevronRight className="h-3 w-3" />
                 </>
               )}

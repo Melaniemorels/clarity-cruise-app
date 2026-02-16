@@ -127,8 +127,8 @@ const Profile = () => {
           <FirstTapTooltip
             tapId="profileShare"
             pageKey="profile-share"
-            title="Comparte con calma"
-            body="Comparte tu perfil cuando tú lo decidas."
+            title={t("guide.tips.profileShareTitle")}
+            body={t("guide.tips.profileShareBody")}
             anchorRef={shareRef}
             show={shareTapped}
           />
@@ -179,8 +179,8 @@ const Profile = () => {
             <FirstTapTooltip
               tapId="editProfileBtn"
               pageKey="profile"
-              title="Tu identidad VYV"
-              body="Ajusta lo que quieres mostrar. El resto puede quedar privado."
+              title={t("guide.tips.profileEditTitle")}
+              body={t("guide.tips.profileEditBody")}
               anchorRef={editProfileRef}
               show={editProfileTapped}
             />

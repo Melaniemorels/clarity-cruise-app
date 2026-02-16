@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link2, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { FirstTapTooltip } from "./FirstTapTooltip";
+import { useTranslation } from "react-i18next";
 
 interface ProfileShareSheetProps {
   open: boolean;
@@ -12,11 +11,12 @@ interface ProfileShareSheetProps {
 }
 
 export function ProfileShareSheet({ open, onOpenChange, handle }: ProfileShareSheetProps) {
+  const { t } = useTranslation();
   const profileUrl = `${window.location.origin}/u/${handle}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(profileUrl).then(() => {
-      toast("Link copiado");
+      toast(t("shareProfile.linkCopied"));
       onOpenChange(false);
     });
   };
@@ -24,7 +24,7 @@ export function ProfileShareSheet({ open, onOpenChange, handle }: ProfileShareSh
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: `@${handle} en VYV`, url: profileUrl });
+        await navigator.share({ title: `@${handle}`, url: profileUrl });
         onOpenChange(false);
       } catch { /* user cancelled */ }
     } else {
@@ -36,16 +36,16 @@ export function ProfileShareSheet({ open, onOpenChange, handle }: ProfileShareSh
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-3xl pb-8">
         <SheetHeader className="pb-4">
-          <SheetTitle className="text-base">Compartir perfil</SheetTitle>
+          <SheetTitle className="text-base">{t("shareProfile.title")}</SheetTitle>
         </SheetHeader>
         <div className="space-y-2">
           <Button variant="outline" className="w-full justify-start h-12" onClick={handleCopy}>
             <Link2 className="h-4 w-4 mr-3" />
-            Copiar link del perfil
+            {t("shareProfile.copyLink")}
           </Button>
           <Button variant="outline" className="w-full justify-start h-12" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-3" />
-            Compartir…
+            {t("shareProfile.share")}
           </Button>
         </div>
       </SheetContent>

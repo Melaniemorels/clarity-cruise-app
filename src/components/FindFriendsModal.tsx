@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useGuide } from "@/contexts/GuideContext";
+import { useTranslation } from "react-i18next";
 import { Users } from "lucide-react";
 
 export function FindFriendsModal() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { shouldShowFriendsOnboarding, completeFriendsOnboarding, dismissFriendsOnboarding } = useGuide();
 
@@ -20,16 +22,16 @@ export function FindFriendsModal() {
             <Users className="h-6 w-6 text-primary" />
           </div>
         </div>
-        <h2 className="text-lg font-semibold text-foreground mb-2">Encuentra a tu gente</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-2">{t("guide.friends.title")}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-          Conecta con personas que ya conoces. Puedes hacerlo ahora o más tarde.
+          {t("guide.friends.body")}
         </p>
         <div className="flex gap-3 mb-3">
           <button
             onClick={dismissFriendsOnboarding}
             className="flex-1 py-2.5 rounded-2xl border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors"
           >
-            Ahora no
+            {t("guide.friends.notNow")}
           </button>
           <button
             onClick={() => {
@@ -38,10 +40,10 @@ export function FindFriendsModal() {
             }}
             className="flex-1 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            Encontrar amigos
+            {t("guide.friends.findFriends")}
           </button>
         </div>
-        <p className="text-[11px] text-muted-foreground/60">Puedes cambiar esto en Configuración.</p>
+        <p className="text-[11px] text-muted-foreground/60">{t("guide.friends.settingsHint")}</p>
       </div>
     </div>
   );

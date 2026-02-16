@@ -265,8 +265,8 @@ const Explore = () => {
       <FirstTapTooltip
         tapId="exploreCard"
         pageKey="explore"
-        title="Explorar con intención"
-        body="Guarda lo que te hace bien. Evita lo que solo distrae."
+        title={t("guide.tips.exploreCardTitle")}
+        body={t("guide.tips.exploreCardBody")}
         anchorRef={exploreCardRef}
         show={exploreCardTapped}
       />
