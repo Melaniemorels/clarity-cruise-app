@@ -9,6 +9,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
 import { ElevateSection } from "@/components/explore/ElevateSection";
+import { MediaConnectionBanner } from "@/components/explore/MediaConnectionBanner";
 import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -164,6 +165,9 @@ const Explore = () => {
 
         {/* AI Recommendations Section */}
         <AIRecommendationsSection />
+
+        {/* Media Connection Prompt */}
+        <MediaConnectionBanner />
 
         {/* Elevate Section */}
         <ElevateSection />
