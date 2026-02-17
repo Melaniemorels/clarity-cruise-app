@@ -216,7 +216,7 @@ export function useHealthGoals() {
   });
 }
 
-// ─── Hook: Update time goal ──────────────────────────────────────────────
+// ─── Hook: Update time goal (also syncs feed_settings when updating FEED) ──
 export function useUpdateTimeGoal() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -232,9 +232,22 @@ export function useUpdateTimeGoal() {
         .eq("module", module as any);
 
       if (error) throw error;
+
+      // Keep feed_settings in sync when FEED goal changes
+      if (module === "FEED") {
+        await supabase
+          .from("feed_settings")
+          .update({
+            daily_feed_minutes: daily_minutes,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["feed-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["time-usage-all"] });
     },
   });
 }

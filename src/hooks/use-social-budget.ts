@@ -81,7 +81,7 @@ export function useTodayTimeUsage() {
   });
 }
 
-// Update feed settings
+// Update feed settings — also syncs time_goals.FEED to keep Focus Mode in sync
 export function useUpdateFeedSettings() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -101,9 +101,23 @@ export function useUpdateFeedSettings() {
         });
 
       if (error) throw error;
+
+      // Keep time_goals.FEED in sync with feed_settings
+      if (settings.daily_feed_minutes !== undefined) {
+        await supabase
+          .from("time_goals")
+          .update({
+            daily_minutes: settings.daily_feed_minutes === 0 ? 0 : settings.daily_feed_minutes,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id)
+          .eq("module", "FEED" as any);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["time-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["time-usage-all"] });
     },
   });
 }
