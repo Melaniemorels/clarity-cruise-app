@@ -38,6 +38,7 @@ export const BottomNav = () => {
           <NavLink
             to="/"
             end
+            id="tab-home"
             className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
             ref={feedAnchor}
@@ -48,6 +49,7 @@ export const BottomNav = () => {
           
           <NavLink
             to="/explore"
+            id="tab-explore"
             className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
             ref={exploreAnchor}
@@ -57,6 +59,7 @@ export const BottomNav = () => {
           </NavLink>
           
           <button
+            id="tab-focus"
             ref={focusAnchor}
             onClick={handleFocusTap}
             className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive hover:text-theme-tabIconActive"
@@ -67,6 +70,7 @@ export const BottomNav = () => {
         
         <NavLink
           to="/calendar"
+          id="tab-calendar"
           className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
           activeClassName="!text-theme-tabIconActive"
           ref={calendarAnchor}
@@ -77,6 +81,7 @@ export const BottomNav = () => {
         
           <NavLink
             to="/profile"
+            id="tab-profile"
             className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-theme-tabIconInactive"
             activeClassName="!text-theme-tabIconActive"
             ref={profileAnchor}
