@@ -64,8 +64,12 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
       const baseDate = initialDate || new Date();
       setStartDate(baseDate);
       setEndDate(baseDate);
-      setStartTime("09:00");
-      setEndTime("10:00");
+      // If initialDate has a specific hour set (not midnight), use it
+      const hour = baseDate.getHours();
+      const minute = baseDate.getMinutes();
+      const hasSpecificTime = hour !== 0 || minute !== 0;
+      setStartTime(hasSpecificTime ? format(baseDate, "HH:mm") : "09:00");
+      setEndTime(hasSpecificTime ? format(new Date(baseDate.getTime() + 60 * 60 * 1000), "HH:mm") : "10:00");
       setNotes("");
     }
   }, [event, initialDate, open]);

@@ -222,8 +222,20 @@ const Calendar = () => {
 
   const handleDayClick = (dayNumber: number) => {
     const clickedDate = setDate(currentDate, dayNumber);
-    setSummaryDate(clickedDate);
-    setDaySummaryOpen(true);
+    // Navigate to day view directly (like Google/Apple Calendar)
+    setCurrentDate(clickedDate);
+    setView("day");
+  };
+
+  // Navigate to a specific date in day view (like Google/Apple Calendar)
+  const navigateToDay = (date: Date) => {
+    setCurrentDate(date);
+    setView("day");
+  };
+
+  // Week view: click a day column header to go to that day
+  const handleWeekDayClick = (date: Date) => {
+    navigateToDay(date);
   };
 
   const handleAddEventFromSummary = () => {
@@ -288,7 +300,7 @@ const Calendar = () => {
             size="icon"
             onClick={() => {
               setAddEventTapped(true);
-              handleNewEvent();
+              handleNewEvent(currentDate);
             }}
           >
             <Plus className="h-5 w-5" />
@@ -462,36 +474,80 @@ const Calendar = () => {
 
             <Card>
               <CardContent className="p-0">
-                <div className="grid grid-cols-8 border-b border-border">
-                  <div className="p-2" />
-                  {daysShort.map((day, i) => (
-                    <div key={i} className="p-2 text-center text-xs font-medium">
-                      <div className="text-muted-foreground">{day}</div>
-                      <div className={`mt-1 ${i === 4 ? 'text-primary font-bold' : ''}`}>
-                        {6 + i}
+                {(() => {
+                  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+                  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-8 border-b border-border">
+                        <div className="p-2" />
+                        {weekDays.map((day, i) => {
+                          const isCurrentDay = isToday(day);
+                          const isSelected = isSameDay(day, currentDate);
+                          return (
+                            <button
+                              key={i}
+                              className={`p-2 text-center text-xs font-medium cursor-pointer hover:bg-muted/50 transition-colors ${isCurrentDay ? 'text-primary font-bold' : ''}`}
+                              onClick={() => handleWeekDayClick(day)}
+                            >
+                              <div className="text-muted-foreground">{daysShort[i]}</div>
+                              <div className={`mt-1 w-7 h-7 flex items-center justify-center mx-auto rounded-full ${
+                                isSelected ? 'bg-primary text-primary-foreground' : isCurrentDay ? 'bg-primary/20' : ''
+                              }`}>
+                                {format(day, "d")}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="max-h-[50vh] overflow-y-auto">
-                  {Array.from({ length: 12 }, (_, i) => i + 7).map((hour) => (
-                    <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[60px]">
-                      <div className="p-2 text-xs text-muted-foreground text-right">
-                        {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
-                      </div>
-                      {daysShort.map((_, i) => (
-                        <div key={i} className="border-l border-border p-1">
-                          {i === 4 && hour === 7 && (
-                            <div className="bg-primary/20 border-l-2 border-primary rounded text-xs p-1">
-                              Yoga
+                      
+                      <div className="max-h-[50vh] overflow-y-auto">
+                        {Array.from({ length: 16 }, (_, i) => i + 6).map((hour) => (
+                          <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[50px]">
+                            <div className="p-2 text-xs text-muted-foreground text-right">
+                              {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                            {weekDays.map((day, i) => {
+                              const cellEvents = events.filter(e => {
+                                const eDate = parseISO(e.starts_at);
+                                return isSameDay(eDate, day) && eDate.getHours() === hour;
+                              });
+                              return (
+                                <div
+                                  key={i}
+                                  className="border-l border-border p-0.5 cursor-pointer hover:bg-muted/30 transition-colors"
+                                  onClick={() => {
+                                    if (cellEvents.length > 0) {
+                                      handleEditEvent(cellEvents[0]);
+                                    } else {
+                                      const newDate = new Date(day);
+                                      newDate.setHours(hour, 0, 0, 0);
+                                      handleNewEvent(newDate);
+                                    }
+                                  }}
+                                >
+                                  {cellEvents.map((event) => (
+                                    <div
+                                      key={event.id}
+                                      className={`${getCategoryColor(event.category)} rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditEvent(event);
+                                      }}
+                                    >
+                                      {event.title}
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
@@ -583,7 +639,7 @@ const Calendar = () => {
         </Tabs>
 
         {/* Quick Add Button */}
-        <Button className="w-full" size="lg" onClick={() => handleNewEvent()}>
+        <Button className="w-full" size="lg" onClick={() => handleNewEvent(currentDate)}>
           <Plus className="h-5 w-5 mr-2" />
           {t('daySummary.addEvent')}
         </Button>
