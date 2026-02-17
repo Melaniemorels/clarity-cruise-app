@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
 import { GuideTourOverlay } from "./components/GuideTourOverlay";
+import VYVOnboardingTour from "./components/VYVOnboardingTour";
 import { FindFriendsModal } from "./components/FindFriendsModal";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -107,6 +108,16 @@ const App = () => (
               </QueryErrorBoundary>
               </NetworkProvider>
               <GuideTourOverlay />
+              <VYVOnboardingTour
+                steps={[
+                  { id: "home", title: "Inicio", body: "Tu estado del día: energía, hábitos y dirección. Todo empieza aquí.", selector: "#tab-home", placement: "top" },
+                  { id: "explore", title: "Explorar", body: "Contenido curado según tu vibe. Sin ruido.", selector: "#tab-explore", placement: "top" },
+                  { id: "focus", title: "Enfoque", body: "Captura tu momento. No lo fabriques.", selector: "#tab-focus", placement: "top" },
+                  { id: "calendar", title: "Calendario", body: "Tu día con intención: hábitos, bloques, descanso.", selector: "#tab-calendar", placement: "top" },
+                  { id: "profile", title: "Perfil", body: "Tu identidad VYV. Ajustes, privacidad y progreso.", selector: "#tab-profile", placement: "top" },
+                ]}
+                storageKey="vyv_onboarding_v1_seen"
+              />
               <FindFriendsModal />
               </GuideProvider>
               </VYVProvider>
