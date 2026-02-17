@@ -330,7 +330,9 @@ const Calendar = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="ghost" onClick={goToToday} className="font-semibold">
-                {t('common.today')}
+                {isToday(currentDate)
+                  ? t('common.today')
+                  : format(currentDate, lang === 'es' ? "EEE d MMM" : "EEE, MMM d", { locale: dateLocale })}
               </Button>
               <Button variant="outline" size="icon" onClick={goToNext}>
                 <ChevronRight className="h-4 w-4" />
