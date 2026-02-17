@@ -1,5 +1,6 @@
 /* VYVOnboardingTour.tsx
    Onboarding "old money" con blur premium + spotlight + se muestra 1 sola vez.
+   Replaces the old GuideTourOverlay as the primary onboarding experience.
 */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -54,10 +55,21 @@ export default function VYVOnboardingTour({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const step = useMemo(() => steps[idx], [steps, idx]);
 
-  // Start only once (first install)
+  // Start only once (first install) — also check old guide system
   useEffect(() => {
     const seen = localStorage.getItem(storageKey);
     if (seen === "1") return;
+    // Also skip if old guide tour was already completed
+    try {
+      const oldGuide = localStorage.getItem("vyv_guide_v2");
+      if (oldGuide) {
+        const parsed = JSON.parse(oldGuide);
+        if (parsed.firstTourCompleted) {
+          localStorage.setItem(storageKey, "1");
+          return;
+        }
+      }
+    } catch { /* ignore */ }
     const t = window.setTimeout(() => setOpen(true), autoStartDelayMs);
     return () => window.clearTimeout(t);
   }, [storageKey, autoStartDelayMs]);
@@ -101,6 +113,14 @@ export default function VYVOnboardingTour({
 
   const close = () => {
     localStorage.setItem(storageKey, "1");
+    // Also mark old guide system as completed to prevent it from showing
+    try {
+      const oldGuide = localStorage.getItem("vyv_guide_v2");
+      const parsed = oldGuide ? JSON.parse(oldGuide) : {};
+      parsed.firstTourCompleted = true;
+      parsed.tour = { running: false, stepIndex: 0 };
+      localStorage.setItem("vyv_guide_v2", JSON.stringify(parsed));
+    } catch { /* ignore */ }
     setOpen(false);
   };
 
