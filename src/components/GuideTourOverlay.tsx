@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useGuide } from "@/contexts/GuideContext";
+import { useGuide, AnchorId } from "@/contexts/GuideContext";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { X, ChevronLeft, ChevronRight, Check, Sparkles } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Check, Sparkles, Home, Compass, Lock, Calendar, User, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
+
+const ANCHOR_ICONS: Partial<Record<AnchorId, LucideIcon>> = {
+  nav_feed: Home,
+  nav_explore: Compass,
+  nav_focus: Lock,
+  nav_calendar: Calendar,
+  nav_profile: User,
+};
 
 export function GuideTourOverlay() {
   const { t } = useTranslation();
@@ -57,6 +65,9 @@ export function GuideTourOverlay() {
       nextStep();
     }
   };
+
+  // Get the icon for the current step
+  const StepIcon = step.anchor ? ANCHOR_ICONS[step.anchor] : null;
 
   if (isWelcome) {
     return (
@@ -179,7 +190,15 @@ export function GuideTourOverlay() {
         </div>
 
         <div className="px-4 pt-2.5 pb-1">
-          <h3 className="text-sm font-semibold text-foreground leading-tight">{step.title}</h3>
+          {/* Step icon + title */}
+          <div className="flex items-center gap-2 mb-1">
+            {StepIcon && (
+              <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <StepIcon className="h-3.5 w-3.5 text-primary" strokeWidth={1.6} />
+              </div>
+            )}
+            <h3 className="text-sm font-semibold text-foreground leading-tight">{step.title}</h3>
+          </div>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{step.body}</p>
         </div>
 
