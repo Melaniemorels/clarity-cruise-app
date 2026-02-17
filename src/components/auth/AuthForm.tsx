@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,14 @@ export function AuthForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  // Show Apple Sign In only on iOS or Safari
+  const showApple = useMemo(() => {
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    return isIOS || isSafari;
+  }, []);
 
   if (user) {
     navigate("/");
@@ -250,7 +258,7 @@ export function AuthForm() {
       {/* Social sign-in — secondary, neutral */}
       <div className="space-y-1.5">
         <SocialSignInButton provider="google" />
-        <SocialSignInButton provider="apple" />
+        {showApple && <SocialSignInButton provider="apple" />}
       </div>
 
       {/* Toggle sign-in / sign-up */}
