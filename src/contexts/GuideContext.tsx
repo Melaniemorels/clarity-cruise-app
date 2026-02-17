@@ -317,6 +317,9 @@ export function useAutoStartTour() {
   const { startTour, state } = useGuide();
   useEffect(() => {
     if (state.firstTourCompleted) return;
+    // Don't auto-start old tour if new VYVOnboardingTour hasn't been seen yet
+    const newTourSeen = localStorage.getItem("vyv_onboarding_v1_seen");
+    if (newTourSeen !== "1") return;
     const id = setTimeout(() => startTour(), 600);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
