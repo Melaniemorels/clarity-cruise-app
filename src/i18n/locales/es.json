@@ -911,5 +911,10 @@
     "followers": "seguidores",
     "following": "siguiendo",
     "joinVYV": "Únete a VYV"
+  },
+  "network": {
+    "offline": "Estás sin conexión. Sigue enfocado. Sincronizaremos cuando vuelvas.",
+    "backOnline": "De vuelta online. Sincronizando tus vibes.",
+    "slow": "Conexión lenta detectada. Cargando contenido más ligero."
   }
 }

@@ -12,6 +12,8 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { QueryErrorBoundary } from "./components/QueryErrorBoundary";
+import { NetworkProvider } from "./contexts/NetworkContext";
+import { NetworkStatusBanner } from "./components/NetworkStatusBanner";
 import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Feed from "./pages/Feed";
@@ -68,6 +70,8 @@ const App = () => (
             <AuthProvider>
               <VYVProvider>
               <GuideProvider>
+              <NetworkProvider>
+              <NetworkStatusBanner />
               <QueryErrorBoundary>
                 <Routes>
                   <Route path="/welcome" element={<Welcome />} />
@@ -92,6 +96,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </QueryErrorBoundary>
+              </NetworkProvider>
               <GuideTourOverlay />
               <FindFriendsModal />
               </GuideProvider>
