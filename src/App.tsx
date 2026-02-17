@@ -34,6 +34,11 @@ import MediaConnections from "./pages/MediaConnections";
 import FindFriends from "./pages/FindFriends";
 import PublicProfile from "./pages/PublicProfile";
 
+import { syncOnlineManager } from "./lib/network-query-sync";
+
+// Sync TanStack Query online state with browser (Instagram-like offline behavior)
+syncOnlineManager();
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -41,6 +46,8 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5,
       // Keep unused data in cache for 30 minutes
       gcTime: 1000 * 60 * 30,
+      // Serve cached data when offline, fetch when online (like Instagram)
+      networkMode: "offlineFirst",
       // Retry failed requests up to 3 times with exponential backoff
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors (client errors)
@@ -49,10 +56,12 @@ const queryClient = new QueryClient({
       },
       // Don't refetch on window focus in production for better UX
       refetchOnWindowFocus: false,
-      // Don't refetch on reconnect automatically
+      // Refetch all stale queries when reconnecting
       refetchOnReconnect: 'always',
     },
     mutations: {
+      // Pause mutations when offline, auto-retry on reconnect (like Instagram)
+      networkMode: "offlineFirst",
       // Retry mutations once on network errors
       retry: 1,
     },
