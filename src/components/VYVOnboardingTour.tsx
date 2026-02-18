@@ -4,6 +4,7 @@
 */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useVYVContextHelp } from "@/hooks/use-context-help";
 
 type Placement = "top" | "bottom" | "left" | "right";
 
@@ -54,11 +55,16 @@ export default function VYVOnboardingTour({
   const [cardPos, setCardPos] = useState<{ x: number; y: number }>({ x: 18, y: 18 });
   const cardRef = useRef<HTMLDivElement | null>(null);
   const step = useMemo(() => steps[idx], [steps, idx]);
+  const { seed: seedContextHelp } = useVYVContextHelp();
 
   // Start only once (first install) — also check old guide system
   useEffect(() => {
     const seen = localStorage.getItem(storageKey);
-    if (seen === "1") return;
+    if (seen === "1") {
+      // Already completed tour — ensure context help is seeded for existing users
+      seedContextHelp();
+      return;
+    }
     // Also skip if old guide tour was already completed
     try {
       const oldGuide = localStorage.getItem("vyv_guide_v2");
@@ -66,13 +72,14 @@ export default function VYVOnboardingTour({
         const parsed = JSON.parse(oldGuide);
         if (parsed.firstTourCompleted) {
           localStorage.setItem(storageKey, "1");
+          seedContextHelp();
           return;
         }
       }
     } catch { /* ignore */ }
     const t = window.setTimeout(() => setOpen(true), autoStartDelayMs);
     return () => window.clearTimeout(t);
-  }, [storageKey, autoStartDelayMs]);
+  }, [storageKey, autoStartDelayMs, seedContextHelp]);
 
   // Lock scroll when open
   useEffect(() => {
@@ -121,6 +128,8 @@ export default function VYVOnboardingTour({
       parsed.tour = { running: false, stepIndex: 0 };
       localStorage.setItem("vyv_guide_v2", JSON.stringify(parsed));
     } catch { /* ignore */ }
+    // Seed context help system so micro-tooltips start appearing
+    seedContextHelp();
     setOpen(false);
   };
 

@@ -916,5 +916,19 @@
     "offline": "You're offline. Keep focusing. We'll sync when you're back.",
     "backOnline": "Back online. Syncing your vibes.",
     "slow": "Slow connection detected. Loading lighter content."
+  },
+  "contextHelp": {
+    "feedHeaderTitle": "Your personal feed",
+    "feedHeaderBody": "See posts from people you follow. Tap + to capture your moment.",
+    "feedSearchTitle": "Search people",
+    "feedSearchBody": "Find friends and discover new accounts to follow.",
+    "exploreTitle": "Curated content",
+    "exploreBody": "Music, podcasts, yoga and more — selected for your vibe. Tap a card to open it.",
+    "calendarTitle": "Your week with intention",
+    "calendarBody": "Organize your day with time blocks. Use + to create an event or switch views.",
+    "profileTitle": "Your personal space",
+    "profileBody": "Your daily progress, captures and stats. Tap 'Edit profile' to customize your account.",
+    "profileStatsTitle": "Today's stats",
+    "profileStatsBody": "Steps, workout, sleep and screen time. Tap each card to see the breakdown."
   }
 }

@@ -916,5 +916,19 @@
     "offline": "Estás sin conexión. Sigue enfocado. Sincronizaremos cuando vuelvas.",
     "backOnline": "De vuelta online. Sincronizando tus vibes.",
     "slow": "Conexión lenta detectada. Cargando contenido más ligero."
+  },
+  "contextHelp": {
+    "feedHeaderTitle": "Tu feed personal",
+    "feedHeaderBody": "Aquí ves las publicaciones de las personas que seguís. Usá el + para capturar tu momento.",
+    "feedSearchTitle": "Buscar personas",
+    "feedSearchBody": "Encontrá a tus amigos y descubrí nuevas cuentas para seguir.",
+    "exploreTitle": "Contenido curado",
+    "exploreBody": "Música, podcasts, yoga y más — seleccionado según tu vibe. Tocá una tarjeta para abrirla.",
+    "calendarTitle": "Tu semana con intención",
+    "calendarBody": "Organizá tu día con bloques de tiempo. Usá + para crear un evento o navegá entre vistas.",
+    "profileTitle": "Tu espacio personal",
+    "profileBody": "Tu progreso diario, capturas y estadísticas. Tocá 'Editar perfil' para personalizar tu cuenta.",
+    "profileStatsTitle": "Estadísticas del día",
+    "profileStatsBody": "Pasos, ejercicio, sueño y tiempo de pantalla. Tocá cada tarjeta para ver el desglose."
   }
 }

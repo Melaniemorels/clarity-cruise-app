@@ -20,6 +20,7 @@ import { useFocusMetrics, useTodayAllModulesUsage } from "@/hooks/use-focus-metr
 import { useTodayWorkoutSessions } from "@/hooks/use-workout-sessions";
 import { WorkoutBreakdownModal } from "@/components/WorkoutBreakdownModal";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
+import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { ScreenTimeModal } from "@/components/ScreenTimeModal";
 import { useGuide } from "@/contexts/GuideContext";
 
@@ -39,6 +40,8 @@ const Profile = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareTapped, setShareTapped] = useState(false);
   const shareRef = useRef<HTMLButtonElement>(null);
+  const profileHeaderRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
   const { isFirstTap, markFirstTap } = useGuide();
   // Use centralized hooks
   const { data: entries = [] } = useUserEntries();
@@ -106,7 +109,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background pb-20">
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div ref={profileHeaderRef} className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">{t('profile.title')}</h1>
           <div className="flex items-center gap-1">
             <Button
@@ -188,7 +191,7 @@ const Profile = () => {
         </Card>
 
         {/* Today's Stats */}
-        <div className="space-y-3">
+        <div ref={statsRef} className="space-y-3">
           <h2 className="font-semibold">{t('profile.todayStats')}</h2>
           
           {healthData.map((data) => {
@@ -375,6 +378,23 @@ const Profile = () => {
         open={shareOpen}
         onOpenChange={setShareOpen}
         handle={profile?.handle || "user"}
+      />
+
+      <ContextHelpTooltip
+        helpKey="profile:header"
+        title={t("contextHelp.profileTitle")}
+        body={t("contextHelp.profileBody")}
+        anchorRef={profileHeaderRef}
+        placement="bottom"
+      />
+
+      <ContextHelpTooltip
+        helpKey="profile:stats"
+        title={t("contextHelp.profileStatsTitle")}
+        body={t("contextHelp.profileStatsBody")}
+        anchorRef={statsRef}
+        placement="bottom"
+        delayMs={9500}
       />
 
       <BottomNav />
