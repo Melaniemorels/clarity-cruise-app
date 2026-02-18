@@ -15,6 +15,7 @@ import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
 import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
 import { TravelDetectionBanner } from "@/components/TravelDetectionBanner";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { Plus, Search, Camera, Loader2, Hexagon } from "lucide-react";
 import { toast } from "sonner";
 import { UserSearchDialog } from "@/components/UserSearchDialog";
@@ -44,6 +45,7 @@ const Feed = () => {
   const navPadding = useNavPadding();
   const lastRefreshRef = useRef<number>(Date.now());
   const captureAnchor = useGuideAnchor("capture_vibe");
+  const feedHeaderRef = useRef<HTMLDivElement>(null);
 
   // Auto-start tour on first visit
   useAutoStartTour();
@@ -248,7 +250,7 @@ const Feed = () => {
         "mx-auto relative z-10 transition-all duration-300",
         device.isDesktop ? "max-w-3xl" : device.isTablet ? "max-w-2xl" : "max-w-full"
       )}>
-        <div className="sticky top-0 z-10 backdrop-blur bg-theme-bgElevated/80 border-b border-theme-borderSubtle">
+        <div ref={feedHeaderRef} className="sticky top-0 z-10 backdrop-blur bg-theme-bgElevated/80 border-b border-theme-borderSubtle">
           <div className={cn(
             "flex items-center justify-between transition-all",
             device.isMobile ? "p-4" : "p-5"
@@ -381,6 +383,14 @@ const Feed = () => {
       <UserSearchDialog
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
+      />
+
+      <ContextHelpTooltip
+        helpKey="feed:header"
+        title={t("contextHelp.feedHeaderTitle")}
+        body={t("contextHelp.feedHeaderBody")}
+        anchorRef={feedHeaderRef}
+        placement="bottom"
       />
 
       <ResponsiveNav onCreatePost={() => setIsCameraOpen(true)} />

@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
+import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +32,7 @@ const Calendar = () => {
   const [summaryDate, setSummaryDate] = useState<Date | null>(null);
   const [addEventTapped, setAddEventTapped] = useState(false);
   const addEventRef = useRef<HTMLButtonElement>(null);
+  const calendarHeaderRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
@@ -288,7 +290,7 @@ const Calendar = () => {
     <div className="min-h-screen bg-background pb-20">
       <div className="p-4 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div ref={calendarHeaderRef} className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('calendar.title')}</h1>
             <p className="text-sm text-muted-foreground">
@@ -837,6 +839,14 @@ const Calendar = () => {
           </Card>
         </div>
       </div>
+
+      <ContextHelpTooltip
+        helpKey="calendar:header"
+        title={t("contextHelp.calendarTitle")}
+        body={t("contextHelp.calendarBody")}
+        anchorRef={calendarHeaderRef}
+        placement="bottom"
+      />
 
       <BottomNav />
     </div>

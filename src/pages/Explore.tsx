@@ -12,6 +12,7 @@ import { AIRecommendationsSection } from "@/components/explore/AIRecommendations
 import { ElevateSection } from "@/components/explore/ElevateSection";
 import { MediaConnectionBanner } from "@/components/explore/MediaConnectionBanner";
 import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
+import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { openExternal, detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
@@ -37,6 +38,7 @@ const Explore = () => {
   const fonts = useResponsiveFontSize();
   const [exploreCardTapped, setExploreCardTapped] = useReactState(false);
   const exploreCardRef = useRef<HTMLDivElement>(null);
+  const exploreHeaderRef = useRef<HTMLDivElement>(null);
   const { isFirstTap, markFirstTap } = useGuide();
 
   // Track time spent on Explore module
@@ -157,7 +159,7 @@ const Explore = () => {
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div ref={exploreHeaderRef} className="flex items-center justify-between">
           <div>
             <AdaptiveHeading level={1}>{t('explore.title')}</AdaptiveHeading>
             <AdaptiveText variant="small">{t('explore.subtitle')}</AdaptiveText>
@@ -300,6 +302,14 @@ const Explore = () => {
         body={t("guide.tips.exploreCardBody")}
         anchorRef={exploreCardRef}
         show={exploreCardTapped}
+      />
+
+      <ContextHelpTooltip
+        helpKey="explore:header"
+        title={t("contextHelp.exploreTitle")}
+        body={t("contextHelp.exploreBody")}
+        anchorRef={exploreHeaderRef}
+        placement="bottom"
       />
 
       <ResponsiveNav />
