@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
-import { GuideTourOverlay } from "./components/GuideTourOverlay";
 import { FindFriendsModal } from "./components/FindFriendsModal";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -119,7 +118,7 @@ const App = () => (
               </Suspense>
               </QueryErrorBoundary>
               </NetworkProvider>
-              <GuideTourOverlay />
+              
               <FindFriendsModal />
               </GuideProvider>
               </VYVProvider>
