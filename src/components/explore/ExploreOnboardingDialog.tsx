@@ -12,7 +12,7 @@ import { Music, Youtube, Sparkles, ArrowRight, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const ONBOARDING_KEY = "vyv_explore_onboarding_seen";
 
@@ -39,6 +39,7 @@ export function ExploreOnboardingDialog() {
   const { t } = useTranslation();
   const device = useDevice();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -59,9 +60,12 @@ export function ExploreOnboardingDialog() {
     setOpen(false);
   };
 
-  const handleConnect = (providerId: string) => {
-    // Phase 2: will implement OAuth PKCE
-    toast.info(t("mediaConnections.credentialsNeeded"));
+  const handleConnect = (_providerId: string) => {
+    if (user) {
+      localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "true");
+    }
+    setOpen(false);
+    // Navigate handled by the button wrapping — delegate to media-connections page
   };
 
   const handleContinue = () => {
@@ -125,7 +129,10 @@ export function ExploreOnboardingDialog() {
               return (
                 <button
                   key={provider.id}
-                  onClick={() => handleConnect(provider.id)}
+                  onClick={() => {
+                    handleConnect(provider.id);
+                    navigate("/media-connections");
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-xl border border-border/50",
                     "hover:border-border transition-all text-left",

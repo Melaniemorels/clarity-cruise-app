@@ -114,7 +114,7 @@ export function MediaConnectionBanner() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="rounded-full text-xs gap-1.5"
+                    className="rounded-full text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
                     onClick={() => handleConnect()}
                   >
                     <ExternalLink className="h-3 w-3" />
