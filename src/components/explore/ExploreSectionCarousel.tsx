@@ -99,13 +99,13 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "Música", title: "Música", subtitle: "Focus & ambiance", icon: "music", emoji: "🎵" },
   { key: "Audiolibros", title: "Audiolibros", subtitle: "Knowledge on demand", icon: "headphones", emoji: "🎧" },
+  { key: "Podcasts", title: "Podcasts", subtitle: "Growth & clarity", icon: "headphones", emoji: "🎙️" },
   { key: "Yoga", title: "Yoga", subtitle: "Flexibility & balance", icon: "dumbbell", emoji: "🧘" },
   { key: "Pilates", title: "Pilates", subtitle: "Core & posture", icon: "dumbbell", emoji: "💪" },
   { key: "Meditación", title: "Meditación", subtitle: "Stillness & clarity", icon: "brain", emoji: "🧠" },
   { key: "Calma", title: "Calma", subtitle: "Rest & recovery", icon: "wind", emoji: "🌿" },
   { key: "Energía", title: "Energía", subtitle: "Movement & vitality", icon: "flame", emoji: "⚡" },
   { key: "Ejercicios", title: "Ejercicios", subtitle: "Office, outdoor & stretching", icon: "dumbbell", emoji: "🏋️" },
-  { key: "Podcasts", title: "Podcasts", subtitle: "Growth & clarity", icon: "headphones", emoji: "🎙️" },
   { key: "Nutrición", title: "Nutrición", subtitle: "Eat smarter", icon: "salad", emoji: "🥗" },
   { key: "PlanesDeComida", title: "Planes de Comida", subtitle: "Nourish your week", icon: "clipboard", emoji: "📋" },
 ];
