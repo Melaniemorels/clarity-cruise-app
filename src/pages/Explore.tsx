@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState as useReactState } from "react";
+import { useEffect, useRef, useState as useReactState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
 import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bookmark, ExternalLink, Sparkles } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
 import { ElevateSection } from "@/components/explore/ElevateSection";
@@ -21,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { useGuide } from "@/contexts/GuideContext";
+import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -43,6 +45,26 @@ const Explore = () => {
 
   // Track time spent on Explore module
   const exploreTracker = useModuleTimeTracker("EXPLORE");
+  const logEvent = useLogItemEvent();
+
+  // Fetch personalized feed from backend
+  const { data: feedData, isLoading: feedLoading } = useForYouFeed();
+
+  // Group items by category for display
+  const categoryGroups = useMemo(() => {
+    const items = feedData?.items ?? [];
+    const groups = new Map<string, ExploreItem[]>();
+    for (const item of items) {
+      const cat = item.category;
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat)!.push(item);
+    }
+    return Array.from(groups.entries()).map(([cat, items]) => ({
+      category: cat,
+      items,
+    }));
+  }, [feedData]);
+
   useEffect(() => {
     exploreTracker.start();
     return () => exploreTracker.stop();
@@ -77,80 +99,18 @@ const Explore = () => {
     }
   };
 
-  const categories = [
-    {
-      title: t('explore.categories.music'),
-      icon: "🎵",
-      items: [
-        { title: "Lo-Fi Beats", duration: "60 min", color: "from-purple-500/20 to-pink-500/20", url: "https://open.spotify.com/playlist/0vvXsWCC9xrXsKd4FyS8kM" },
-        { title: t('explore.items.natureSounds'), duration: "45 min", color: "from-green-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=L8t9D9N4L08" },
-        { title: t('explore.items.meditationMusic'), duration: "30 min", color: "from-blue-500/20 to-indigo-500/20", url: "https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn" },
-      ],
-    },
-    {
-      title: t('explore.categories.audiobooks'),
-      icon: "🎧",
-      items: [
-        { title: "The Power of Now", duration: "7h 37m", color: "from-amber-500/20 to-orange-500/20", url: "https://www.audible.com/pd/The-Power-of-Now-Audiobook/B002V0PN36" },
-        { title: "Atomic Habits", duration: "5h 35m", color: "from-red-500/20 to-rose-500/20", url: "https://open.spotify.com/show/40ygvasZaqVMMBkgYoUy8C" },
-        { title: t('explore.items.mindfulness'), duration: "4h 20m", color: "from-cyan-500/20 to-sky-500/20", url: "https://www.youtube.com/watch?v=QwaDvbC04mI" },
-      ],
-    },
-    {
-      title: t('explore.categories.podcasts'),
-      icon: "🎙️",
-      items: [
-        { title: "Huberman Lab", duration: "2h", color: "from-emerald-500/20 to-green-500/20", url: "https://www.hubermanlab.com/podcast" },
-        { title: "The Liz Moody Podcast", duration: "45 min", color: "from-violet-500/20 to-purple-500/20", url: "https://podcasts.apple.com/rs/podcast/the-liz-moody-podcast/id1398442165" },
-        { title: t('explore.items.healthHabits'), duration: "40 min", color: "from-fuchsia-500/20 to-pink-500/20", url: "https://newsroom.spotify.com/2025-01-10/health-wellness-tips-podcasts/" },
-      ],
-    },
-    {
-      title: t('explore.categories.yoga'),
-      icon: "🧘",
-      items: [
-        { title: "Yoga With Adriene", duration: "30 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/channel/UCFKE7WVJfvaHW5q283SxchA" },
-        { title: "Yoga With Tim", duration: "45 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/c/yogawithtim" },
-        { title: t('explore.items.yogaBeginners'), duration: "20 min", color: "from-primary/20 to-primary/10", url: "https://www.youtube.com/playlist?list=PLui6Eyny-UzzWwB4h9y7jAzLbeuCUczAl" },
-      ],
-    },
-    {
-      title: t('explore.categories.pilates'),
-      icon: "🤸",
-      items: [
-        { title: t('explore.items.coreStrength'), duration: "25 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=OJxXA4EwTf0" },
-        { title: t('explore.items.fullBody'), duration: "40 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=dYcNLMwwlMA" },
-        { title: t('explore.items.beginnerFlow'), duration: "15 min", color: "from-secondary/20 to-secondary/10", url: "https://www.youtube.com/watch?v=_w8s0DZQkrY" },
-      ],
-    },
-    {
-      title: t('explore.categories.meditation'),
-      icon: "🧘‍♀️",
-      items: [
-        { title: t('explore.items.morningCalm'), duration: "10 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=tNDJKITApEI" },
-        { title: t('explore.items.sleepMeditation'), duration: "20 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=ILwkKLkWJWU" },
-        { title: t('explore.items.stressRelief'), duration: "15 min", color: "from-accent/20 to-accent/10", url: "https://www.youtube.com/watch?v=3r0YscOXAlI" },
-      ],
-    },
-    {
-      title: t('explore.categories.nutrition'),
-      icon: "🥗",
-      items: [
-        { title: "Jamie Oliver", duration: "15 min", color: "from-lime-500/20 to-green-500/20", url: "https://www.youtube.com/watch?v=2Fi65gBAToo" },
-        { title: "HealthNut Nutrition", duration: "30 min", color: "from-orange-500/20 to-amber-500/20", url: "https://www.youtube.com/c/HealthNutNutrition" },
-        { title: "Minimalist Baker", duration: "10 min", color: "from-pink-500/20 to-rose-500/20", url: "https://www.youtube.com/c/Minimalistbaker" },
-      ],
-    },
-    {
-      title: t('explore.categories.mealPlans'),
-      icon: "📋",
-      items: [
-        { title: t('explore.items.mealPrep'), duration: t('explore.guide'), color: "from-teal-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=LzWb_P4lYgA" },
-        { title: t('explore.items.healthyRecipes'), duration: t('explore.guide'), color: "from-red-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=9UIWc4vUMQ0" },
-        { title: t('explore.items.quickMeals'), duration: t('explore.guide'), color: "from-violet-500/20 to-indigo-500/20", url: "https://www.youtube.com/watch?v=2Fi65gBAToo" },
-      ],
-    },
-  ];
+  const CATEGORY_META: Record<string, { icon: string; gradient: string }> = {
+    Elevate: { icon: "⬡", gradient: "from-violet-500/20 to-indigo-500/20" },
+    Enfoque: { icon: "🧠", gradient: "from-blue-500/20 to-indigo-500/20" },
+    Energía: { icon: "⚡", gradient: "from-yellow-500/20 to-orange-500/20" },
+    Calma: { icon: "🌿", gradient: "from-green-500/20 to-teal-500/20" },
+    Recuperación: { icon: "💚", gradient: "from-emerald-500/20 to-green-500/20" },
+    Sueño: { icon: "🌙", gradient: "from-purple-500/20 to-violet-500/20" },
+    Nutrición: { icon: "🥗", gradient: "from-lime-500/20 to-green-500/20" },
+    Música: { icon: "🎵", gradient: "from-purple-500/20 to-pink-500/20" },
+    PlanesDeComida: { icon: "📋", gradient: "from-teal-500/20 to-cyan-500/20" },
+  };
+
 
   return (
     <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
@@ -178,94 +138,119 @@ const Explore = () => {
         {/* First-time onboarding dialog */}
         <ExploreOnboardingDialog />
 
-        {/* Categories */}
-        {categories.map((category, idx) => (
-          <div key={idx} className={cn("space-y-3", device.isTablet && "space-y-4")}>
-            <div className="flex items-center justify-between">
-              <h2 className={cn(
-                "font-semibold flex items-center gap-2 text-theme-textPrimary",
-                fonts.heading3
-              )}>
-                <span className={device.isMobile ? "text-xl" : "text-2xl"}>{category.icon}</span>
-                {category.title}
-              </h2>
-              <Button variant="ghost" size="sm">{t('common.viewAll')}</Button>
-            </div>
-            
-            <ScrollArea className="w-full whitespace-nowrap">
+        {/* Personalized Categories from Backend */}
+        {feedLoading ? (
+          // Skeleton loading for categories
+          [...Array(3)].map((_, idx) => (
+            <div key={idx} className={cn("space-y-3", device.isTablet && "space-y-4")}>
+              <Skeleton className="h-6 w-40" />
               <div className={cn("flex pb-4", device.isMobile ? "gap-3" : "gap-4")}>
-                {category.items.map((item, i) => {
-                  const provider = item.url ? detectProvider(item.url) : 'other';
-                  const showComingSoon = item.url ? COMING_SOON_PROVIDERS.includes(provider) : false;
-                  return (
-                  <Card 
-                    key={i} 
-                    className={cn(
-                      "flex-shrink-0 overflow-hidden cursor-pointer transition-all hover:scale-[1.02] bg-theme-cardBg",
-                      device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56"
-                    )}
-                    style={{
-                      borderRadius: '18px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                    }}
-                    onClick={(e) => handleContentClick(item, e.currentTarget)}
-                  >
-                    <div className={cn(
-                      "bg-gradient-to-br flex items-center justify-center",
-                      item.color,
-                      device.isMobile ? "h-28" : device.isTablet ? "h-32" : "h-36"
-                    )}>
-                      <div className={device.isMobile ? "text-3xl" : "text-4xl"}>{category.icon}</div>
-                    </div>
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className={cn("flex-shrink-0 overflow-hidden bg-theme-cardBg", device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56")} style={{ borderRadius: "18px" }}>
+                    <Skeleton className={cn("w-full", device.isMobile ? "h-28" : device.isTablet ? "h-32" : "h-36")} />
                     <CardContent className={device.isMobile ? "p-3" : "p-4"}>
-                      <h3 className={cn(
-                        "font-medium mb-0.5 truncate text-theme-textPrimary",
-                        fonts.small
-                      )}>{item.title}</h3>
-                      <div className="flex items-center gap-1 mb-1.5">
-                        <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">
-                          {t(PROVIDER_LABEL_KEYS[provider])}
-                        </Badge>
-                        <span className={cn("text-theme-textSecondary", device.isMobile ? "text-[10px]" : "text-xs")}>{item.duration}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 px-2 gap-1 text-[10px] text-theme-textSecondary hover:text-theme-textPrimary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContentClick(item);
-                          }}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          {t('explore.open')}
-                        </Button>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <Bookmark className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      {showComingSoon && (
-                        <p className="text-[9px] text-theme-textSecondary/60 mt-1.5 leading-tight">
-                          {t('explore.integrationComingSoon')}
-                        </p>
-                      )}
+                      <Skeleton className="h-4 w-3/4 mb-2" />
+                      <Skeleton className="h-3 w-1/2" />
                     </CardContent>
                   </Card>
-                  );
-                })}
+                ))}
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </div>
-        ))}
+            </div>
+          ))
+        ) : (
+          categoryGroups.map(({ category: cat, items }) => {
+            const meta = CATEGORY_META[cat] ?? { icon: "📌", gradient: "from-primary/20 to-primary/10" };
+            return (
+              <div key={cat} className={cn("space-y-3", device.isTablet && "space-y-4")}>
+                <div className="flex items-center justify-between">
+                  <h2 className={cn("font-semibold flex items-center gap-2 text-theme-textPrimary", fonts.heading3)}>
+                    <span className={device.isMobile ? "text-xl" : "text-2xl"}>{meta.icon}</span>
+                    {cat}
+                  </h2>
+                  <Button variant="ghost" size="sm">{t('common.viewAll')}</Button>
+                </div>
+
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <div className={cn("flex pb-4", device.isMobile ? "gap-3" : "gap-4")}>
+                    {items.map((item) => {
+                      const provider = detectProvider(item.url);
+                      const showComingSoon = COMING_SOON_PROVIDERS.includes(provider);
+                      return (
+                        <Card
+                          key={item.id}
+                          className={cn(
+                            "flex-shrink-0 overflow-hidden cursor-pointer transition-all hover:scale-[1.02] bg-theme-cardBg",
+                            device.isMobile ? "w-40" : device.isTablet ? "w-48" : "w-56"
+                          )}
+                          style={{ borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
+                          onClick={(e) => {
+                            logEvent.mutate({ itemId: item.id, event: "open" });
+                            handleContentClick(item, e.currentTarget);
+                          }}
+                        >
+                          <div className={cn(
+                            "bg-gradient-to-br flex items-center justify-center",
+                            meta.gradient,
+                            device.isMobile ? "h-28" : device.isTablet ? "h-32" : "h-36"
+                          )}>
+                            <div className={device.isMobile ? "text-3xl" : "text-4xl"}>{meta.icon}</div>
+                          </div>
+                          <CardContent className={device.isMobile ? "p-3" : "p-4"}>
+                            <h3 className={cn("font-medium mb-0.5 truncate text-theme-textPrimary", fonts.small)}>
+                              {item.title}
+                            </h3>
+                            <div className="flex items-center gap-1 mb-1.5">
+                              <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">
+                                {t(PROVIDER_LABEL_KEYS[provider])}
+                              </Badge>
+                              {item.duration_min && (
+                                <span className={cn("text-theme-textSecondary", device.isMobile ? "text-[10px]" : "text-xs")}>
+                                  {item.duration_min} min
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 gap-1 text-[10px] text-theme-textSecondary hover:text-theme-textPrimary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  logEvent.mutate({ itemId: item.id, event: "open" });
+                                  handleContentClick(item);
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                {t('explore.open')}
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  logEvent.mutate({ itemId: item.id, event: "save" });
+                                }}
+                              >
+                                <Bookmark className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            {showComingSoon && (
+                              <p className="text-[9px] text-theme-textSecondary/60 mt-1.5 leading-tight">
+                                {t('explore.integrationComingSoon')}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </div>
+            );
+          })
+        )}
 
         {/* Perfect Day CTA */}
         <Card 

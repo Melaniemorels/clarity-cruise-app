@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-watch-notifications]
 verify_jwt = false
+
+[functions.explore-feed]
+verify_jwt = false
