@@ -103,6 +103,35 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const mode: string = body.mode ?? "for_you";
+
+    // Handle event logging
+    if (mode === "log_event") {
+      const { item_id, event } = body;
+      if (!item_id || !event) {
+        return new Response(JSON.stringify({ error: "Missing item_id or event" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const serviceClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { error: insertErr } = await serviceClient
+        .from("user_item_events")
+        .insert({ user_id: userId, item_id, event });
+      if (insertErr) {
+        console.error("log_event insert error:", insertErr);
+        return new Response(JSON.stringify({ error: insertErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const category: string | null = body.category ?? null;
     const page: number = body.page ?? 0;
     const pageSize: number = Math.min(body.pageSize ?? 8, 50);
