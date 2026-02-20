@@ -59,6 +59,11 @@ const SECTION_GRADIENTS: Record<string, string[]> = {
     "from-emerald-900/50 to-teal-900/40",
     "from-amber-900/50 to-orange-900/40",
   ],
+  Podcasts: [
+    "from-violet-900/50 to-purple-900/40",
+    "from-rose-900/50 to-pink-900/40",
+    "from-slate-800/50 to-zinc-900/40",
+  ],
   Nutrición: [
     "from-green-900/50 to-emerald-900/40",
     "from-amber-900/50 to-yellow-900/40",
@@ -85,6 +90,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   Calma: Wind,
   Energía: Flame,
   Ejercicios: Dumbbell,
+  Podcasts: Headphones,
   Nutrición: Salad,
   PlanesDeComida: ClipboardList,
   MealPreps: ClipboardList,
