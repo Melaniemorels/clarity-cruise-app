@@ -25,10 +25,58 @@ import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
 import vyvIcon from "@/assets/vyv-icon.jpeg";
-import { useGuideAnchor, useAutoStartTour } from "@/contexts/GuideContext";
+import { useGuideAnchor } from "@/contexts/GuideContext";
+import VYVOnboardingTour from "@/components/VYVOnboardingTour";
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
+
+import { useAppTour } from "@/hooks/use-app-tour";
+
+const TOUR_STEPS = [
+  {
+    id: "welcome",
+    title: "Bienvenido a VYV 👋",
+    body: "Tu espacio para capturar momentos auténticos y conectar con quienes comparten tu estilo de vida.",
+    selector: "body",
+    placement: "bottom" as const,
+  },
+  {
+    id: "feed",
+    title: "Inicio — tu feed",
+    body: "Aquí ves los momentos de las personas que sigues. Toca el botón + para capturar el tuyo.",
+    selector: "#tab-home",
+    placement: "top" as const,
+  },
+  {
+    id: "explore",
+    title: "Explorar",
+    body: "Descubre contenido, música, podcasts y más recomendado especialmente para ti.",
+    selector: "#tab-explore",
+    placement: "top" as const,
+  },
+  {
+    id: "focus",
+    title: "Modo Enfoque",
+    body: "Captura tu momento presente. Sin filtros, sin poses — solo tú y tu realidad.",
+    selector: "#tab-focus",
+    placement: "top" as const,
+  },
+  {
+    id: "calendar",
+    title: "Calendario",
+    body: "Visualiza y organiza tus actividades, rutinas y eventos en un solo lugar.",
+    selector: "#tab-calendar",
+    placement: "top" as const,
+  },
+  {
+    id: "profile",
+    title: "Tu perfil",
+    body: "Aquí vive tu historia. Comparte lo que quieras y controla quién lo ve.",
+    selector: "#tab-profile",
+    placement: "top" as const,
+  },
+];
 
 const Feed = () => {
   const { t } = useTranslation();
@@ -47,9 +95,8 @@ const Feed = () => {
   const captureAnchor = useGuideAnchor("capture_vibe");
   const feedHeaderRef = useRef<HTMLDivElement>(null);
 
-  // Auto-start tour on first visit
-  useAutoStartTour();
-
+  // App-wide first-time tour (Instagram-style: shows once, per user, cross-device)
+  const { shouldShow: showTour, markComplete: completeTour } = useAppTour();
   // Check and manage cooldown state
   useEffect(() => {
     const checkCooldown = () => {
@@ -394,6 +441,15 @@ const Feed = () => {
       />
 
       <ResponsiveNav onCreatePost={() => setIsCameraOpen(true)} />
+
+      {/* First-time tour — mounts only when shouldShow=true, never again */}
+      {showTour && (
+        <VYVOnboardingTour
+          steps={TOUR_STEPS}
+          onComplete={completeTour}
+          autoStartDelayMs={600}
+        />
+      )}
     </div>
   );
 };

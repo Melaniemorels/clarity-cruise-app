@@ -42,10 +42,13 @@ function computeCardPosition(r: DOMRect, placement: Placement, cardW: number, ca
 
 export default function VYVOnboardingTour({
   steps,
-  storageKey = "vyv_onboarding_seen",
+  /** Called when tour ends (finish or skip). Parent is responsible for persisting. */
+  onComplete,
   autoStartDelayMs = 350,
 }: {
   steps: Step[];
+  onComplete: () => void;
+  /** @deprecated kept for backward compat */
   storageKey?: string;
   autoStartDelayMs?: number;
 }) {
@@ -57,29 +60,11 @@ export default function VYVOnboardingTour({
   const step = useMemo(() => steps[idx], [steps, idx]);
   const { seed: seedContextHelp } = useVYVContextHelp();
 
-  // Start only once (first install) — also check old guide system
+  // Start automatically — parent decides whether to mount us at all
   useEffect(() => {
-    const seen = localStorage.getItem(storageKey);
-    if (seen === "1") {
-      // Already completed tour — ensure context help is seeded for existing users
-      seedContextHelp();
-      return;
-    }
-    // Also skip if old guide tour was already completed
-    try {
-      const oldGuide = localStorage.getItem("vyv_guide_v2");
-      if (oldGuide) {
-        const parsed = JSON.parse(oldGuide);
-        if (parsed.firstTourCompleted) {
-          localStorage.setItem(storageKey, "1");
-          seedContextHelp();
-          return;
-        }
-      }
-    } catch { /* ignore */ }
     const t = window.setTimeout(() => setOpen(true), autoStartDelayMs);
     return () => window.clearTimeout(t);
-  }, [storageKey, autoStartDelayMs, seedContextHelp]);
+  }, [autoStartDelayMs]);
 
   // Lock scroll when open
   useEffect(() => {
@@ -119,15 +104,8 @@ export default function VYVOnboardingTour({
   }, [open, step]);
 
   const close = () => {
-    localStorage.setItem(storageKey, "1");
-    // Also mark old guide system as completed to prevent it from showing
-    try {
-      const oldGuide = localStorage.getItem("vyv_guide_v2");
-      const parsed = oldGuide ? JSON.parse(oldGuide) : {};
-      parsed.firstTourCompleted = true;
-      parsed.tour = { running: false, stepIndex: 0 };
-      localStorage.setItem("vyv_guide_v2", JSON.stringify(parsed));
-    } catch { /* ignore */ }
+    // Delegate all persistence to the parent via onComplete callback
+    onComplete();
     // Seed context help system so micro-tooltips start appearing
     seedContextHelp();
     setOpen(false);
