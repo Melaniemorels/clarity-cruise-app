@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface ExploreItem {
@@ -91,7 +90,7 @@ export function useSeeAllFeed(category?: string) {
   });
 }
 
-/** Log item events (seen, open, save, dismiss) */
+/** Log item events (seen, open, save, dismiss) via edge function */
 export function useLogItemEvent() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
@@ -106,13 +105,22 @@ export function useLogItemEvent() {
     }) => {
       if (!session) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("user_item_events" as any).insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        item_id: itemId,
-        event,
-      } as any);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/explore-feed`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ action: "log_event", item_id: itemId, event }),
+        }
+      );
 
-      if (error) throw error;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to log event");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
