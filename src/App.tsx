@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,25 +15,35 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { QueryErrorBoundary } from "./components/QueryErrorBoundary";
 import { NetworkProvider } from "./contexts/NetworkContext";
 import { NetworkStatusBanner } from "./components/NetworkStatusBanner";
-import Welcome from "./pages/Welcome";
-import Home from "./pages/Home";
-import Feed from "./pages/Feed";
-import Auth from "./pages/Auth";
-import Explore from "./pages/Explore";
-import Calendar from "./pages/Calendar";
-import Profile from "./pages/Profile";
-import UserProfile from "./pages/UserProfile";
-import Recommendations from "./pages/Recommendations";
-import PerfectDay from "./pages/PerfectDay";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfUse from "./pages/TermsOfUse";
-import NotFound from "./pages/NotFound";
-import DeviceSettings from "./pages/DeviceSettings";
-import DeviceOnboarding from "./pages/DeviceOnboarding";
-import SecurityOnboarding from "./pages/SecurityOnboarding";
-import MediaConnections from "./pages/MediaConnections";
-import FindFriends from "./pages/FindFriends";
-import PublicProfile from "./pages/PublicProfile";
+import { Loader2 } from "lucide-react";
+
+// Lazy-loaded pages — each route loads its own JS chunk on demand (like Instagram)
+const Welcome = lazy(() => import("./pages/Welcome"));
+const Home = lazy(() => import("./pages/Home"));
+const Feed = lazy(() => import("./pages/Feed"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Profile = lazy(() => import("./pages/Profile"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const Recommendations = lazy(() => import("./pages/Recommendations"));
+const PerfectDay = lazy(() => import("./pages/PerfectDay"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const DeviceSettings = lazy(() => import("./pages/DeviceSettings"));
+const DeviceOnboarding = lazy(() => import("./pages/DeviceOnboarding"));
+const SecurityOnboarding = lazy(() => import("./pages/SecurityOnboarding"));
+const MediaConnections = lazy(() => import("./pages/MediaConnections"));
+const FindFriends = lazy(() => import("./pages/FindFriends"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+
+// Minimal loading fallback — appears briefly while route chunk loads
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 import { syncOnlineManager } from "./lib/network-query-sync";
 
@@ -82,6 +93,7 @@ const App = () => (
               <NetworkProvider>
               <NetworkStatusBanner />
               <QueryErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/welcome" element={<Welcome />} />
                   <Route path="/auth" element={<Auth />} />
@@ -104,6 +116,7 @@ const App = () => (
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+              </Suspense>
               </QueryErrorBoundary>
               </NetworkProvider>
               <GuideTourOverlay />
