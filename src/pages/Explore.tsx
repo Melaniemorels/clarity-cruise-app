@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState as useReactState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
-import { AdaptiveHeading, AdaptiveText } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
@@ -24,11 +22,7 @@ const Explore = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedContent, setSelectedContent] = useState<{
-    title: string;
-    category: string;
-    icon: string;
-    duration: string;
-    color: string;
+    title: string; category: string; icon: string; duration: string; color: string;
   } | null>(null);
   const [playerOpen, setPlayerOpen] = useState(false);
   const device = useDevice();
@@ -47,79 +41,76 @@ const Explore = () => {
   }, []);
 
   return (
-    <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className={cn("min-h-screen bg-background transition-all duration-300", navPadding)}>
       <div className={cn(
-        "space-y-6 transition-all",
+        "space-y-8 transition-all",
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"
       )}>
-        {/* Header */}
-        <div ref={exploreHeaderRef} className="flex items-center justify-between">
-          <div>
-            <AdaptiveHeading level={1}>{t('explore.title')}</AdaptiveHeading>
-            <AdaptiveText variant="small">{t('explore.subtitle')}</AdaptiveText>
-          </div>
+        {/* Header — old money: understated, weighted */}
+        <div ref={exploreHeaderRef}>
+          <h1 className={cn(
+            "font-bold tracking-tight text-foreground",
+            device.isMobile ? "text-2xl" : "text-3xl"
+          )}>
+            {t('explore.title')}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {t('explore.subtitle')}
+          </p>
         </div>
 
-        {/* AI Recommendations Section */}
+        {/* AI Recommendations */}
         <AIRecommendationsSection />
 
-        {/* Media Connection Prompt */}
+        {/* Media Connection */}
         <MediaConnectionBanner />
 
-        {/* Elevate Section */}
+        {/* Elevate */}
         <ElevateSection />
 
-        {/* First-time onboarding dialog */}
+        {/* Onboarding */}
         <ExploreOnboardingDialog />
 
-        {/* Fixed Sections: Yoga, Pilates, Audiolibros, Meal Preps, etc. */}
-        {EXPLORE_SECTIONS.map((section) => (
-          <ExploreSectionCarousel key={section.key} section={section} />
-        ))}
+        {/* Curated sections — AI-ranked per user */}
+        <div className="space-y-8">
+          {EXPLORE_SECTIONS.map((section) => (
+            <ExploreSectionCarousel key={section.key} section={section} />
+          ))}
+        </div>
 
-        {/* Perfect Day CTA */}
-        <Card 
-          className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 cursor-pointer hover:scale-[1.01] transition-transform"
+        {/* Perfect Day CTA — refined, old money */}
+        <div
+          className="rounded-2xl border border-border/50 bg-card p-6 text-center cursor-pointer hover:border-border transition-all duration-300"
           onClick={() => navigate("/perfect-day")}
         >
-          <CardContent className="p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
+          <div className="flex justify-center mb-3">
+            <div className="p-3 rounded-full bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="font-semibold mb-2">{t('explore.createTemplateTitle')}</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {t('explore.createTemplateDescription')}
-            </p>
-            <Button>
-              {t('explore.createTemplate')}
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <h3 className="font-semibold text-foreground mb-1.5 tracking-tight">
+            {t('explore.createTemplateTitle')}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+            {t('explore.createTemplateDescription')}
+          </p>
+          <Button size="sm" className="tracking-wide">
+            {t('explore.createTemplate')}
+          </Button>
+        </div>
       </div>
 
-      <ContentPlayer
-        open={playerOpen}
-        onOpenChange={setPlayerOpen}
-        content={selectedContent}
-      />
+      <ContentPlayer open={playerOpen} onOpenChange={setPlayerOpen} content={selectedContent} />
 
       <FirstTapTooltip
-        tapId="exploreCard"
-        pageKey="explore"
-        title={t("guide.tips.exploreCardTitle")}
-        body={t("guide.tips.exploreCardBody")}
-        anchorRef={exploreCardRef}
-        show={exploreCardTapped}
+        tapId="exploreCard" pageKey="explore"
+        title={t("guide.tips.exploreCardTitle")} body={t("guide.tips.exploreCardBody")}
+        anchorRef={exploreCardRef} show={exploreCardTapped}
       />
 
       <ContextHelpTooltip
-        helpKey="explore:header"
-        title={t("contextHelp.exploreTitle")}
-        body={t("contextHelp.exploreBody")}
-        anchorRef={exploreHeaderRef}
-        placement="bottom"
+        helpKey="explore:header" title={t("contextHelp.exploreTitle")}
+        body={t("contextHelp.exploreBody")} anchorRef={exploreHeaderRef} placement="bottom"
       />
 
       <ResponsiveNav />
