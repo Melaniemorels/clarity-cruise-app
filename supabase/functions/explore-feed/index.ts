@@ -90,44 +90,18 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const {
-      data: { user },
-      error: userErr,
-    } = await supabase.auth.getUser();
-    if (userErr || !user) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } =
+      await supabase.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = user.id;
+    const userId = claimsData.claims.sub as string;
 
     const body = await req.json().catch(() => ({}));
-
-    // ---- Event logging endpoint ----
-    if (body.action === "log_event") {
-      const { item_id, event } = body;
-      if (!item_id || !event) {
-        return new Response(JSON.stringify({ error: "Missing item_id or event" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const { error: insertErr } = await supabase
-        .from("user_item_events")
-        .insert({ user_id: userId, item_id, event });
-      if (insertErr) {
-        console.error("log_event insert error:", insertErr);
-        return new Response(JSON.stringify({ error: insertErr.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      return new Response(JSON.stringify({ ok: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const mode: string = body.mode ?? "for_you";
     const category: string | null = body.category ?? null;
     const page: number = body.page ?? 0;
