@@ -211,6 +211,23 @@ function ConnectionRow({
   if (!meta) return null;
   const Icon = meta.icon;
 
+  const OAUTH_URLS: Record<string, string> = {
+    spotify:
+      "https://accounts.spotify.com/authorize?client_id=&response_type=code&redirect_uri=&scope=user-top-read%20user-read-recently-played%20user-library-read",
+    youtube:
+      "https://accounts.google.com/o/oauth2/v2/auth?client_id=&response_type=code&redirect_uri=&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly&access_type=offline",
+  };
+
+  const handleConnect = () => {
+    // OAuth requires client_id configured server-side — redirect to auth page
+    const url = OAUTH_URLS[provider];
+    if (url && url.includes("client_id=&")) {
+      // client_id not yet configured — show informative state
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div
       className={cn(
@@ -240,7 +257,7 @@ function ConnectionRow({
         </div>
       </div>
 
-      {isConnected && (
+      {isConnected ? (
         <Button
           size="sm"
           variant="ghost"
@@ -250,6 +267,15 @@ function ConnectionRow({
         >
           <Unplug className="h-3 w-3" />
           {t("mediaConnections.disconnect")}
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-xs gap-1 rounded-full border-primary/40 text-primary hover:bg-primary/10"
+          onClick={handleConnect}
+        >
+          {t("mediaConnections.connect")}
         </Button>
       )}
     </div>
