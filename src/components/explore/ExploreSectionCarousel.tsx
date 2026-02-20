@@ -99,6 +99,7 @@ export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "Calma", title: "Calma", subtitle: "Rest & recovery", icon: "wind", emoji: "🌿" },
   { key: "Energía", title: "Energía", subtitle: "Movement & vitality", icon: "flame", emoji: "⚡" },
   { key: "Ejercicios", title: "Ejercicios", subtitle: "Office, outdoor & stretching", icon: "dumbbell", emoji: "🏋️" },
+  { key: "Podcasts", title: "Podcasts", subtitle: "Growth & clarity", icon: "headphones", emoji: "🎙️" },
   { key: "Nutrición", title: "Nutrición", subtitle: "Eat smarter", icon: "salad", emoji: "🥗" },
   { key: "PlanesDeComida", title: "Planes de Comida", subtitle: "Nourish your week", icon: "clipboard", emoji: "📋" },
 ];
