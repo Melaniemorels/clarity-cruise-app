@@ -16,6 +16,7 @@
     "optional": "opcional",
     "required": "requerido",
     "viewAll": "Ver todo",
+    "loadMore": "Cargar más",
     "today": "Hoy",
     "less": "Menos",
     "more": "Más",
@@ -131,6 +132,12 @@
       "noUrl": "Próximamente",
       "comingSoon": "Próximamente",
       "error": "No se pudo abrir el enlace. Intenta de nuevo."
+    },
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "empty": {
+      "noRecommendations": "No hay recomendaciones aún",
+      "saveContent": "Guarda contenido para mejorar tus recomendaciones"
     }
   },
   "calendar": {
