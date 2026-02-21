@@ -11,7 +11,9 @@ import { openContent } from "@/lib/open-content";
 import { detectProvider, PROVIDER_LABEL_KEYS, COMING_SOON_PROVIDERS } from "@/lib/external-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { Search, X } from "lucide-react";
 
 // Elevate static items — same data as ElevateSection
 const ELEVATE_ITEMS = [
@@ -57,6 +59,8 @@ export default function ExploreSection() {
     (stateFilter as RecommendationGoal) || "auto"
   );
   const recQuery = useRecommendations(isParaTi ? selectedGoal : "auto");
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   // For category sections we use the see-all feed
   const feedQuery = useSeeAllFeed(sectionConfig ? sectionKey : undefined);
@@ -112,10 +116,29 @@ export default function ExploreSection() {
           </div>
         )}
 
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("explore.searchSection")}
+            className="pl-9 pr-9"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
         {/* Content grid */}
-        {isParaTi && <ParaTiGrid recommendations={recQuery.data?.recommendations ?? []} isLoading={recQuery.isLoading} onOpen={handleOpenItem} t={t} />}
-        {isElevate && <ElevateGrid items={ELEVATE_ITEMS} onOpen={handleOpenItem} t={t} />}
-        {sectionConfig && <SectionGrid feedQuery={feedQuery} logEvent={logEvent} onOpen={handleOpenItem} t={t} />}
+        {isParaTi && <ParaTiGrid recommendations={recQuery.data?.recommendations ?? []} isLoading={recQuery.isLoading} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
+        {isElevate && <ElevateGrid items={ELEVATE_ITEMS} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
+        {sectionConfig && <SectionGrid feedQuery={feedQuery} logEvent={logEvent} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
 
         {/* Empty state */}
         {!isParaTi && !isElevate && !sectionConfig && (
@@ -132,14 +155,27 @@ export default function ExploreSection() {
 
 /* ---------- Sub-grids (reuse same card styles, just in grid) ---------- */
 
-function ParaTiGrid({ recommendations, isLoading, onOpen, t }: { recommendations: Recommendation[]; isLoading: boolean; onOpen: (item: any) => void; t: (k: string) => string }) {
+function matchesSearch(query: string, ...fields: (string | undefined | null)[]): boolean {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  return fields.some((f) => f?.toLowerCase().includes(q));
+}
+
+function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { recommendations: Recommendation[]; isLoading: boolean; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
   if (isLoading) return <GridSkeleton />;
-  if (recommendations.length === 0) return <EmptyState t={t} />;
+
+  const filtered = recommendations.filter((rec) => {
+    const url = rec.externalUrl || rec.spotifyUri;
+    const provider = url ? detectProvider(url) : "other";
+    return matchesSearch(searchQuery, rec.title, rec.description, provider, rec.duration);
+  });
+
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} />;
 
   return (
     <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-      {recommendations.map((rec, i) => {
+      {filtered.map((rec, i) => {
         const url = rec.externalUrl || rec.spotifyUri;
         const provider = url ? detectProvider(url) : "other";
         return (
@@ -174,11 +210,15 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t }: { recommendations
   );
 }
 
-function ElevateGrid({ items, onOpen, t }: { items: typeof ELEVATE_ITEMS; onOpen: (item: any) => void; t: (k: string) => string }) {
+function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_ITEMS; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
+  const filtered = items.filter((item) =>
+    matchesSearch(searchQuery, item.title, item.duration, detectProvider(item.url))
+  );
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} />;
   return (
     <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-      {items.map((item, i) => {
+      {filtered.map((item, i) => {
         const provider = detectProvider(item.url);
         return (
           <div
@@ -211,17 +251,22 @@ function ElevateGrid({ items, onOpen, t }: { items: typeof ELEVATE_ITEMS; onOpen
   );
 }
 
-function SectionGrid({ feedQuery, logEvent, onOpen, t }: { feedQuery: any; logEvent: any; onOpen: (item: any) => void; t: (k: string) => string }) {
+function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuery: any; logEvent: any; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
   const allItems: ExploreItem[] = feedQuery.data?.pages?.flatMap((p: any) => p.items) ?? [];
 
   if (feedQuery.isLoading) return <GridSkeleton />;
-  if (allItems.length === 0) return <EmptyState t={t} />;
+
+  const filtered = allItems.filter((item) =>
+    matchesSearch(searchQuery, item.title, item.url, item.duration_min?.toString())
+  );
+
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && allItems.length > 0} />;
 
   return (
     <>
       <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-        {allItems.map((item) => {
+        {filtered.map((item) => {
           const provider = detectProvider(item.url);
           return (
             <div
@@ -299,12 +344,12 @@ function GridSkeleton() {
   );
 }
 
-function EmptyState({ t }: { t: (k: string) => string }) {
+function EmptyState({ t, noResults }: { t: (k: string) => string; noResults?: boolean }) {
   return (
     <div className="text-center py-16">
       <Sparkles className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-      <p className="text-muted-foreground">{t("explore.empty.noRecommendations")}</p>
-      <p className="text-sm text-muted-foreground/60 mt-1">{t("explore.empty.saveContent")}</p>
+      <p className="text-muted-foreground">{noResults ? t("explore.empty.noResults") : t("explore.empty.noRecommendations")}</p>
+      {!noResults && <p className="text-sm text-muted-foreground/60 mt-1">{t("explore.empty.saveContent")}</p>}
     </div>
   );
 }
