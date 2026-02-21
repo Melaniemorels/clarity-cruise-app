@@ -17,6 +17,8 @@ import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { useGuide } from "@/contexts/GuideContext";
 import { ExploreSectionCarousel, EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
+import { ExplorerContextualRecs } from "@/components/explore/ContextualRecsCard";
+import { useDwellTracker } from "@/hooks/use-dwell-tracker";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -33,10 +35,14 @@ const Explore = () => {
   const { isFirstTap } = useGuide();
 
   const exploreTracker = useModuleTimeTracker("EXPLORE");
+  const dwellTracker = useDwellTracker("explore");
 
   useEffect(() => {
     exploreTracker.start();
-    return () => exploreTracker.stop();
+    return () => {
+      exploreTracker.stop();
+      dwellTracker.flush();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -62,6 +68,9 @@ const Explore = () => {
         {/* AI Recommendations */}
         <AIRecommendationsSection />
 
+        {/* Contextual AI — based on scroll + calendar */}
+        <ExplorerContextualRecs />
+
         {/* Media Connection */}
         <MediaConnectionBanner />
 
@@ -74,7 +83,12 @@ const Explore = () => {
         {/* Curated sections — AI-ranked per user */}
         <div className="space-y-8">
           {EXPLORE_SECTIONS.map((section) => (
-            <ExploreSectionCarousel key={section.key} section={section} />
+            <ExploreSectionCarousel
+              key={section.key}
+              section={section}
+              onSectionVisible={dwellTracker.onCategoryVisible}
+              onSectionHidden={dwellTracker.onCategoryHidden}
+            />
           ))}
         </div>
 
