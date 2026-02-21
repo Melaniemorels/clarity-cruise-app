@@ -88,6 +88,8 @@ export function useSeeAllFeed(category?: string) {
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!session,
     staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 120 * 1000, // silent refresh every 2 min
   });
 }
 
