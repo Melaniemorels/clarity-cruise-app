@@ -138,7 +138,10 @@
     "empty": {
       "noRecommendations": "No recommendations yet",
       "saveContent": "Save content to improve your recommendations",
-      "noResults": "No results"
+      "noResults": "No results",
+      "noResultsFor": "No results for '{{query}}'",
+      "tryAnother": "Try another title, author or keyword.",
+      "maybeInterest": "You might also like"
     },
     "searchSection": "Search in this section…"
   },
