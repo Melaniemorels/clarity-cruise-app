@@ -137,8 +137,10 @@
     "linkCopied": "Link copied!",
     "empty": {
       "noRecommendations": "No recommendations yet",
-      "saveContent": "Save content to improve your recommendations"
-    }
+      "saveContent": "Save content to improve your recommendations",
+      "noResults": "No results"
+    },
+    "searchSection": "Search in this section…"
   },
   "calendar": {
     "title": "Calendar",
