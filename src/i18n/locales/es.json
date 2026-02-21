@@ -942,5 +942,11 @@
     "profileBody": "Tu progreso diario, capturas y estadísticas. Tocá 'Editar perfil' para personalizar tu cuenta.",
     "profileStatsTitle": "Estadísticas del día",
     "profileStatsBody": "Pasos, ejercicio, sueño y tiempo de pantalla. Tocá cada tarjeta para ver el desglose."
+  },
+  "contextualRecs": {
+    "explorerTitle": "Para ti ahora",
+    "explorerSubtitle": "Basado en lo que explorás y tu agenda",
+    "homeTitle": "Sugerido para vos",
+    "calendarBased": "Calendario"
   }
 }

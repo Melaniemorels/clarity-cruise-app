@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -9,7 +10,7 @@ import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
 import { openContent } from "@/lib/open-content";
 import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 import { useNavigate } from "react-router-dom";
-import { useTranslation as useT } from "react-i18next";
+import { useInView } from "react-intersection-observer";
 
 export interface SectionConfig {
   key: string;
@@ -112,12 +113,34 @@ export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "PlanesDeComida", title: "Planes de Comida", subtitle: "Nourish your week", icon: "clipboard", emoji: "📋" },
 ];
 
-export function ExploreSectionCarousel({ section }: { section: SectionConfig }) {
+export function ExploreSectionCarousel({
+  section,
+  onSectionVisible,
+  onSectionHidden,
+}: {
+  section: SectionConfig;
+  onSectionVisible?: (category: string) => void;
+  onSectionHidden?: (category: string) => void;
+}) {
   const { t } = useTranslation();
   const device = useDevice();
   const logEvent = useLogItemEvent();
   const navigate = useNavigate();
   const { data, isLoading } = useForYouFeed(section.key);
+
+  // Track section visibility for dwell time
+  const { ref: sectionRef, inView } = useInView({ threshold: 0.3 });
+  const wasInViewRef = useRef(false);
+
+  useEffect(() => {
+    if (inView && !wasInViewRef.current) {
+      wasInViewRef.current = true;
+      onSectionVisible?.(section.key);
+    } else if (!inView && wasInViewRef.current) {
+      wasInViewRef.current = false;
+      onSectionHidden?.(section.key);
+    }
+  }, [inView, section.key, onSectionVisible, onSectionHidden]);
 
   const gradients = SECTION_GRADIENTS[section.key] ?? [
     "from-muted/80 to-secondary/60",
@@ -160,7 +183,7 @@ export function ExploreSectionCarousel({ section }: { section: SectionConfig }) 
   if (items.length === 0) return null;
 
   return (
-    <div className="space-y-4">
+    <div ref={sectionRef} className="space-y-4">
       {/* Section header with emoji — old money */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">

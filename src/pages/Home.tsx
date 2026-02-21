@@ -4,6 +4,7 @@ import { FeedPost } from "@/components/FeedPost";
 import { usePublicEntriesFeed } from "@/hooks/use-entries";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { HomeContextualRecs } from "@/components/HomeContextualRecs";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -36,6 +37,9 @@ const Home = () => {
           <h1 className="text-2xl font-bold text-foreground">VYV</h1>
           <div className="text-sm text-muted-foreground">{t('nav.feed')}</div>
         </div>
+
+        {/* Contextual AI recommendations — quick cards */}
+        <HomeContextualRecs />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

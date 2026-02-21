@@ -942,5 +942,11 @@
     "profileBody": "Your daily progress, captures and stats. Tap 'Edit profile' to customize your account.",
     "profileStatsTitle": "Today's stats",
     "profileStatsBody": "Steps, workout, sleep and screen time. Tap each card to see the breakdown."
+  },
+  "contextualRecs": {
+    "explorerTitle": "For you now",
+    "explorerSubtitle": "Based on your browsing and schedule",
+    "homeTitle": "Suggested for you",
+    "calendarBased": "Calendar"
   }
 }
