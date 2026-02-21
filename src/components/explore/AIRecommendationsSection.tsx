@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { openExternal, detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
+import { detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
+import { openContent } from "@/lib/open-content";
 import {
   useRecommendations,
   useRefreshRecommendations,
@@ -74,21 +75,7 @@ function RecommendationCard({
   const showComingSoon = externalLink ? COMING_SOON_PROVIDERS.includes(provider) : false;
 
   const handleClick = async () => {
-    if (!externalLink) {
-      toast(t("explore.unavailable.title"), {
-        description: t("explore.unavailable.noUrl"),
-        duration: 4000,
-      });
-      return;
-    }
-    try {
-      await openExternal(externalLink);
-    } catch {
-      toast(t("explore.unavailable.title"), {
-        description: t("explore.unavailable.error"),
-        duration: 4000,
-      });
-    }
+    await openContent({ url: externalLink, provider: provider, title: recommendation.title }, t);
   };
 
   return (

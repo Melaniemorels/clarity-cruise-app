@@ -6,8 +6,9 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useDevice, useResponsiveFontSize } from "@/hooks/use-device";
 import { Hexagon, Bookmark, ExternalLink } from "lucide-react";
-import { openExternal, detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
-import { toast } from "sonner";
+import { detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
+import { openContent } from "@/lib/open-content";
+import { useNavigate } from "react-router-dom";
 
 interface ElevateItem {
   titleKey: string;
@@ -32,16 +33,10 @@ export function ElevateSection() {
   const { t } = useTranslation();
   const device = useDevice();
   const fonts = useResponsiveFontSize();
+  const navigate = useNavigate();
 
   const handleClick = async (url: string) => {
-    try {
-      await openExternal(url);
-    } catch {
-      toast(t("explore.unavailable.title"), {
-        description: t("explore.unavailable.error"),
-        duration: 4000,
-      });
-    }
+    await openContent({ url, title: "" }, t);
   };
 
   return (
@@ -51,7 +46,7 @@ export function ElevateSection() {
           <Hexagon className={device.isMobile ? "h-5 w-5" : "h-6 w-6"} strokeWidth={1.5} />
           {t("elevate.title")}
         </h2>
-        <Button variant="ghost" size="sm">{t("common.viewAll")}</Button>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/explore/section/elevate")}>{t("common.viewAll")}</Button>
       </div>
 
       <ScrollArea className="w-full whitespace-nowrap">

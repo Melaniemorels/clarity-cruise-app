@@ -5,9 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
-import { openExternal, detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
-import { toast } from "sonner";
+import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
+import { openContent } from "@/lib/open-content";
 import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
+import { useNavigate } from "react-router-dom";
+import { useTranslation as useT } from "react-i18next";
 
 export interface SectionConfig {
   key: string;
@@ -114,6 +116,7 @@ export function ExploreSectionCarousel({ section }: { section: SectionConfig }) 
   const { t } = useTranslation();
   const device = useDevice();
   const logEvent = useLogItemEvent();
+  const navigate = useNavigate();
   const { data, isLoading } = useForYouFeed(section.key);
 
   const gradients = SECTION_GRADIENTS[section.key] ?? [
@@ -125,21 +128,7 @@ export function ExploreSectionCarousel({ section }: { section: SectionConfig }) 
 
   const handleClick = async (item: ExploreItem) => {
     logEvent.mutate({ itemId: item.id, event: "open" });
-    if (!item.url) {
-      toast(t("explore.unavailable.title"), {
-        description: t("explore.unavailable.comingSoon"),
-        duration: 4000,
-      });
-      return;
-    }
-    try {
-      await openExternal(item.url);
-    } catch {
-      toast(t("explore.unavailable.title"), {
-        description: t("explore.unavailable.error"),
-        duration: 4000,
-      });
-    }
+    await openContent({ url: item.url, provider: detectProvider(item.url).toString(), title: item.title }, t);
   };
 
   if (isLoading) {
@@ -189,6 +178,7 @@ export function ExploreSectionCarousel({ section }: { section: SectionConfig }) 
           variant="ghost"
           size="sm"
           className="text-xs text-primary hover:text-primary/80 font-medium h-7 px-2"
+          onClick={() => navigate(`/explore/section/${section.key}`)}
         >
           {t("common.viewAll")}
         </Button>
