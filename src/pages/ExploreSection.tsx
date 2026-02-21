@@ -16,6 +16,21 @@ import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
+/** Normalize text: lowercase, trim, strip diacritics */
+function normalize(text: string): string {
+  return text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/** Custom hook for debounced value */
+function useDebouncedValue(value: string, delay = 250): string {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
 // Elevate static items — same data as ElevateSection
 const ELEVATE_ITEMS = [
   { title: "Deep Work", duration: "12 min", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
@@ -61,7 +76,8 @@ export default function ExploreSection() {
   );
   const recQuery = useRecommendations(isParaTi ? selectedGoal : "auto");
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const searchQuery = useDebouncedValue(searchInput);
 
   // For category sections — already uses useInfiniteQuery
   const feedQuery = useSeeAllFeed(sectionConfig ? sectionKey : undefined);
@@ -121,14 +137,14 @@ export default function ExploreSection() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder={t("explore.searchSection")}
             className="pl-9 pr-9"
           />
-          {searchQuery && (
+          {searchInput && (
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => setSearchInput("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-4 w-4" />
@@ -158,8 +174,8 @@ export default function ExploreSection() {
 
 function matchesSearch(query: string, ...fields: (string | undefined | null)[]): boolean {
   if (!query) return true;
-  const q = query.toLowerCase();
-  return fields.some((f) => f?.toLowerCase().includes(q));
+  const q = normalize(query);
+  return fields.some((f) => f && normalize(f).includes(q));
 }
 
 /** Hook for client-side progressive reveal (simulates pagination for static/small arrays) */
@@ -215,9 +231,8 @@ function LoadingIndicator() {
 
 function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { recommendations: Recommendation[]; isLoading: boolean; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
-  if (isLoading) return <GridSkeleton />;
 
-  const filtered = recommendations.filter((rec) => {
+  const filtered = isLoading ? [] : recommendations.filter((rec) => {
     const url = rec.externalUrl || rec.spotifyUri;
     const provider = url ? detectProvider(url) : "other";
     return matchesSearch(searchQuery, rec.title, rec.description, provider, rec.duration);
@@ -226,7 +241,25 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
   const visible = filtered.slice(0, visibleCount);
 
-  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} />;
+  const renderRecCard = useCallback((rec: Recommendation, i: number) => {
+    const url = rec.externalUrl || rec.spotifyUri;
+    const provider = url ? detectProvider(url) : "other";
+    return (
+      <div key={`sug-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => onOpen({ url, provider, title: rec.title })}>
+        <div className="p-4 space-y-2">
+          <h3 className="font-semibold text-foreground text-sm line-clamp-2">{rec.title}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-2">{rec.description}</p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
+            <span className="text-[11px] text-muted-foreground">{rec.duration}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }, [onOpen, t]);
+
+  if (isLoading) return <GridSkeleton />;
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} query={searchQuery} suggestedItems={recommendations.slice(0, 6)} renderCard={renderRecCard} />;
 
   return (
     <>
@@ -277,7 +310,22 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
   const visible = filtered.slice(0, visibleCount);
 
-  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} />;
+  const renderElevateCard = useCallback((item: typeof ELEVATE_ITEMS[0], i: number) => {
+    const provider = detectProvider(item.url);
+    return (
+      <div key={`sug-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => onOpen(item)}>
+        <div className="p-4 space-y-2">
+          <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
+            <span className="text-[11px] text-muted-foreground">{item.duration}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }, [onOpen, t]);
+
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} query={searchQuery} suggestedItems={items.slice(0, 6)} renderCard={renderElevateCard} />;
 
   return (
     <>
@@ -345,8 +393,23 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
     }
   }, [feedQuery.hasNextPage, feedQuery.isFetchingNextPage, feedQuery.fetchNextPage, searchQuery]);
 
+  const renderSectionCard = useCallback((item: ExploreItem, i: number) => {
+    const provider = detectProvider(item.url);
+    return (
+      <div key={`sug-${item.id}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => { logEvent.mutate({ itemId: item.id, event: "open" }); onOpen(item); }}>
+        <div className="p-4 space-y-2">
+          <h3 className="font-semibold text-foreground text-sm line-clamp-2">{item.title}</h3>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
+            {item.duration_min && <span className="text-[11px] text-muted-foreground">{item.duration_min} min</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }, [logEvent, onOpen, t]);
+
   if (feedQuery.isLoading) return <GridSkeleton />;
-  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && deduped.length > 0} />;
+  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && deduped.length > 0} query={searchQuery} suggestedItems={deduped.slice(0, 6)} renderCard={renderSectionCard} />;
 
   return (
     <>
@@ -420,12 +483,37 @@ function GridSkeleton() {
   );
 }
 
-function EmptyState({ t, noResults }: { t: (k: string) => string; noResults?: boolean }) {
+function EmptyState({ t, noResults, query, suggestedItems, renderCard }: {
+  t: (k: string, opts?: any) => string;
+  noResults?: boolean;
+  query?: string;
+  suggestedItems?: any[];
+  renderCard?: (item: any, i: number) => React.ReactNode;
+}) {
   return (
-    <div className="text-center py-16">
-      <Sparkles className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-      <p className="text-muted-foreground">{noResults ? t("explore.empty.noResults") : t("explore.empty.noRecommendations")}</p>
-      {!noResults && <p className="text-sm text-muted-foreground/60 mt-1">{t("explore.empty.saveContent")}</p>}
+    <div className="space-y-6">
+      <div className="text-center py-10">
+        <Sparkles className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+        {noResults && query ? (
+          <>
+            <p className="text-muted-foreground">{t("explore.empty.noResultsFor", { query })}</p>
+            <p className="text-sm text-muted-foreground/60 mt-1">{t("explore.empty.tryAnother")}</p>
+          </>
+        ) : (
+          <>
+            <p className="text-muted-foreground">{t("explore.empty.noRecommendations")}</p>
+            <p className="text-sm text-muted-foreground/60 mt-1">{t("explore.empty.saveContent")}</p>
+          </>
+        )}
+      </div>
+      {noResults && suggestedItems && suggestedItems.length > 0 && renderCard && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">{t("explore.empty.maybeInterest")}</p>
+          <div className="grid grid-cols-2 gap-4">
+            {suggestedItems.slice(0, 6).map((item, i) => renderCard(item, i))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

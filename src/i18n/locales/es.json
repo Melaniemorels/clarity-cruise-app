@@ -138,7 +138,10 @@
     "empty": {
       "noRecommendations": "No hay recomendaciones aún",
       "saveContent": "Guarda contenido para mejorar tus recomendaciones",
-      "noResults": "Sin resultados"
+      "noResults": "Sin resultados",
+      "noResultsFor": "No encontramos resultados para '{{query}}'",
+      "tryAnother": "Probá con otro título, autor o palabra clave.",
+      "maybeInterest": "Tal vez te interese"
     },
     "searchSection": "Buscar en esta sección…"
   },
