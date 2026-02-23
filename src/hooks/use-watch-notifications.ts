@@ -56,11 +56,11 @@ export const useWatchNotifications = () => {
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         if (response.status === 429) {
-          toast.error("Rate limit reached. Please try again later.");
+          toast.error(i18n.t('errors.generic'));
           throw new Error("Rate limited");
         }
         if (response.status === 402) {
-          toast.error("AI service temporarily unavailable.");
+          toast.error(i18n.t('errors.generic'));
           throw new Error("Payment required");
         }
         throw new Error(errData.error || "Failed to generate notifications");

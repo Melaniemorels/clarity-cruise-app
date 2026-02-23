@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export interface Entry {
   id: string;
@@ -166,7 +167,7 @@ export function useEntryReaction() {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
     },
     onError: () => {
-      toast.error("Error al reaccionar");
+      toast.error(i18n.t('errors.generic'));
     },
   });
 }
@@ -186,7 +187,7 @@ export function useCreateEntry() {
       visibility?: "private" | "public" | "followers";
       occurred_at?: string;
     }) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       const { data, error } = await supabase
         .from("entries")
@@ -208,10 +209,10 @@ export function useCreateEntry() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast.success("Entrada creada");
+      toast.success(i18n.t('camera.photoSaved'));
     },
     onError: () => {
-      toast.error("Error al crear entrada");
+      toast.error(i18n.t('camera.uploadError'));
     },
   });
 }
@@ -229,7 +230,7 @@ export function useUpdateEntryVisibility() {
       entryId: string;
       visibility: "public" | "followers" | "private";
     }) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("entries")
@@ -241,10 +242,10 @@ export function useUpdateEntryVisibility() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast.success("Visibilidad actualizada");
+      toast.success(i18n.t('captureDetail.visibilityUpdated'));
     },
     onError: () => {
-      toast.error("Error al actualizar visibilidad");
+      toast.error(i18n.t('errors.generic'));
     },
   });
 }
@@ -256,7 +257,7 @@ export function useDeleteEntry() {
 
   return useMutation({
     mutationFn: async (entryId: string) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("entries")
@@ -268,10 +269,10 @@ export function useDeleteEntry() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast.success("Entrada eliminada");
+      toast.success(i18n.t('captureDetail.visibilityUpdated'));
     },
     onError: () => {
-      toast.error("Error al eliminar entrada");
+      toast.error(i18n.t('errors.generic'));
     },
   });
 }

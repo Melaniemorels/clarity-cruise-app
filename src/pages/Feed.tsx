@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,46 +33,46 @@ const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
 
 import { useAppTour } from "@/hooks/use-app-tour";
 
-const TOUR_STEPS = [
+const getTourSteps = (t: (key: string) => string) => [
   {
     id: "welcome",
-    title: "Bienvenido a VYV 👋",
-    body: "Tu espacio para capturar momentos auténticos y conectar con quienes comparten tu estilo de vida.",
+    title: t('guide.tour.welcomeTitle'),
+    body: t('guide.tour.welcomeBody'),
     selector: "body",
     placement: "bottom" as const,
   },
   {
     id: "feed",
-    title: "Inicio — tu feed",
-    body: "Aquí ves los momentos de las personas que sigues. Toca el botón + para capturar el tuyo.",
+    title: t('guide.tour.homeTitle'),
+    body: t('guide.tour.homeBody'),
     selector: "#tab-home",
     placement: "top" as const,
   },
   {
     id: "explore",
-    title: "Explorar",
-    body: "Descubre contenido, música, podcasts y más recomendado especialmente para ti.",
+    title: t('guide.tour.exploreTitle'),
+    body: t('guide.tour.exploreBody'),
     selector: "#tab-explore",
     placement: "top" as const,
   },
   {
     id: "focus",
-    title: "Modo Enfoque",
-    body: "Captura tu momento presente. Sin filtros, sin poses — solo tú y tu realidad.",
+    title: t('guide.tour.focusTitle'),
+    body: t('guide.tour.focusBody'),
     selector: "#tab-focus",
     placement: "top" as const,
   },
   {
     id: "calendar",
-    title: "Calendario",
-    body: "Visualiza y organiza tus actividades, rutinas y eventos en un solo lugar.",
+    title: t('guide.tour.calendarTitle'),
+    body: t('guide.tour.calendarBody'),
     selector: "#tab-calendar",
     placement: "top" as const,
   },
   {
     id: "profile",
-    title: "Tu perfil",
-    body: "Aquí vive tu historia. Comparte lo que quieras y controla quién lo ve.",
+    title: t('guide.tour.profileTitle'),
+    body: t('guide.tour.profileBody'),
     selector: "#tab-profile",
     placement: "top" as const,
   },
@@ -80,6 +80,7 @@ const TOUR_STEPS = [
 
 const Feed = () => {
   const { t } = useTranslation();
+  const tourSteps = useMemo(() => getTourSteps(t), [t]);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -445,7 +446,7 @@ const Feed = () => {
       {/* First-time tour — mounts only when shouldShow=true, never again */}
       {showTour && (
         <VYVOnboardingTour
-          steps={TOUR_STEPS}
+          steps={tourSteps}
           onComplete={completeTour}
           autoStartDelayMs={600}
         />

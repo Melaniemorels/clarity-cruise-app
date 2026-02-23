@@ -5,6 +5,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useVYVContextHelp } from "@/hooks/use-context-help";
+import { useTranslation } from "react-i18next";
 
 type Placement = "top" | "bottom" | "left" | "right";
 
@@ -52,6 +53,7 @@ export default function VYVOnboardingTour({
   storageKey?: string;
   autoStartDelayMs?: number;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
   const [target, setTarget] = useState<{ el: HTMLElement; r: DOMRect } | null>(null);
@@ -152,7 +154,7 @@ export default function VYVOnboardingTour({
           className="vyvTourCard"
           style={{ transform: `translate3d(${cardPos.x}px, ${cardPos.y}px, 0)` }}
         >
-          <button className="vyvTourClose" onClick={close} aria-label="Cerrar">×</button>
+          <button className="vyvTourClose" onClick={close} aria-label={t('common.close')}>×</button>
           <div className="vyvTourDots" aria-hidden="true">
             {steps.map((_, i) => (
               <span key={i} className={`vyvDot ${i === idx ? "active" : ""}`} />
@@ -161,13 +163,13 @@ export default function VYVOnboardingTour({
           <div className="vyvTourTitle">{step.title}</div>
           <div className="vyvTourBody">{step.body}</div>
           <div className="vyvTourActions">
-            <button className="vyvBtnGhost" onClick={close}>Saltar</button>
+            <button className="vyvBtnGhost" onClick={close}>{t('guide.tour.skip')}</button>
             <div className="vyvRight">
               <button className="vyvBtnGhost" onClick={back} disabled={idx === 0}>
-                Atrás
+                {t('guide.tour.back')}
               </button>
               <button className="vyvBtnPrimary" onClick={next}>
-                {idx === steps.length - 1 ? "Listo" : "Siguiente"} <span aria-hidden="true">›</span>
+                {idx === steps.length - 1 ? t('common.done') : t('guide.tour.next')} <span aria-hidden="true">›</span>
               </button>
             </div>
           </div>

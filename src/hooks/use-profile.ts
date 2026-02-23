@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export type TravelIntensity = "low" | "medium" | "high";
 export type TravelModeStatus = "off" | "auto" | "on";
@@ -119,10 +120,10 @@ export function useUpdateProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
-      toast.success("Perfil actualizado");
+      toast.success(i18n.t('editProfile.profileUpdated'));
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "Error al actualizar perfil";
+      const message = error instanceof Error ? error.message : i18n.t('errors.generic');
       toast.error(message);
     },
   });
@@ -165,10 +166,10 @@ export function useUploadProfilePhoto() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
-      toast.success("Foto actualizada");
+      toast.success(i18n.t('editProfile.photoUploaded'));
     },
     onError: () => {
-      toast.error("Error al subir foto");
+      toast.error(i18n.t('editProfile.errors.uploadError'));
     },
   });
 }
@@ -209,7 +210,7 @@ export function useFollow() {
       targetUserId: string;
       isFollowing: boolean;
     }) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       if (isFollowing) {
         const { error } = await supabase
@@ -232,10 +233,10 @@ export function useFollow() {
       queryClient.invalidateQueries({ queryKey: ["profile-stats"] });
       queryClient.invalidateQueries({ queryKey: ["user-search"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success(variables.isFollowing ? "Dejaste de seguir" : "Siguiendo");
+      toast.success(variables.isFollowing ? i18n.t('follow.unfollowed') : i18n.t('follow.nowFollowing'));
     },
     onError: () => {
-      toast.error("Error al actualizar");
+      toast.error(i18n.t('errors.generic'));
     },
   });
 }
