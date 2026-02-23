@@ -14,8 +14,7 @@ import { useInView } from "react-intersection-observer";
 
 export interface SectionConfig {
   key: string;
-  title: string;
-  subtitle: string;
+  titleKey: string;
   icon: string;
   emoji: string;
 }
@@ -100,17 +99,17 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 };
 
 export const EXPLORE_SECTIONS: SectionConfig[] = [
-  { key: "Música", title: "Música", subtitle: "Focus & ambiance", icon: "music", emoji: "🎵" },
-  { key: "Audiolibros", title: "Audiolibros", subtitle: "Knowledge on demand", icon: "headphones", emoji: "🎧" },
-  { key: "Podcasts", title: "Podcasts", subtitle: "Growth & clarity", icon: "headphones", emoji: "🎙️" },
-  { key: "Yoga", title: "Yoga", subtitle: "Flexibility & balance", icon: "dumbbell", emoji: "🧘" },
-  { key: "Pilates", title: "Pilates", subtitle: "Core & posture", icon: "dumbbell", emoji: "💪" },
-  { key: "Meditación", title: "Meditación", subtitle: "Stillness & clarity", icon: "brain", emoji: "🧠" },
-  { key: "Calma", title: "Calma", subtitle: "Rest & recovery", icon: "wind", emoji: "🌿" },
-  { key: "Energía", title: "Energía", subtitle: "Movement & vitality", icon: "flame", emoji: "⚡" },
-  { key: "Ejercicios", title: "Ejercicios", subtitle: "Office, outdoor & stretching", icon: "dumbbell", emoji: "🏋️" },
-  { key: "Nutrición", title: "Nutrición", subtitle: "Eat smarter", icon: "salad", emoji: "🥗" },
-  { key: "PlanesDeComida", title: "Planes de Comida", subtitle: "Nourish your week", icon: "clipboard", emoji: "📋" },
+  { key: "Música", titleKey: "music", icon: "music", emoji: "🎵" },
+  { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones", emoji: "🎧" },
+  { key: "Podcasts", titleKey: "podcasts", icon: "headphones", emoji: "🎙️" },
+  { key: "Yoga", titleKey: "yoga", icon: "dumbbell", emoji: "🧘" },
+  { key: "Pilates", titleKey: "pilates", icon: "dumbbell", emoji: "💪" },
+  { key: "Meditación", titleKey: "meditation", icon: "brain", emoji: "🧠" },
+  { key: "Calma", titleKey: "calm", icon: "wind", emoji: "🌿" },
+  { key: "Energía", titleKey: "energy", icon: "flame", emoji: "⚡" },
+  { key: "Ejercicios", titleKey: "exercises", icon: "dumbbell", emoji: "🏋️" },
+  { key: "Nutrición", titleKey: "nutrition", icon: "salad", emoji: "🥗" },
+  { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
 ];
 
 export function ExploreSectionCarousel({
@@ -194,7 +193,7 @@ export function ExploreSectionCarousel({
               device.isMobile ? "text-lg" : "text-xl"
             )}
           >
-            {section.title}
+            {t(`explore.sections.${section.titleKey}.title`)}
           </h2>
         </div>
         <Button
@@ -288,7 +287,7 @@ export function ExploreSectionCarousel({
 
                   {/* Coming soon note */}
                   <p className="text-[10px] text-muted-foreground/50 pt-0.5">
-                    Conexión directa próximamente.
+                    {t("explore.integrationComingSoon")}
                   </p>
                 </div>
               </div>
