@@ -10,6 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EventModal } from "@/components/EventModal";
+import { EventDetailModal } from "@/components/EventDetailModal";
 import { DaySummaryModal } from "@/components/DaySummaryModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [detailEvent, setDetailEvent] = useState<any>(null);
   const [newEventDate, setNewEventDate] = useState<Date | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [daySummaryOpen, setDaySummaryOpen] = useState(false);
@@ -247,11 +249,17 @@ const Calendar = () => {
     }
   };
 
+  // Show read-only detail for an event (not Capture)
+  const handleViewEvent = (event: any) => {
+    setDetailEvent(event);
+  };
+
+  // Open edit modal from detail view
   const handleEditEvent = (event: any) => {
     setSelectedEvent({
       ...event,
-      starts_at: parseISO(event.starts_at),
-      ends_at: parseISO(event.ends_at),
+      starts_at: new Date(event.starts_at),
+      ends_at: new Date(event.ends_at),
     });
     setEventModalOpen(true);
   };
@@ -382,7 +390,7 @@ const Calendar = () => {
                                 key={event.id}
                                 className={`${getCategoryColor(event.category)} border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity absolute left-1 right-1 z-10 overflow-hidden`}
                                 style={{ top: `${topPx}px`, height: `${heightPx}px` }}
-                                onClick={() => handleEditEvent(event)}
+                                onClick={() => handleViewEvent(event)}
                               >
                                 <div className="text-sm font-medium truncate">{event.title}</div>
                                 <div className="text-xs text-muted-foreground">
@@ -529,7 +537,7 @@ const Calendar = () => {
                                   className="border-l border-border p-0.5 cursor-pointer hover:bg-muted/30 transition-colors"
                                   onClick={() => {
                                     if (cellEvents.length > 0) {
-                                      handleEditEvent(cellEvents[0]);
+                                      handleViewEvent(cellEvents[0]);
                                     } else {
                                       const newDate = new Date(day);
                                       newDate.setHours(hour, 0, 0, 0);
@@ -543,7 +551,7 @@ const Calendar = () => {
                                       className={`${getCategoryColor(event.category)} rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer`}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleEditEvent(event);
+                                        handleViewEvent(event);
                                       }}
                                     >
                                       {event.title}
@@ -675,6 +683,15 @@ const Calendar = () => {
           event={selectedEvent}
           initialDate={newEventDate}
           onSave={(event) => saveEventMutation.mutateAsync(event)}
+          onDelete={(id) => deleteEventMutation.mutateAsync(id)}
+        />
+
+        {/* Event Detail Modal (read-only, Apple-style) */}
+        <EventDetailModal
+          open={!!detailEvent}
+          onOpenChange={(open) => { if (!open) setDetailEvent(null); }}
+          event={detailEvent}
+          onEdit={(ev) => handleEditEvent(ev)}
           onDelete={(id) => deleteEventMutation.mutateAsync(id)}
         />
 
