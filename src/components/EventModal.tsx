@@ -89,8 +89,14 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
     const ends_at = new Date(endDate);
     ends_at.setHours(endHour, endMinute, 0, 0);
 
-    if (ends_at < starts_at) {
+    if (ends_at <= starts_at) {
       toast.error(t('event.errors.endBeforeStart'));
+      return;
+    }
+
+    const durationMin = (ends_at.getTime() - starts_at.getTime()) / 60000;
+    if (durationMin < 15) {
+      toast.error(t('event.errors.minDuration', 'El evento debe durar al menos 15 minutos'));
       return;
     }
 

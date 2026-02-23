@@ -40,6 +40,7 @@ const Calendar = () => {
   const dateLocale = lang === 'es' ? es : enUS;
   
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const PIXELS_PER_MINUTE = 1; // 1px per minute → 60px per hour slot
   const daysShort = lang === 'es' 
     ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -347,85 +348,90 @@ const Calendar = () => {
                   <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
                   <div className="max-h-[60vh] overflow-y-auto">
-                    {hours.map((hour) => {
-                      const hourEvents = dayEvents.filter(e => {
-                        const eventHour = new Date(e.starts_at).getHours();
-                        return eventHour === hour;
-                      });
-                      
-                      const hourPhotos = dayPhotos.filter(p => {
-                        const photoHour = new Date(p.occurred_at).getHours();
-                        return photoHour === hour;
-                      });
-                      
-                      return (
-                        <div key={hour} className="flex border-b border-border">
-                          <div className="w-16 flex-shrink-0 p-2 text-xs text-muted-foreground text-right">
+                    {/* Hour grid with absolutely-positioned events */}
+                    <div className="flex">
+                      {/* Hour labels column */}
+                      <div className="w-16 flex-shrink-0">
+                        {hours.map((hour) => (
+                          <div key={hour} className="h-[60px] p-2 text-xs text-muted-foreground text-right border-b border-border">
                             {hour === 0 ? `12 ${t('time.am')}` : hour < 12 ? `${hour} ${t('time.am')}` : hour === 12 ? `12 ${t('time.pm')}` : `${hour - 12} ${t('time.pm')}`}
                           </div>
-                          <div className="flex-1 min-h-[60px] p-2 relative space-y-1">
-                            {/* Regular events */}
-                            {hourEvents.map((event) => {
-                              const start = new Date(event.starts_at);
-                              const end = new Date(event.ends_at);
-                              const duration = (end.getTime() - start.getTime()) / 1000 / 60;
-                              
-                              return (
-                                <div
-                                  key={event.id}
-                                  className={`${getCategoryColor(event.category)} border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity`}
-                                  style={{
-                                    minHeight: `${Math.max(duration, 30)}px`,
-                                  }}
-                                  onClick={() => handleEditEvent(event)}
-                                >
-                                  <div className="text-sm font-medium">{event.title}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {format(start, "HH:mm")} - {format(end, "HH:mm")}
-                                  </div>
+                        ))}
+                      </div>
+
+                      {/* Events column — relative container for absolute event blocks */}
+                      <div className="flex-1 relative" style={{ height: `${24 * 60 * PIXELS_PER_MINUTE}px` }}>
+                        {/* Hour grid lines */}
+                        {hours.map((hour) => (
+                          <div key={hour} className="absolute w-full border-b border-border" style={{ top: `${hour * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }} />
+                        ))}
+
+                        {/* Timed events — sorted by start, positioned absolutely */}
+                        {[...dayEvents]
+                          .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
+                          .map((event) => {
+                            const start = new Date(event.starts_at);
+                            const end = new Date(event.ends_at);
+                            const startMinutes = start.getHours() * 60 + start.getMinutes();
+                            const durationMin = Math.max(15, (end.getTime() - start.getTime()) / 60000);
+                            const topPx = startMinutes * PIXELS_PER_MINUTE;
+                            const heightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+
+                            return (
+                              <div
+                                key={event.id}
+                                className={`${getCategoryColor(event.category)} border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity absolute left-1 right-1 z-10 overflow-hidden`}
+                                style={{ top: `${topPx}px`, height: `${heightPx}px` }}
+                                onClick={() => handleEditEvent(event)}
+                              >
+                                <div className="text-sm font-medium truncate">{event.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(start, "h:mm a")} - {format(end, "h:mm a")}
                                 </div>
-                              );
-                            })}
-                            
-                            {/* Photo entries */}
-                            {hourPhotos.map((photo) => {
-                              const photoTime = new Date(photo.occurred_at);
-                              const context = getNearbyContext(photoTime);
-                              
-                              return (
-                                <div
-                                  key={photo.id}
-                                  className="category-photo border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start"
-                                  onClick={() => setSelectedPhoto(photo.photo_url)}
-                                >
-                                  <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
-                                    <img 
-                                      src={photo.photo_url} 
-                                      alt={t('calendar.capture')}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium flex items-center gap-1">
-                                      <Camera className="h-3 w-3" />
-                                      {t('calendar.instantCapture')}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {format(photoTime, "HH:mm")}
-                                      {context && (
-                                        <span className="ml-1 text-category-photo">
-                                          • {context.relation} {context.event.title}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
+                              </div>
+                            );
+                          })}
+
+                        {/* Captures — rendered inline at their hour position, NOT absolutely */}
+                        {dayPhotos.map((photo) => {
+                          const photoTime = new Date(photo.occurred_at);
+                          const photoMinutes = photoTime.getHours() * 60 + photoTime.getMinutes();
+                          const topPx = photoMinutes * PIXELS_PER_MINUTE;
+                          const context = getNearbyContext(photoTime);
+
+                          return (
+                            <div
+                              key={photo.id}
+                              className="category-photo border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start absolute left-1 right-1 z-20"
+                              style={{ top: `${topPx}px` }}
+                              onClick={() => setSelectedPhoto(photo.photo_url)}
+                            >
+                              <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
+                                <img
+                                  src={photo.photo_url}
+                                  alt={t('calendar.capture')}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium flex items-center gap-1">
+                                  <Camera className="h-3 w-3" />
+                                  {t('calendar.instantCapture')}
                                 </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                                <div className="text-xs text-muted-foreground">
+                                  {format(photoTime, "h:mm a")}
+                                  {context && (
+                                    <span className="ml-1 text-category-photo">
+                                      • {context.relation} {context.event.title}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
