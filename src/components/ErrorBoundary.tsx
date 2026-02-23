@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import i18n from "@/i18n";
 
 interface Props {
   children: ReactNode;
@@ -61,17 +62,17 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
-              <CardTitle className="text-xl">Algo salió mal</CardTitle>
+              <CardTitle className="text-xl">{i18n.t('errors.generic')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                Ha ocurrido un error inesperado. Por favor intenta recargar la página.
+                {i18n.t('errors.generic')}
               </p>
 
               {import.meta.env.DEV && this.state.error && (
                 <details className="text-xs bg-muted p-3 rounded-md">
                   <summary className="cursor-pointer font-medium mb-2">
-                    Detalles del error (solo desarrollo)
+                    Error details (dev only)
                   </summary>
                   <pre className="whitespace-pre-wrap break-words overflow-x-auto">
                     {this.state.error.message}
@@ -83,11 +84,11 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="flex flex-col gap-2">
                 <Button onClick={this.handleReset} className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Reintentar
+                  {i18n.t('common.retry')}
                 </Button>
                 <Button variant="outline" onClick={this.handleGoHome} className="w-full">
                   <Home className="h-4 w-4 mr-2" />
-                  Ir al inicio
+                  {i18n.t('common.goBack')}
                 </Button>
               </div>
             </CardContent>

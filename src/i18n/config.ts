@@ -41,7 +41,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    fallbackLng: false, // Never fall back to another language — prevents mixing
     supportedLngs: ['en', 'es'],
     
     // Language detection options
@@ -54,6 +54,11 @@ i18n
       lookupLocalStorage: 'vyv-language',
     },
     
+    // If a key is missing, return the key itself (not another language)
+    returnNull: false,
+    returnEmptyString: false,
+    parseMissingKeyHandler: (key: string) => key,
+    
     interpolation: {
       escapeValue: false, // React already escapes
     },
@@ -64,10 +69,16 @@ i18n
     },
   });
 
-// Apply saved language if exists, otherwise use detected
+// Apply saved language if exists, otherwise detect and normalize to supported
 const savedLang = getSavedLanguage();
 if (savedLang && ['en', 'es'].includes(savedLang)) {
   i18n.changeLanguage(savedLang);
+} else {
+  // Normalize detected language to supported ones
+  const detected = i18n.language || navigator.language || 'en';
+  const normalized = detected.startsWith('es') ? 'es' : 'en';
+  i18n.changeLanguage(normalized);
+  saveLanguage(normalized);
 }
 
 // Update document direction when language changes

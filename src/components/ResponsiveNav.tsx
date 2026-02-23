@@ -3,6 +3,7 @@ import { BottomNav } from "./BottomNav";
 import { Home, Compass, Calendar, User, Plus } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ResponsiveNavProps {
   onCreatePost?: () => void;
@@ -15,12 +16,13 @@ export function ResponsiveNav({ onCreatePost }: ResponsiveNavProps) {
 
 function SideNav({ onCreatePost }: { onCreatePost?: () => void }) {
   const location = useLocation();
+  const { t } = useTranslation();
   
   const navItems = [
-    { path: "/", icon: Home, label: "Feed" },
-    { path: "/explore", icon: Compass, label: "Explore" },
-    { path: "/calendar", icon: Calendar, label: "Calendario" },
-    { path: "/profile", icon: User, label: "Perfil" },
+    { path: "/", icon: Home, label: t('nav.feed') },
+    { path: "/explore", icon: Compass, label: t('nav.explore') },
+    { path: "/calendar", icon: Calendar, label: t('nav.calendar') },
+    { path: "/profile", icon: User, label: t('nav.profile') },
   ];
 
   return (

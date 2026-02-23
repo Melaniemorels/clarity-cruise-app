@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tansta
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export interface Post {
   id: string;
@@ -187,7 +188,7 @@ export function usePostLike() {
       return { postId, previousLiked: hasLiked };
     },
     onError: (_error, _variables, context) => {
-      toast.error("Error al dar like");
+      toast.error(i18n.t('post.errors.likeError'));
       // Rollback happens automatically via invalidation
     },
     onSettled: () => {
@@ -211,7 +212,7 @@ export function useCreatePost() {
       caption?: string;
       activityTag?: string;
     }) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       // Upload image
       const fileExt = imageFile.name.split(".").pop();
@@ -225,7 +226,7 @@ export function useCreatePost() {
         });
 
       if (uploadError) {
-        throw new Error(`Error al subir imagen: ${uploadError.message}`);
+        throw new Error(i18n.t('post.errors.captureFirst') + `: ${uploadError.message}`);
       }
 
       const {
@@ -243,17 +244,17 @@ export function useCreatePost() {
       if (insertError) {
         // Cleanup uploaded image
         await supabase.storage.from("images").remove([fileName]);
-        throw new Error(`Error al crear post: ${insertError.message}`);
+        throw new Error(i18n.t('post.errors.updateError') + `: ${insertError.message}`);
       }
 
       return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success("Publicado");
+      toast.success(i18n.t('post.published'));
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "Error al crear post";
+      const message = error instanceof Error ? error.message : i18n.t('post.errors.updateError');
       toast.error(message);
     },
   });
@@ -266,7 +267,7 @@ export function useDeletePost() {
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("posts")
@@ -278,10 +279,10 @@ export function useDeletePost() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success("Post eliminado");
+      toast.success(i18n.t('post.postDeleted'));
     },
     onError: () => {
-      toast.error("Error al eliminar el post");
+      toast.error(i18n.t('post.errors.deleteError'));
     },
   });
 }
@@ -301,7 +302,7 @@ export function useUpdatePost() {
       caption?: string;
       activityTag?: string;
     }) => {
-      if (!user) throw new Error("Usuario no autenticado");
+      if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
       const { error } = await supabase
         .from("posts")
@@ -316,10 +317,10 @@ export function useUpdatePost() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast.success("Post actualizado");
+      toast.success(i18n.t('post.postUpdated'));
     },
     onError: () => {
-      toast.error("Error al actualizar el post");
+      toast.error(i18n.t('post.errors.updateError'));
     },
   });
 }

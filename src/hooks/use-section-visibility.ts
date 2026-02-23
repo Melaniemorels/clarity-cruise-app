@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export type SectionVisibility = "public" | "private";
 
@@ -93,7 +94,7 @@ export function useSectionVisibility() {
         console.error("Error updating section visibility:", error);
         // Revert on error
         setSettings(previousSettings);
-        toast.error("Failed to update visibility setting");
+        toast.error(i18n.t('errors.generic'));
         return false;
       }
     },
