@@ -101,6 +101,19 @@
       "nutrition": "Nutrition",
       "mealPlans": "Meal Plans"
     },
+    "sections": {
+      "music": { "title": "Music", "subtitle": "Focus & ambiance" },
+      "audiobooks": { "title": "Audiobooks", "subtitle": "Knowledge on demand" },
+      "podcasts": { "title": "Podcasts", "subtitle": "Growth & clarity" },
+      "yoga": { "title": "Yoga", "subtitle": "Flexibility & balance" },
+      "pilates": { "title": "Pilates", "subtitle": "Core & posture" },
+      "meditation": { "title": "Meditation", "subtitle": "Stillness & clarity" },
+      "calm": { "title": "Calm", "subtitle": "Rest & recovery" },
+      "energy": { "title": "Energy", "subtitle": "Movement & vitality" },
+      "exercises": { "title": "Exercises", "subtitle": "Office, outdoor & stretching" },
+      "nutrition": { "title": "Nutrition", "subtitle": "Eat smarter" },
+      "mealPlans": { "title": "Meal Plans", "subtitle": "Nourish your week" }
+    },
     "items": {
       "natureSounds": "Nature Sounds",
       "meditationMusic": "Meditation Music",

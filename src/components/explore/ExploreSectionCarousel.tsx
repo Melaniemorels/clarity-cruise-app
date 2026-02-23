@@ -14,70 +14,65 @@ import { useInView } from "react-intersection-observer";
 
 export interface SectionConfig {
   key: string;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   icon: string;
   emoji: string;
 }
 
-// Gradient palettes per section for the old-money colored cards
+// Gradient palettes per section
 const SECTION_GRADIENTS: Record<string, string[]> = {
-  Música: [
+  music: [
     "from-purple-900/60 to-pink-900/40",
     "from-emerald-900/50 to-teal-900/40",
     "from-indigo-900/50 to-purple-900/40",
   ],
-  Audiolibros: [
+  audiobooks: [
     "from-amber-900/50 to-yellow-900/40",
     "from-teal-900/50 to-emerald-900/40",
     "from-cyan-900/50 to-teal-900/40",
   ],
-  Yoga: [
+  yoga: [
     "from-teal-900/50 to-emerald-900/40",
     "from-purple-900/50 to-indigo-900/40",
     "from-amber-900/50 to-orange-900/40",
   ],
-  Pilates: [
+  pilates: [
     "from-rose-900/50 to-pink-900/40",
     "from-sky-900/50 to-blue-900/40",
     "from-violet-900/50 to-purple-900/40",
   ],
-  Meditación: [
+  meditation: [
     "from-indigo-900/50 to-blue-900/40",
     "from-teal-900/50 to-cyan-900/40",
     "from-purple-900/50 to-violet-900/40",
   ],
-  Calma: [
+  calm: [
     "from-sky-900/50 to-blue-900/40",
     "from-emerald-900/50 to-teal-900/40",
     "from-indigo-900/50 to-purple-900/40",
   ],
-  Energía: [
+  energy: [
     "from-orange-900/50 to-amber-900/40",
     "from-red-900/50 to-rose-900/40",
     "from-yellow-900/50 to-amber-900/40",
   ],
-  Ejercicios: [
+  exercises: [
     "from-sky-900/50 to-indigo-900/40",
     "from-emerald-900/50 to-teal-900/40",
     "from-amber-900/50 to-orange-900/40",
   ],
-  Podcasts: [
+  podcasts: [
     "from-violet-900/50 to-purple-900/40",
     "from-rose-900/50 to-pink-900/40",
     "from-slate-800/50 to-zinc-900/40",
   ],
-  Nutrición: [
+  nutrition: [
     "from-green-900/50 to-emerald-900/40",
     "from-amber-900/50 to-yellow-900/40",
     "from-rose-900/40 to-purple-900/40",
   ],
-  PlanesDeComida: [
-    "from-teal-900/50 to-green-900/40",
-    "from-amber-900/50 to-orange-900/40",
-    "from-indigo-900/50 to-violet-900/40",
-  ],
-  MealPreps: [
+  mealPlans: [
     "from-teal-900/50 to-green-900/40",
     "from-amber-900/50 to-orange-900/40",
     "from-indigo-900/50 to-violet-900/40",
@@ -85,33 +80,53 @@ const SECTION_GRADIENTS: Record<string, string[]> = {
 };
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
-  Música: Music,
-  Audiolibros: Headphones,
-  Yoga: Dumbbell,
-  Pilates: Dumbbell,
-  Meditación: Brain,
-  Calma: Wind,
-  Energía: Flame,
-  Ejercicios: Dumbbell,
-  Podcasts: Headphones,
-  Nutrición: Salad,
-  PlanesDeComida: ClipboardList,
-  MealPreps: ClipboardList,
+  music: Music,
+  audiobooks: Headphones,
+  yoga: Dumbbell,
+  pilates: Dumbbell,
+  meditation: Brain,
+  calm: Wind,
+  energy: Flame,
+  exercises: Dumbbell,
+  podcasts: Headphones,
+  nutrition: Salad,
+  mealPlans: ClipboardList,
 };
 
 export const EXPLORE_SECTIONS: SectionConfig[] = [
-  { key: "Música", title: "Música", subtitle: "Focus & ambiance", icon: "music", emoji: "🎵" },
-  { key: "Audiolibros", title: "Audiolibros", subtitle: "Knowledge on demand", icon: "headphones", emoji: "🎧" },
-  { key: "Podcasts", title: "Podcasts", subtitle: "Growth & clarity", icon: "headphones", emoji: "🎙️" },
-  { key: "Yoga", title: "Yoga", subtitle: "Flexibility & balance", icon: "dumbbell", emoji: "🧘" },
-  { key: "Pilates", title: "Pilates", subtitle: "Core & posture", icon: "dumbbell", emoji: "💪" },
-  { key: "Meditación", title: "Meditación", subtitle: "Stillness & clarity", icon: "brain", emoji: "🧠" },
-  { key: "Calma", title: "Calma", subtitle: "Rest & recovery", icon: "wind", emoji: "🌿" },
-  { key: "Energía", title: "Energía", subtitle: "Movement & vitality", icon: "flame", emoji: "⚡" },
-  { key: "Ejercicios", title: "Ejercicios", subtitle: "Office, outdoor & stretching", icon: "dumbbell", emoji: "🏋️" },
-  { key: "Nutrición", title: "Nutrición", subtitle: "Eat smarter", icon: "salad", emoji: "🥗" },
-  { key: "PlanesDeComida", title: "Planes de Comida", subtitle: "Nourish your week", icon: "clipboard", emoji: "📋" },
+  { key: "music", titleKey: "explore.sections.music.title", subtitleKey: "explore.sections.music.subtitle", icon: "music", emoji: "🎵" },
+  { key: "audiobooks", titleKey: "explore.sections.audiobooks.title", subtitleKey: "explore.sections.audiobooks.subtitle", icon: "headphones", emoji: "🎧" },
+  { key: "podcasts", titleKey: "explore.sections.podcasts.title", subtitleKey: "explore.sections.podcasts.subtitle", icon: "headphones", emoji: "🎙️" },
+  { key: "yoga", titleKey: "explore.sections.yoga.title", subtitleKey: "explore.sections.yoga.subtitle", icon: "dumbbell", emoji: "🧘" },
+  { key: "pilates", titleKey: "explore.sections.pilates.title", subtitleKey: "explore.sections.pilates.subtitle", icon: "dumbbell", emoji: "💪" },
+  { key: "meditation", titleKey: "explore.sections.meditation.title", subtitleKey: "explore.sections.meditation.subtitle", icon: "brain", emoji: "🧠" },
+  { key: "calm", titleKey: "explore.sections.calm.title", subtitleKey: "explore.sections.calm.subtitle", icon: "wind", emoji: "🌿" },
+  { key: "energy", titleKey: "explore.sections.energy.title", subtitleKey: "explore.sections.energy.subtitle", icon: "flame", emoji: "⚡" },
+  { key: "exercises", titleKey: "explore.sections.exercises.title", subtitleKey: "explore.sections.exercises.subtitle", icon: "dumbbell", emoji: "🏋️" },
+  { key: "nutrition", titleKey: "explore.sections.nutrition.title", subtitleKey: "explore.sections.nutrition.subtitle", icon: "salad", emoji: "🥗" },
+  { key: "mealPlans", titleKey: "explore.sections.mealPlans.title", subtitleKey: "explore.sections.mealPlans.subtitle", icon: "clipboard", emoji: "📋" },
 ];
+
+// Map from old DB category names (Spanish) to new section keys for backward compatibility
+const CATEGORY_KEY_MAP: Record<string, string> = {
+  "Música": "music",
+  "Audiolibros": "audiobooks",
+  "Podcasts": "podcasts",
+  "Yoga": "yoga",
+  "Pilates": "pilates",
+  "Meditación": "meditation",
+  "Calma": "calm",
+  "Energía": "energy",
+  "Ejercicios": "exercises",
+  "Nutrición": "nutrition",
+  "PlanesDeComida": "mealPlans",
+  "MealPreps": "mealPlans",
+};
+
+/** Resolve a category (which may be a Spanish DB name or an English key) to the stable section key */
+export function resolveSectionKey(category: string): string {
+  return CATEGORY_KEY_MAP[category] ?? category;
+}
 
 export function ExploreSectionCarousel({
   section,
@@ -184,7 +199,7 @@ export function ExploreSectionCarousel({
 
   return (
     <div ref={sectionRef} className="space-y-4">
-      {/* Section header with emoji — old money */}
+      {/* Section header with emoji */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span className="text-xl">{section.emoji}</span>
@@ -194,7 +209,7 @@ export function ExploreSectionCarousel({
               device.isMobile ? "text-lg" : "text-xl"
             )}
           >
-            {section.title}
+            {t(section.titleKey)}
           </h2>
         </div>
         <Button
@@ -288,7 +303,7 @@ export function ExploreSectionCarousel({
 
                   {/* Coming soon note */}
                   <p className="text-[10px] text-muted-foreground/50 pt-0.5">
-                    Conexión directa próximamente.
+                    {t("explore.integrationComingSoon")}
                   </p>
                 </div>
               </div>
