@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl } = await req.json();
+    const { imageUrl, language = "es" } = await req.json();
+    const lang = language === "en" ? "en" : "es";
     
     if (!imageUrl) {
       return new Response(
@@ -36,8 +37,17 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Eres un asistente que analiza imágenes y las categoriza en español. 
-            
+            content: lang === "en"
+              ? `You are an assistant that analyzes images and categorizes them in English.
+
+You must respond with a JSON with these fields:
+- emoji: an emoji representing the activity (🍽️ for food, 🏃 for sports, 💻 for work, 🧘 for yoga/meditation, 📚 for study, 🎮 for leisure/games, 🌳 for nature/walk, 👶 for baby/family, 🛒 for shopping, 🎉 for celebration, 📸 for general photo)
+- label: a short 2-4 word description of the activity (e.g. "Healthy lunch", "Yoga session", "Office work", "Park walk")
+- category: the general category (food, sports, work, rest, leisure, nature, family, shopping, social, other)
+
+Respond ONLY with the JSON, no additional explanations.`
+              : `Eres un asistente que analiza imágenes y las categoriza en español.
+
 Debes responder con un JSON con estos campos:
 - emoji: un emoji que represente la actividad (🍽️ para comida, 🏃 para deporte, 💻 para trabajo, 🧘 para yoga/meditación, 📚 para estudio, 🎮 para ocio/juegos, 🌳 para naturaleza/paseo, 👶 para bebé/familia, 🛒 para compras, 🎉 para celebración, 📸 para foto general)
 - label: una descripción corta de 2-4 palabras de la actividad (ej: "Almuerzo saludable", "Sesión de yoga", "Trabajo en oficina", "Paseo en parque")
@@ -50,7 +60,7 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`
             content: [
               {
                 type: "text",
-                text: "Analiza esta imagen y categorízala:"
+                text: lang === "en" ? "Analyze this image and categorize it:" : "Analiza esta imagen y categorízala:"
               },
               {
                 type: "image_url",
@@ -100,8 +110,8 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`
       // Fallback to generic response
       result = {
         emoji: "📸",
-        label: "Captura del momento",
-        category: "otro"
+        label: lang === "en" ? "Moment capture" : "Captura del momento",
+        category: lang === "en" ? "other" : "otro"
       };
     }
 
@@ -117,8 +127,8 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`
         error: error instanceof Error ? error.message : "Unknown error",
         // Fallback values so the app doesn't break
         emoji: "📸",
-        label: "Captura instantánea",
-        category: "otro"
+        label: lang === "en" ? "Quick capture" : "Captura instantánea",
+        category: lang === "en" ? "other" : "otro"
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
