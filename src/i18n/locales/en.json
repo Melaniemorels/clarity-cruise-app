@@ -206,7 +206,15 @@
     "waitingApproval": "Waiting for user approval",
     "followToSee": "Follow this user to see their content",
     "contentNotAvailable": "This content is not available",
-    "requestSentInfo": "Your request has been sent. You'll be notified when it's accepted."
+    "requestSentInfo": "Your request has been sent. You'll be notified when it's accepted.",
+    "screenTime": "Screen Time",
+    "noActivityToday": "No activity recorded today",
+    "modules": {
+      "feed": "Feed",
+      "explore": "Explore",
+      "calendar": "Calendar",
+      "profile": "Profile"
+    }
   },
   "settings": {
     "title": "Settings",
