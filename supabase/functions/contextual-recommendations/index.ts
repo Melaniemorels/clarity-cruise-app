@@ -218,14 +218,12 @@ Generate relevant recommendations.`;
         .filter(i => topCategories.some(c => c.category === i.category))
         .slice(0, 6);
 
-      const fallbackReason = lang === "es" ? "Basado en tu navegación reciente" : "Based on your recent browsing";
-
       return new Response(JSON.stringify({
         recommendations: {
           home: fallbackItems.slice(0, 3).map(i => ({
             title: i.title,
             category: i.category,
-            reason: fallbackReason,
+            reason: "Based on your recent browsing",
             duration_min: i.duration_min,
             url: i.url,
             item_id: i.id,
@@ -233,7 +231,7 @@ Generate relevant recommendations.`;
           explorer: fallbackItems.map(i => ({
             title: i.title,
             category: i.category,
-            reason: fallbackReason,
+            reason: "Based on your recent browsing",
             duration_min: i.duration_min,
             url: i.url,
             item_id: i.id,

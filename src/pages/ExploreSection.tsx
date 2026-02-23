@@ -31,16 +31,16 @@ function useDebouncedValue(value: string, delay = 250): string {
   return debounced;
 }
 
-// Elevate static items — use translation keys
+// Elevate static items — same data as ElevateSection
 const ELEVATE_ITEMS = [
-  { titleKey: "elevate.items.deepWork", duration: "12 min", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
-  { titleKey: "elevate.items.weekStructure", duration: "8 min", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
-  { titleKey: "elevate.items.digitalDistraction", duration: "15 min", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
-  { titleKey: "elevate.items.idealMorning", duration: "10 min", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
-  { titleKey: "elevate.items.energyManagement", duration: "7 min", url: "https://www.youtube.com/watch?v=jDGMuwBuC9o" },
-  { titleKey: "elevate.items.mentalClarity", duration: "5 min", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
-  { titleKey: "elevate.items.focusPsychology", duration: "25 min", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
-  { titleKey: "elevate.items.travelProductivity", duration: "6 min", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
+  { title: "Deep Work", duration: "12 min", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
+  { title: "Week Structure", duration: "8 min", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
+  { title: "Digital Distraction", duration: "15 min", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
+  { title: "Ideal Morning", duration: "10 min", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
+  { title: "Energy Management", duration: "7 min", url: "https://www.youtube.com/watch?v=jDGMuwBuC9o" },
+  { title: "Mental Clarity", duration: "5 min", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
+  { title: "Focus Psychology", duration: "25 min", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
+  { title: "Travel Productivity", duration: "6 min", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
 ];
 
 const GOAL_FILTERS: { value: RecommendationGoal; labelKey: string }[] = [
@@ -86,7 +86,7 @@ export default function ExploreSection() {
     ? t("mediaConnections.aiRecommendations")
     : isElevate
       ? t("elevate.title")
-      : sectionConfig ? t(sectionConfig.titleKey) : sectionKey;
+      : sectionConfig?.title ?? sectionKey;
 
   const handleOpenItem = (item: { url?: string | null; provider?: string; title?: string }) => {
     openContent(item, t);
@@ -304,7 +304,7 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
 function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_ITEMS; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
   const filtered = items.filter((item) =>
-    matchesSearch(searchQuery, t(item.titleKey), item.duration, detectProvider(item.url))
+    matchesSearch(searchQuery, item.title, item.duration, detectProvider(item.url))
   );
 
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
@@ -315,7 +315,7 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_
     return (
       <div key={`sug-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => onOpen(item)}>
         <div className="p-4 space-y-2">
-          <h3 className="font-semibold text-foreground text-sm">{t(item.titleKey)}</h3>
+          <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
             <span className="text-[11px] text-muted-foreground">{item.duration}</span>
@@ -339,7 +339,7 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_
               onClick={() => onOpen(item)}
             >
               <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-foreground text-sm">{t(item.titleKey)}</h3>
+                <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
                     {t(PROVIDER_LABEL_KEYS[provider])}

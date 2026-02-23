@@ -101,19 +101,6 @@
       "nutrition": "Nutrición",
       "mealPlans": "Planes de Comida"
     },
-    "sections": {
-      "music": { "title": "Música", "subtitle": "Enfoque y ambiente" },
-      "audiobooks": { "title": "Audiolibros", "subtitle": "Conocimiento a la carta" },
-      "podcasts": { "title": "Podcasts", "subtitle": "Crecimiento y claridad" },
-      "yoga": { "title": "Yoga", "subtitle": "Flexibilidad y balance" },
-      "pilates": { "title": "Pilates", "subtitle": "Core y postura" },
-      "meditation": { "title": "Meditación", "subtitle": "Quietud y claridad" },
-      "calm": { "title": "Calma", "subtitle": "Descanso y recuperación" },
-      "energy": { "title": "Energía", "subtitle": "Movimiento y vitalidad" },
-      "exercises": { "title": "Ejercicios", "subtitle": "Oficina, aire libre y estiramientos" },
-      "nutrition": { "title": "Nutrición", "subtitle": "Come más inteligente" },
-      "mealPlans": { "title": "Planes de Comida", "subtitle": "Nutre tu semana" }
-    },
     "items": {
       "natureSounds": "Sonidos de la Naturaleza",
       "meditationMusic": "Música de Meditación",

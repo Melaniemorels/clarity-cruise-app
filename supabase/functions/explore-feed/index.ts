@@ -166,27 +166,9 @@ Deno.serve(async (req) => {
     const events = eventsRes.data ?? [];
     const allItems: ExploreItem[] = (itemsRes.data ?? []) as ExploreItem[];
 
-    // Map normalized section keys to DB category names (which may be in Spanish)
-    const CATEGORY_ALIASES: Record<string, string[]> = {
-      music: ["music", "Música"],
-      audiobooks: ["audiobooks", "Audiolibros"],
-      podcasts: ["podcasts", "Podcasts"],
-      yoga: ["yoga", "Yoga"],
-      pilates: ["pilates", "Pilates"],
-      meditation: ["meditation", "Meditación"],
-      calm: ["calm", "Calma"],
-      energy: ["energy", "Energía"],
-      exercises: ["exercises", "Ejercicios"],
-      nutrition: ["nutrition", "Nutrición"],
-      mealPlans: ["mealPlans", "PlanesDeComida", "MealPreps"],
-    };
-
     // Filter by category if specified
     let pool = category
-      ? allItems.filter((i) => {
-          const aliases = CATEGORY_ALIASES[category] ?? [category];
-          return aliases.includes(i.category);
-        })
+      ? allItems.filter((i) => i.category === category)
       : allItems;
 
     // Build seen set & interaction signals
