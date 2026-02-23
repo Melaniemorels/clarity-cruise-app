@@ -80,14 +80,31 @@ export const EventModal = ({ open, onOpenChange, event, initialDate, onSave, onD
       return;
     }
 
+    // Validate time format (HH:mm)
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      toast.error(t('event.errors.invalidTime', 'Por favor ingresa horarios válidos'));
+      return;
+    }
+
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    if (isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+      toast.error(t('event.errors.invalidTime', 'Por favor ingresa horarios válidos'));
+      return;
+    }
 
     const starts_at = new Date(startDate);
     starts_at.setHours(startHour, startMinute, 0, 0);
 
     const ends_at = new Date(endDate);
     ends_at.setHours(endHour, endMinute, 0, 0);
+
+    if (isNaN(starts_at.getTime()) || isNaN(ends_at.getTime())) {
+      toast.error(t('event.errors.invalidTime', 'Por favor ingresa horarios válidos'));
+      return;
+    }
 
     if (ends_at <= starts_at) {
       toast.error(t('event.errors.endBeforeStart'));
