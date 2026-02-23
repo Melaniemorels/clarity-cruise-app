@@ -521,47 +521,84 @@ const Calendar = () => {
                       </div>
                       
                       <div className="max-h-[50vh] overflow-y-auto">
-                        {Array.from({ length: 16 }, (_, i) => i + 6).map((hour) => (
-                          <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[50px]">
-                            <div className="p-2 text-xs text-muted-foreground text-right">
-                              {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
-                            </div>
-                            {weekDays.map((day, i) => {
-                              const cellEvents = events.filter(e => {
-                                const eDate = parseISO(e.starts_at);
-                                return isSameDay(eDate, day) && eDate.getHours() === hour;
-                              });
-                              return (
-                                <div
-                                  key={i}
-                                  className="border-l border-border p-0.5 cursor-pointer hover:bg-muted/30 transition-colors"
-                                  onClick={() => {
-                                    if (cellEvents.length > 0) {
-                                      handleViewEvent(cellEvents[0]);
-                                    } else {
-                                      const newDate = new Date(day);
-                                      newDate.setHours(hour, 0, 0, 0);
-                                      handleNewEvent(newDate);
-                                    }
-                                  }}
-                                >
-                                  {cellEvents.map((event) => (
+                        <div className="grid grid-cols-8">
+                          {/* Hour labels column */}
+                          <div className="relative" style={{ height: `${16 * 60 * PIXELS_PER_MINUTE}px` }}>
+                            {Array.from({ length: 16 }, (_, i) => i + 6).map((hour) => (
+                              <div
+                                key={hour}
+                                className="absolute w-full p-1 text-xs text-muted-foreground text-right border-b border-border"
+                                style={{ top: `${(hour - 6) * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }}
+                              >
+                                {hour === 12 ? `12 ${t('time.pm')}` : hour > 12 ? `${hour - 12} ${t('time.pm')}` : `${hour} ${t('time.am')}`}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Day columns with absolute event positioning */}
+                          {weekDays.map((day, i) => {
+                            const dayEvts = [...getEventsForDate(day)]
+                              .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+
+                            return (
+                              <div
+                                key={i}
+                                className="border-l border-border relative"
+                                style={{ height: `${16 * 60 * PIXELS_PER_MINUTE}px` }}
+                                onClick={(e) => {
+                                  // Calculate hour from click position
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const y = e.clientY - rect.top;
+                                  const clickMinute = Math.floor(y / PIXELS_PER_MINUTE) + 6 * 60;
+                                  const clickHour = Math.floor(clickMinute / 60);
+                                  const clickMin = clickMinute % 60;
+                                  const newDate = new Date(day);
+                                  newDate.setHours(clickHour, clickMin, 0, 0);
+                                  handleNewEvent(newDate);
+                                }}
+                              >
+                                {/* Grid lines */}
+                                {Array.from({ length: 16 }, (_, h) => (
+                                  <div
+                                    key={h}
+                                    className="absolute w-full border-b border-border"
+                                    style={{ top: `${h * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }}
+                                  />
+                                ))}
+
+                                {/* Events positioned by minute */}
+                                {dayEvts.map((event) => {
+                                  const start = new Date(event.starts_at);
+                                  const end = new Date(event.ends_at);
+                                  const startMinutes = start.getHours() * 60 + start.getMinutes();
+                                  const endMinutes = end.getHours() * 60 + end.getMinutes();
+                                  const durationMin = Math.max(15, endMinutes - startMinutes);
+                                  // Offset from grid start (6:00 AM = 360 min)
+                                  const dayStartMinutes = 6 * 60;
+                                  const topPx = Math.max(0, (startMinutes - dayStartMinutes) * PIXELS_PER_MINUTE);
+                                  const heightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+
+                                  return (
                                     <div
                                       key={event.id}
-                                      className={`${getCategoryColor(event.category)} rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer`}
+                                      className={`${getCategoryColor(event.category)} rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer absolute left-0.5 right-0.5 z-10 overflow-hidden hover:opacity-80 transition-opacity`}
+                                      style={{ top: `${topPx}px`, height: `${heightPx}px` }}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleViewEvent(event);
                                       }}
                                     >
-                                      {event.title}
+                                      <div className="font-medium truncate">{event.title}</div>
+                                      <div className="text-muted-foreground">
+                                        {format(start, "h:mm a")}
+                                      </div>
                                     </div>
-                                  ))}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </>
                   );
