@@ -66,7 +66,7 @@ interface QuickCameraProps {
 }
 
 export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCameraProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = onOpenChange || setInternalOpen;
@@ -166,7 +166,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
           "Content-Type": "application/json",
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl, language: i18n.language?.split("-")[0] || "es" }),
       });
 
       if (!response.ok) {
