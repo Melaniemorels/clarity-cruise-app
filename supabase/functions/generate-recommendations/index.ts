@@ -253,11 +253,11 @@ serve(async (req) => {
       recommendations = [
         {
           type: "ambient",
-          title: "Focus Sounds",
-          description: "Gentle ambient sounds to help you concentrate",
-          duration: "Continuous",
+          title: language === "es" ? "Sonidos de enfoque" : "Focus Sounds",
+          description: language === "es" ? "Sonidos ambientales suaves para ayudarte a concentrarte" : "Gentle ambient sounds to help you concentrate",
+          duration: language === "es" ? "Continuo" : "Continuous",
           mood: "focused",
-          tags: ["ambient", "focus", "productivity"],
+          tags: language === "es" ? ["ambiental", "enfoque", "productividad"] : ["ambient", "focus", "productivity"],
         },
       ];
     }
