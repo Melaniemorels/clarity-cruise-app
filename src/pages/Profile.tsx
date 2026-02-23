@@ -77,7 +77,7 @@ const Profile = () => {
     { key: 'steps', label: t('calendar.steps'), value: health.steps.value, goal: health.steps.goal, unit: '', tappable: false, format: 'number' as const },
     { key: 'workout', label: `${t('calendar.workout')} (${t('calendar.minShort')})`, value: workoutValue, goal: health.workout.goal, unit: '', tappable: true, format: 'number' as const },
     { key: 'sleep', label: `${t('devices.dataTypes.sleep')} (h)`, value: sleepH, goal: sleepGoalH, unit: 'h', tappable: false, format: 'decimal' as const },
-    { key: 'screenTime', label: 'Screen Time', value: screenTimeMinutes, goal: 0, unit: t('calendar.minShort'), tappable: true, format: 'number' as const },
+    { key: 'screenTime', label: t('profile.screenTime'), value: screenTimeMinutes, goal: 0, unit: t('calendar.minShort'), tappable: true, format: 'number' as const },
   ];
 
   // Calculate activity based on real entries for each day

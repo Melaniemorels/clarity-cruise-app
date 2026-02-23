@@ -16,10 +16,10 @@ interface ScreenTimeModalProps {
 }
 
 const MODULE_CONFIG: Record<string, { icon: typeof Rss; labelKey: string; colorClass: string }> = {
-  FEED: { icon: Rss, labelKey: "bottomNav.feed", colorClass: "bg-primary" },
-  EXPLORE: { icon: Compass, labelKey: "bottomNav.explore", colorClass: "bg-accent" },
-  CALENDAR: { icon: CalendarDays, labelKey: "bottomNav.calendar", colorClass: "bg-secondary" },
-  PROFILE: { icon: User, labelKey: "bottomNav.profile", colorClass: "bg-muted-foreground" },
+  FEED: { icon: Rss, labelKey: "profile.modules.feed", colorClass: "bg-primary" },
+  EXPLORE: { icon: Compass, labelKey: "profile.modules.explore", colorClass: "bg-accent" },
+  CALENDAR: { icon: CalendarDays, labelKey: "profile.modules.calendar", colorClass: "bg-secondary" },
+  PROFILE: { icon: User, labelKey: "profile.modules.profile", colorClass: "bg-muted-foreground" },
 };
 
 function formatDuration(seconds: number): string {
@@ -42,7 +42,7 @@ export const ScreenTimeModal = ({ open, onOpenChange, moduleUsage, totalSeconds 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Screen Time
+            {t("profile.screenTime")}
           </DialogTitle>
         </DialogHeader>
 
@@ -84,7 +84,7 @@ export const ScreenTimeModal = ({ open, onOpenChange, moduleUsage, totalSeconds 
             })
           ) : (
             <p className="text-center text-sm text-muted-foreground py-4">
-              Sin actividad registrada hoy
+              {t("profile.noActivityToday")}
             </p>
           )}
         </div>

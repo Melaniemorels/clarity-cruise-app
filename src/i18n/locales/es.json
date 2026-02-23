@@ -206,7 +206,15 @@
     "waitingApproval": "Esperando aprobación del usuario",
     "followToSee": "Sigue a este usuario para ver su contenido",
     "contentNotAvailable": "Este contenido no está disponible",
-    "requestSentInfo": "Tu solicitud ha sido enviada. Recibirás una notificación cuando sea aceptada."
+    "requestSentInfo": "Tu solicitud ha sido enviada. Recibirás una notificación cuando sea aceptada.",
+    "screenTime": "Tiempo de Pantalla",
+    "noActivityToday": "Sin actividad registrada hoy",
+    "modules": {
+      "feed": "Feed",
+      "explore": "Explorar",
+      "calendar": "Calendario",
+      "profile": "Perfil"
+    }
   },
   "settings": {
     "title": "Configuración",
