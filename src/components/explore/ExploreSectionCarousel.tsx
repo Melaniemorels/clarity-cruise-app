@@ -193,7 +193,7 @@ export function ExploreSectionCarousel({
               device.isMobile ? "text-lg" : "text-xl"
             )}
           >
-            {t(`explore.sections.${section.titleKey}.title`)}
+            {t(`explore.categories.${section.titleKey}`)}
           </h2>
         </div>
         <Button
