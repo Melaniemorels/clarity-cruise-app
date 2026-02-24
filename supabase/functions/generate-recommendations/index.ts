@@ -41,9 +41,57 @@ function buildSystemPrompt(signals: ContextSignals, language: string): string {
     ? `LANGUAGE: You MUST write ALL text (titles, descriptions, tags) in Spanish. Do NOT mix English and Spanish. Proper nouns (e.g. artist names, podcast names) may remain in their original language, but descriptions and tags must be entirely in Spanish.`
     : `LANGUAGE: You MUST write ALL text (titles, descriptions, tags) in English. Do NOT mix languages.`;
 
-  return `You are a wellness-focused AI recommendation engine for VYV, a healthy lifestyle app. Your goal is to suggest media content (music, podcasts, ambient sounds) that supports the user's wellbeing—NOT to maximize engagement or create addiction.
+  const goalGuidelines: Record<string, string> = {
+    focus: `GOAL-SPECIFIC INSTRUCTIONS (Focus):
+- Recommend lo-fi hip hop, classical music, or ambient instrumental playlists ideal for deep work
+- Include a podcast about productivity, deep work, or time management (e.g. Deep Work by Cal Newport discussions, Huberman Lab focus episodes)
+- Suggest ambient sounds like rain, café noise, or brown noise for concentration
+- Mood should lean towards "focused" or "calm"
+- Avoid anything with lyrics or high energy that could distract`,
+    energy: `GOAL-SPECIFIC INSTRUCTIONS (Energy):
+- Recommend upbeat workout playlists, motivational music, or high-BPM electronic/pop
+- Include a motivational podcast or TED talk about energy, discipline, or peak performance
+- Suggest a guided HIIT or cardio warm-up video
+- Mood should lean towards "energizing" or "uplifting"
+- Content should feel activating and empowering`,
+    calm: `GOAL-SPECIFIC INSTRUCTIONS (Calm):
+- Recommend ambient nature sounds, soft piano, or acoustic playlists
+- Include a guided meditation, breathing exercise, or mindfulness podcast
+- Suggest relaxing yoga nidra or body scan sessions
+- Mood should lean towards "calm" or "relaxing"
+- Everything should lower heart rate and reduce anxiety`,
+    recovery: `GOAL-SPECIFIC INSTRUCTIONS (Recovery):
+- Recommend gentle stretching or foam rolling videos
+- Include soft instrumental or nature playlists for post-workout cooldown
+- Suggest a podcast about recovery science, sleep optimization, or sports nutrition
+- Mood should lean towards "relaxing" or "calm"
+- Content should support physical and mental restoration`,
+    sleep: `GOAL-SPECIFIC INSTRUCTIONS (Sleep):
+- Recommend sleep stories, ASMR, or delta-wave sleep music
+- Include rain sounds, white noise, or nature ambience for falling asleep
+- Suggest a guided body scan or progressive muscle relaxation
+- Mood MUST be "relaxing" or "calm" — never energizing
+- All content should be designed to help the user fall and stay asleep`,
+    motivation: `GOAL-SPECIFIC INSTRUCTIONS (Motivation):
+- Recommend powerful motivational speeches, hype playlists, or inspirational podcasts
+- Include TED talks about resilience, grit, or personal growth
+- Suggest high-energy music that inspires action
+- Mood should lean towards "uplifting" or "energizing"
+- Content should make the user feel empowered and ready to act`,
+    auto: `GOAL-SPECIFIC INSTRUCTIONS (Auto-detect):
+- Analyze the time of day and context signals to pick the best goal automatically
+- Morning → focus or energy; Afternoon → focus or motivation; Evening → calm or recovery; Night → sleep or calm
+- Consider workout data: post-workout → recovery; no workout yet → energy
+- Balance variety across content types`,
+  };
+
+  const goalBlock = goalGuidelines[signals.userGoal || "auto"] || goalGuidelines["auto"];
+
+  return `You are a wellness-focused AI recommendation engine for VYV, a healthy lifestyle app. Your goal is to suggest media content (music, podcasts, ambient sounds, videos) that supports the user's wellbeing—NOT to maximize engagement or create addiction.
 
 ${langInstruction}
+
+${goalBlock}
 
 CORE PRINCIPLES:
 - Prioritize user intent over engagement
@@ -59,19 +107,19 @@ CONTEXT SIGNALS:
 - Focus sessions today: ${signals.focusSessionsToday}
 - Upcoming events: ${signals.upcomingEvents.length > 0 ? signals.upcomingEvents.join(", ") : "None"}
 ${signals.recentActivity ? `- Recent activity: ${signals.recentActivity}` : ""}
-${signals.userGoal ? `- USER'S EXPLICIT GOAL: ${signals.userGoal} (PRIORITIZE THIS)` : ""}
+${signals.userGoal ? `- USER'S EXPLICIT GOAL: ${signals.userGoal} (PRIORITIZE THIS ABOVE ALL)` : ""}
 
 RECOMMENDATION RULES:
-1. If user specified a goal, that takes priority over auto-detected context
-2. Suggest 3-5 recommendations maximum
-3. Include variety: at least one music and one non-music option
-4. Be specific about why each recommendation fits their context
+1. If user specified a goal, that takes ABSOLUTE priority — every recommendation must serve that goal
+2. Suggest 4-5 recommendations
+3. Include variety of content types: music, podcasts, ambient sounds, guided videos
+4. Be specific about why each recommendation fits their goal and context
 5. Focus on quality over quantity
 6. CRITICAL: You MUST include a real, working URL for EVERY recommendation. Use publicly accessible URLs:
    - For playlists/music: use real Spotify playlist URLs (https://open.spotify.com/playlist/...) or YouTube music URLs
    - For podcasts: use real Spotify show/episode URLs or Apple Podcasts URLs or YouTube channel URLs
    - For ambient sounds: use real YouTube video URLs of ambient/nature sounds
-   - For guided content: use real YouTube video URLs of guided meditation, yoga, etc.
+   - For guided content: use real YouTube video URLs of guided meditation, yoga, stretching, etc.
    Only recommend content that actually exists and is well-known. Do NOT invent or hallucinate URLs.
 
 OUTPUT FORMAT (JSON array):
@@ -79,7 +127,7 @@ OUTPUT FORMAT (JSON array):
   {
     "type": "playlist" | "podcast" | "ambient" | "guided",
     "title": "Exact name of the real content",
-    "description": "Why this fits their current context (1-2 sentences, in ${language === 'es' ? 'Spanish' : 'English'})",
+    "description": "Why this fits their current goal (1-2 sentences, in ${language === 'es' ? 'Spanish' : 'English'})",
     "duration": "30 min" | "1 hour" | etc,
     "mood": "calm" | "energizing" | "focused" | "uplifting" | "relaxing",
     "externalUrl": "https://open.spotify.com/playlist/... or https://www.youtube.com/watch?v=...",
