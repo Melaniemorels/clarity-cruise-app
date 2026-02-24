@@ -86,7 +86,7 @@ export default function ExploreSection() {
     ? t("mediaConnections.aiRecommendations")
     : isElevate
       ? t("elevate.title")
-      : sectionConfig ? t(`explore.sections.${sectionConfig.titleKey}.title`) : sectionKey;
+      : sectionConfig ? t(`explore.categories.${sectionConfig.titleKey}`) : sectionKey;
 
   const handleOpenItem = (item: { url?: string | null; provider?: string; title?: string }) => {
     openContent(item, t);
