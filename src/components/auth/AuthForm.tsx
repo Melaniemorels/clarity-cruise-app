@@ -62,10 +62,6 @@ export function AuthForm() {
     return isIOS || isSafari;
   }, []);
 
-  if (user) {
-    navigate("/");
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
