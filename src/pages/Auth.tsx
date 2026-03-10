@@ -1,11 +1,26 @@
 import { Hexagon } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDevice } from "@/hooks/use-device";
+import { useAuth } from "@/contexts/AuthContext";
 import { AuthBranding } from "@/components/auth/AuthBranding";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 const Auth = () => {
   const { isDesktop, isTablet } = useDevice();
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (session) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
