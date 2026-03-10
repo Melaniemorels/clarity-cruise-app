@@ -47,7 +47,7 @@ export function SocialSignInButton({ provider }: SocialSignInButtonProps) {
     setLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
       if (error) {
         toast.error(error.message || t("errors.generic"));
