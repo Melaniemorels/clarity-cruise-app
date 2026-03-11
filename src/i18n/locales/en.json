@@ -959,5 +959,10 @@
     "explorerSubtitle": "Based on your browsing and schedule",
     "homeTitle": "Suggested for you",
     "calendarBased": "Calendar"
+  },
+  "workout": {
+    "breakdown": "Breakdown",
+    "noSessions": "No workout sessions today",
+    "timeline": "Sessions"
   }
 }
