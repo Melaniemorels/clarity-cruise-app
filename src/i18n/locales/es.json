@@ -959,5 +959,10 @@
     "explorerSubtitle": "Basado en lo que explorás y tu agenda",
     "homeTitle": "Sugerido para vos",
     "calendarBased": "Calendario"
+  },
+  "workout": {
+    "breakdown": "Desglose",
+    "noSessions": "Sin sesiones de entrenamiento hoy",
+    "timeline": "Sesiones"
   }
 }
