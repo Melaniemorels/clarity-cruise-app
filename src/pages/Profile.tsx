@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CaptureDetailModal } from "@/components/CaptureDetailModal";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav } from "@/components/ResponsiveNav";
 import { Button } from "@/components/ui/button";
 import { Settings, Share2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -297,7 +297,7 @@ const Profile = () => {
                     {entry.photo_url ? (
                       <img 
                         src={entry.photo_url} 
-                        alt="Capture" 
+                        alt={t('calendar.capture')}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
@@ -408,7 +408,7 @@ const Profile = () => {
         delayMs={9500}
       />
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };

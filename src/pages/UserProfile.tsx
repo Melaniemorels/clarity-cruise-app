@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,9 +108,11 @@ const UserProfile = () => {
     return null;
   }
 
+  const navStyle = useNavStyle();
+
   if (isLoading || accessLoading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background" style={navStyle}>
         <div className="mx-auto max-w-2xl p-4 space-y-4">
           <div className="flex items-center gap-3 mb-6">
             <Skeleton className="h-10 w-10 rounded-full" />
@@ -129,14 +131,14 @@ const UserProfile = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+        <ResponsiveNav />
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background" style={navStyle}>
         <div className="mx-auto max-w-2xl p-4">
           <Button
             variant="ghost"
@@ -157,14 +159,14 @@ const UserProfile = () => {
             </Button>
           </div>
         </div>
-        <BottomNav />
+        <ResponsiveNav />
       </div>
     );
   }
 
   return (
     <ScreenshotGuard enabled={!isOwnProfile}>
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background" style={navStyle}>
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -259,7 +261,7 @@ const UserProfile = () => {
                           {post.image_url ? (
                             <img
                               src={post.image_url}
-                              alt="Capture"
+                              alt={t('calendar.capture')}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
@@ -307,7 +309,7 @@ const UserProfile = () => {
         />
       )}
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
     </ScreenshotGuard>
   );

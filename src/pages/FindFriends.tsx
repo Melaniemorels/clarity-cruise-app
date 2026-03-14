@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ const FindFriends = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: users = [], isLoading } = useSearchProfiles(searchQuery, true);
+  const navStyle = useNavStyle();
   const followMutation = useFollow();
 
   const handleFollow = (e: React.MouseEvent, userId: string, isFollowing: boolean) => {
@@ -41,7 +42,7 @@ const FindFriends = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background" style={navStyle}>
       <div className="mx-auto max-w-2xl p-4 space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3 mb-2">
@@ -139,7 +140,7 @@ const FindFriends = () => {
           </CardContent>
         </Card>
       </div>
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };

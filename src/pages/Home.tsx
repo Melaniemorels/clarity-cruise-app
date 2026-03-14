@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav } from "@/components/ResponsiveNav";
 import { FeedPost } from "@/components/FeedPost";
 import { usePublicEntriesFeed } from "@/hooks/use-entries";
 import { Loader2 } from "lucide-react";
@@ -26,7 +26,7 @@ const Home = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+        <ResponsiveNav />
       </div>
     );
   }
@@ -77,7 +77,7 @@ const Home = () => {
         )}
       </div>
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };

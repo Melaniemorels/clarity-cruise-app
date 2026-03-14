@@ -301,7 +301,7 @@ export const PostItem = ({ post }: PostItemProps) => {
             >
               <img
                 src={post.image_url}
-                alt={post.caption || "Post image"}
+                alt={post.caption || t('calendar.capture')}
                 className="w-full h-full object-cover"
                 loading="lazy"
                 draggable={false}

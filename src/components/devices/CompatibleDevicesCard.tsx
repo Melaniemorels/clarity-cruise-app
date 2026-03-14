@@ -30,7 +30,7 @@ const CompatibleDevicesCard = () => {
             ))}
           </div>
           <p className="text-xs text-muted-foreground/70">
-            {t("devices.moreDevicesDesc", "More devices supported through health platforms like Apple Health. Additional integrations coming soon.")}
+            {t("devices.moreDevicesDesc")}
           </p>
         </div>
       </CardContent>
