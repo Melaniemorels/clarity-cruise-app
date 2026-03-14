@@ -592,6 +592,7 @@
       "energy": "Energía",
       "calm": "Calma",
       "recovery": "Recuperación",
+      "motivation": "Motivación",
       "sleep": "Sueño"
     },
     "types": {
@@ -964,7 +965,17 @@
   "workout": {
     "breakdown": "Desglose",
     "noSessions": "Sin sesiones de entrenamiento hoy",
-    "timeline": "Sesiones"
+    "timeline": "Sesiones",
+    "types": {
+      "strength": "Fuerza",
+      "cardio": "Cardio",
+      "running": "Correr",
+      "cycling": "Ciclismo",
+      "swimming": "Natación",
+      "general": "General"
+    },
+    "session": "sesión",
+    "sessions": "sesiones"
   },
   "brand": {
     "tagline": "Visualize Your Vibe"
