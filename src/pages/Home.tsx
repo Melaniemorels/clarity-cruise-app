@@ -10,7 +10,7 @@ import { useNavStyle } from "@/components/ResponsiveNav";
 const Home = () => {
   const { t } = useTranslation();
   const { data: entries = [], isLoading, error } = usePublicEntriesFeed();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
 
   if (error) {
     return (
