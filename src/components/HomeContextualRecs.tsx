@@ -50,7 +50,7 @@ function QuickRecCard({ rec }: { rec: ContextualRec }) {
             {rec.duration_min && (
               <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                 <Clock className="h-2.5 w-2.5" />
-                {rec.duration_min} min
+                {rec.duration_min} {t('calendar.minShort')}
               </span>
             )}
             {rec.url && (

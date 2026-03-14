@@ -40,20 +40,20 @@ export function SocialBudgetSettings() {
       </div>
 
       <div className="grid grid-cols-5 gap-2">
-        {LIMIT_OPTIONS.map((option) => (
+        {LIMIT_VALUES.map((value) => (
           <button
-            key={option.value}
-            onClick={() => handleLimitChange(option.value)}
+            key={value}
+            onClick={() => handleLimitChange(value)}
             disabled={updateSettings.isPending}
             className={cn(
               "h-10 rounded-xl text-sm font-medium transition-all",
               "border border-border hover:border-primary/50",
-              currentLimit === option.value
+              currentLimit === value
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-secondary/50 text-foreground hover:bg-secondary"
             )}
           >
-            {option.label}
+            {value === 0 ? "∞" : `${value} ${t('calendar.minShort')}`}
           </button>
         ))}
       </div>

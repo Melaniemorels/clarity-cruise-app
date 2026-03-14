@@ -88,7 +88,7 @@ const Calendar = () => {
   const saveEventMutation = useMutation({
     mutationFn: async (event: any) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No autenticado");
+      if (!user) throw new Error(t('event.errors.notAuthenticated'));
 
       if (event.id) {
         const { error } = await (supabase as any)

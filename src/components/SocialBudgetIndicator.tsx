@@ -56,7 +56,7 @@ export function SocialBudgetIndicator({
             "text-xs font-medium tabular-nums",
             progressPercent >= 80 ? "text-amber-500" : "text-foreground"
           )}>
-            {minutesUsed}/{dailyLimitMinutes} min
+            {minutesUsed}/{dailyLimitMinutes} {t('calendar.minShort')}
           </span>
         </div>
         <Progress 

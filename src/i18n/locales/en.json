@@ -965,7 +965,17 @@
   "workout": {
     "breakdown": "Breakdown",
     "noSessions": "No workout sessions today",
-    "timeline": "Sessions"
+    "timeline": "Sessions",
+    "types": {
+      "strength": "Strength",
+      "cardio": "Cardio",
+      "running": "Running",
+      "cycling": "Cycling",
+      "swimming": "Swimming",
+      "general": "General"
+    },
+    "session": "session",
+    "sessions": "sessions"
   },
   "brand": {
     "tagline": "Visualize Your Vibe"

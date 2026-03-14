@@ -240,7 +240,7 @@ export default function Recommendations() {
           <div>
             <p className="text-sm text-muted-foreground mb-3">{t("recommendations.selectGoal")}</p>
             <div className="flex flex-wrap gap-2">
-              {GOALS.map((goal) => (
+              {GOAL_DEFS.map((goal) => (
                 <Button
                   key={goal.value}
                   variant={selectedGoal === goal.value ? "default" : "outline"}
@@ -252,7 +252,7 @@ export default function Recommendations() {
                   )}
                 >
                   {goal.icon}
-                  {goal.label}
+                  {t(`recommendations.goals.${goal.value}`)}
                 </Button>
               ))}
             </div>
