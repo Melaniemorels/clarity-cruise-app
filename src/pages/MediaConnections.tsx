@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export default function MediaConnectionsPage() {
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const navigate = useNavigate();
 
   return (
