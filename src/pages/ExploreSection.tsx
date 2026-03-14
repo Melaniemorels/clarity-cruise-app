@@ -1,6 +1,6 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

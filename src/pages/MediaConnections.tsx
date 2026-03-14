@@ -15,7 +15,7 @@ export default function MediaConnectionsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-theme-bg transition-all duration-300" style={navStyle}>
       <div className={cn(
         "mx-auto transition-all duration-300",
         device.isDesktop ? "max-w-2xl" : device.isTablet ? "max-w-xl" : "max-w-full"

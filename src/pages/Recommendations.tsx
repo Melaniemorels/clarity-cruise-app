@@ -200,7 +200,7 @@ export default function Recommendations() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-theme-bg transition-all duration-300" style={navStyle}>
       <div className={cn(
         "mx-auto transition-all duration-300",
         device.isDesktop ? "max-w-3xl" : device.isTablet ? "max-w-2xl" : "max-w-full"
