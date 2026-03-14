@@ -108,9 +108,11 @@ const UserProfile = () => {
     return null;
   }
 
+  const navStyle = useNavStyle();
+
   if (isLoading || accessLoading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background" style={navStyle}>
         <div className="mx-auto max-w-2xl p-4 space-y-4">
           <div className="flex items-center gap-3 mb-6">
             <Skeleton className="h-10 w-10 rounded-full" />
@@ -129,7 +131,7 @@ const UserProfile = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+        <ResponsiveNav />
       </div>
     );
   }
