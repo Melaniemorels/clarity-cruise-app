@@ -35,7 +35,7 @@ const DeviceOnboarding = () => {
           <img src={vyvLogo} alt="VYV" className="h-9 w-9 rounded-xl border border-border/40" />
           <div>
             <div className="text-sm font-bold tracking-wide text-foreground">VYV</div>
-            <div className="text-xs text-muted-foreground">Visualize Your Vibe</div>
+            <div className="text-xs text-muted-foreground">{t("brand.tagline")}</div>
           </div>
         </div>
 

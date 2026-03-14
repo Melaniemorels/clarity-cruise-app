@@ -61,7 +61,7 @@ const Auth = () => {
                 style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary) / 0.15))" }}
               />
               <span className="text-lg font-semibold tracking-[0.08em] text-foreground">
-                Visualize Your Vibe
+                {t("brand.tagline")}
               </span>
             </div>
           )}
