@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { format, parseISO } from "date-fns";
 import { FollowButton } from "@/components/FollowButton";
 import { PrivateProfilePlaceholder } from "@/components/PrivateProfilePlaceholder";
 import { FollowListModal } from "@/components/FollowListModal";
@@ -18,6 +17,7 @@ import { useViewerAccess } from "@/hooks/use-viewer-access";
 import { useFollowStatus } from "@/hooks/use-follow-status";
 import { usePosts } from "@/hooks/use-posts";
 import { ScreenshotGuard } from "@/components/ScreenshotGuard";
+import { UserProfilePostsGrid } from "@/components/UserProfilePostsGrid";
 
 interface UserProfileData {
   user_id: string;
