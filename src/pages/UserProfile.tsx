@@ -261,7 +261,7 @@ const UserProfile = () => {
                           {post.image_url ? (
                             <img
                               src={post.image_url}
-                              alt="Capture"
+                              alt={t('calendar.capture')}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
