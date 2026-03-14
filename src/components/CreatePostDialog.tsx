@@ -324,7 +324,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
             <div className="relative group">
               <img
                 src={capturedImage}
-                alt="Captured"
+                alt={t('calendar.capture')}
                 className="w-full h-64 object-cover rounded-[22px] border border-border shadow-lg bg-muted"
               />
               

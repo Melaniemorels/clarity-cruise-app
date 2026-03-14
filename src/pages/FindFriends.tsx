@@ -139,7 +139,7 @@ const FindFriends = () => {
           </CardContent>
         </Card>
       </div>
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };

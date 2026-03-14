@@ -93,7 +93,7 @@ export function CaptureDetailModal({
             {entry.photo_url ? (
               <img
                 src={entry.photo_url}
-                alt={entry.caption || "Capture"}
+                alt={entry.caption || t('calendar.capture')}
                 className="w-full max-h-[60vh] object-contain"
               />
             ) : (

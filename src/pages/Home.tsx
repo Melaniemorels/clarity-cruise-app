@@ -77,7 +77,7 @@ const Home = () => {
         )}
       </div>
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };

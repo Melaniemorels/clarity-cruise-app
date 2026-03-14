@@ -309,7 +309,7 @@ const UserProfile = () => {
         />
       )}
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
     </ScreenshotGuard>
   );

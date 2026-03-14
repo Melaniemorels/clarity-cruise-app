@@ -408,7 +408,7 @@ const Profile = () => {
         delayMs={9500}
       />
 
-      <BottomNav />
+      <ResponsiveNav />
     </div>
   );
 };
