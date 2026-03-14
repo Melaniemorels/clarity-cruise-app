@@ -15,6 +15,7 @@ const FindFriends = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: users = [], isLoading } = useSearchProfiles(searchQuery, true);
+  const navStyle = useNavStyle();
   const followMutation = useFollow();
 
   const handleFollow = (e: React.MouseEvent, userId: string, isFollowing: boolean) => {
