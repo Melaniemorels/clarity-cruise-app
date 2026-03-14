@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState as useReactState } from "react";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
