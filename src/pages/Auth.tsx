@@ -1,5 +1,6 @@
 import { Hexagon } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useDevice } from "@/hooks/use-device";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +8,7 @@ import { AuthBranding } from "@/components/auth/AuthBranding";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 const Auth = () => {
+  const { t } = useTranslation();
   const { isDesktop, isTablet } = useDevice();
   const { session, loading } = useAuth();
 
@@ -61,7 +63,7 @@ const Auth = () => {
                 style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary) / 0.15))" }}
               />
               <span className="text-lg font-semibold tracking-[0.08em] text-foreground">
-                Visualize Your Vibe
+                {t("brand.tagline")}
               </span>
             </div>
           )}

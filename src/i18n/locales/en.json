@@ -430,7 +430,8 @@
       "deleteError": "Error deleting post",
       "likeError": "Error updating reaction",
       "loginToLike": "Sign in to like"
-    }
+    },
+    "activityTagPlaceholder": "e.g: Yoga, Gym, Running..."
   },
   "captureDetail": {
     "visibility": "Visibility",
@@ -964,5 +965,21 @@
     "breakdown": "Breakdown",
     "noSessions": "No workout sessions today",
     "timeline": "Sessions"
+  },
+  "brand": {
+    "tagline": "Visualize Your Vibe"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Oops! Page not found",
+    "returnHome": "Return to Home"
+  },
+  "authCallback": {
+    "signingIn": "Signing in..."
+  },
+  "legal": {
+    "lastUpdated": "Last updated: 2025",
+    "switchToSpanish": "Español",
+    "switchToEnglish": "English"
   }
 }

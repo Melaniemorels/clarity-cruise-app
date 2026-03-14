@@ -1,12 +1,17 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const TermsOfUse = () => {
-  const [language, setLanguage] = useState<"es" | "en">("es");
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const language = i18n.language?.startsWith("es") ? "es" : "en";
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(language === "es" ? "en" : "es");
+  };
 
   const spanishContent = {
     title: "TÉRMINOS DE USO",
@@ -140,11 +145,11 @@ Address: San Diego, California, USA`
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setLanguage(language === "es" ? "en" : "es")}
+              onClick={toggleLanguage}
               className="gap-2"
             >
               <Globe className="h-4 w-4" />
-              {language === "es" ? "English" : "Español"}
+              {language === "es" ? t("legal.switchToEnglish") : t("legal.switchToSpanish")}
             </Button>
           </div>
         </div>
@@ -173,7 +178,7 @@ Address: San Diego, California, USA`
             </div>
 
             <div className="mt-12 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-              <p>{language === "es" ? "Última actualización: 2025" : "Last updated: 2025"}</p>
+              <p>{t("legal.lastUpdated")}</p>
             </div>
           </div>
         </ScrollArea>

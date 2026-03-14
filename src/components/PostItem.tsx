@@ -371,7 +371,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                 id="edit-activity"
                 value={editActivityTag}
                 onChange={(e) => setEditActivityTag(e.target.value)}
-                placeholder="ej: Yoga, Gym, Running..."
+                placeholder={t("post.activityTagPlaceholder")}
               />
             </div>
           </div>
