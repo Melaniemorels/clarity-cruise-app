@@ -23,7 +23,8 @@ import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { ScreenTimeModal } from "@/components/ScreenTimeModal";
 import { useGuide } from "@/contexts/GuideContext";
-import { useOrientation } from "@/hooks/use-orientation";
+import { useDevice } from "@/hooks/use-device";
+import { useNavStyle } from "@/components/ResponsiveNav";
 import { cn } from "@/lib/utils";
 
 const Profile = () => {
