@@ -271,7 +271,7 @@ const Feed = () => {
   }, [queryClient, silentRefresh]);
 
   return (
-    <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300")} style={navStyle}>
       {/* Watermark - subtle old money: hexagon + logo behind posts */}
       {!isLimitReached && !isLoading && posts.length > 0 && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
