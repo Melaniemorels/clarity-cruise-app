@@ -23,6 +23,8 @@ import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { ScreenTimeModal } from "@/components/ScreenTimeModal";
 import { useGuide } from "@/contexts/GuideContext";
+import { useOrientation } from "@/hooks/use-orientation";
+import { cn } from "@/lib/utils";
 
 const Profile = () => {
   const { t } = useTranslation();
