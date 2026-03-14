@@ -93,7 +93,7 @@ export default function ExploreSection() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-background transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-background transition-all duration-300" style={navStyle}>
       <div className={cn(
         "space-y-6 transition-all",
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"
