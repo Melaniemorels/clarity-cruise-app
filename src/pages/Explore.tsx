@@ -28,7 +28,7 @@ const Explore = () => {
   } | null>(null);
   const [playerOpen, setPlayerOpen] = useState(false);
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const [exploreCardTapped, setExploreCardTapped] = useReactState(false);
   const exploreCardRef = useRef<HTMLDivElement>(null);
   const exploreHeaderRef = useRef<HTMLDivElement>(null);
