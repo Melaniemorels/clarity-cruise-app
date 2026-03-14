@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { AdaptiveHeading } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { MediaConnectionsSettings } from "@/components/explore/MediaConnectionsSettings";
