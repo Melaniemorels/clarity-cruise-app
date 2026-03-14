@@ -13,7 +13,7 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className={`min-h-screen bg-background ${useNavPadding()}`}>
         <div className="mx-auto max-w-2xl p-4">
           <Card>
             <CardContent className="p-12 text-center">
