@@ -5,13 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useFeedSettings, useUpdateFeedSettings, type DailyLimitOption } from "@/hooks/use-social-budget";
 import { cn } from "@/lib/utils";
 
-const LIMIT_OPTIONS: { value: number; label: string }[] = [
-  { value: 10, label: "10 min" },
-  { value: 15, label: "15 min" },
-  { value: 20, label: "20 min" },
-  { value: 30, label: "30 min" },
-  { value: 0, label: "∞" },
-];
+const LIMIT_VALUES = [10, 15, 20, 30, 0] as const;
 
 export function SocialBudgetSettings() {
   const { t } = useTranslation();
