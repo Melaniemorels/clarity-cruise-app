@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
-import { useOrientation } from "@/hooks/use-orientation";
+import { useDevice } from "@/hooks/use-device";
+import { useNavStyle } from "@/components/ResponsiveNav";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
