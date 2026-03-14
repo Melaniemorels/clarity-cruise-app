@@ -179,10 +179,14 @@
   }
 
   html, body, #root {
-    @apply bg-background min-h-screen;
+    @apply bg-background;
+    min-height: 100vh;
+    min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior-y: none;
   }
 
   body {
