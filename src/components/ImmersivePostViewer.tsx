@@ -43,7 +43,7 @@ export function ImmersivePostViewer({
     setCurrentIndex(idx);
     setZoomed(false);
     setTranslate({ x: 0, y: 0 });
-  };
+  }, []);
 
   const handleLike = () => {
     if (!user) return;
