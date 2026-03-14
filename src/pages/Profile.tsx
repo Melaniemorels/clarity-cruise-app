@@ -320,6 +320,8 @@ const Profile = () => {
             )}
           </div>
         </div>
+        </div>{/* end right column */}
+        </div>{/* end two-column grid */}
       </div>
 
       {/* Settings Dialog */}
