@@ -60,7 +60,7 @@ export default function ExploreSection() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const logEvent = useLogItemEvent();
 
   const stateFilter = (location.state as any)?.filter as string | undefined;
