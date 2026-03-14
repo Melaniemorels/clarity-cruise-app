@@ -992,5 +992,9 @@
     "lastUpdated": "Last updated: 2025",
     "switchToSpanish": "Español",
     "switchToEnglish": "English"
+  },
+  "postViewer": {
+    "title": "Post viewer",
+    "privateContent": "This content is private"
   }
 }
