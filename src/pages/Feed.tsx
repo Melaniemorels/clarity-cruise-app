@@ -91,7 +91,7 @@ const Feed = () => {
   const [hasReachedLimitThisSession, setHasReachedLimitThisSession] = useState(false);
   const [isInCooldown, setIsInCooldown] = useState(false);
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const lastRefreshRef = useRef<number>(Date.now());
   const captureAnchor = useGuideAnchor("capture_vibe");
   const feedHeaderRef = useRef<HTMLDivElement>(null);
