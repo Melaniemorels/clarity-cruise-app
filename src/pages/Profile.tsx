@@ -195,6 +195,8 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Two-column layout in landscape */}
+        <div className={cn(isLandscape ? "grid grid-cols-2 gap-6" : "space-y-4")}>
         {/* Today's Stats */}
         <div ref={statsRef} className="space-y-3">
           <h2 className="font-semibold">{t('profile.todayStats')}</h2>
