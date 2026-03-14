@@ -10,10 +10,11 @@ import { useNavPadding } from "@/components/ResponsiveNav";
 const Home = () => {
   const { t } = useTranslation();
   const { data: entries = [], isLoading, error } = usePublicEntriesFeed();
+  const navPadding = useNavPadding();
 
   if (error) {
     return (
-      <div className={`min-h-screen bg-background ${useNavPadding()}`}>
+      <div className={`min-h-screen bg-background ${navPadding}`}>
         <div className="mx-auto max-w-2xl p-4">
           <Card>
             <CardContent className="p-12 text-center">
@@ -31,7 +32,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className={`min-h-screen bg-background ${navPadding}`}>
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
