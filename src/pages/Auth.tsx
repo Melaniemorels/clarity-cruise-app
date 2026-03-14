@@ -8,6 +8,7 @@ import { AuthBranding } from "@/components/auth/AuthBranding";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 const Auth = () => {
+  const { t } = useTranslation();
   const { isDesktop, isTablet } = useDevice();
   const { session, loading } = useAuth();
 
