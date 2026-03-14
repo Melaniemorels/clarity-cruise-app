@@ -185,7 +185,7 @@ function ConsentSettings() {
 export default function Recommendations() {
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const [selectedGoal, setSelectedGoal] = useState<RecommendationGoal>("auto");
   const [showSettings, setShowSettings] = useState(false);
 
