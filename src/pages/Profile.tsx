@@ -278,6 +278,7 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+        </div>{/* end left column (stats + calendar) */}
 
         {/* Right column in landscape */}
         <div className="space-y-4">
