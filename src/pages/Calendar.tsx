@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
-import { useOrientation } from "@/hooks/use-orientation";
+import { useDevice } from "@/hooks/use-device";
+import { useNavStyle } from "@/components/ResponsiveNav";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
@@ -297,11 +298,12 @@ const Calendar = () => {
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
 
-  const orientation = useOrientation();
-  const isLandscape = orientation === "landscape";
+  const device = useDevice();
+  const navStyle = useNavStyle();
+  const isLandscape = device.isLandscape;
 
   return (
-    <div className={cn("min-h-screen bg-background", isLandscape ? "pl-[72px]" : "pb-20")}>
+    <div className={cn("min-h-screen bg-background")} style={navStyle}>
       <div className={cn("p-4 space-y-4", isLandscape && "max-w-5xl mx-auto")}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">
@@ -751,7 +753,7 @@ const Calendar = () => {
         </Dialog>
 
         {/* Focus Mode Section */}
-        <div className="space-y-4 mt-8 pt-8 border-t border-border">
+        <div className={cn("space-y-4 mt-8 pt-8 border-t border-border", isLandscape && "grid grid-cols-2 gap-6 space-y-0")}>
           <div className="flex items-center gap-3 mb-6">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
               <Lock className="h-6 w-6 text-primary" />

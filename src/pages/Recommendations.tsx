@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { AdaptiveHeading } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
@@ -185,7 +185,7 @@ function ConsentSettings() {
 export default function Recommendations() {
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const [selectedGoal, setSelectedGoal] = useState<RecommendationGoal>("auto");
   const [showSettings, setShowSettings] = useState(false);
 
@@ -200,7 +200,7 @@ export default function Recommendations() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-theme-bg transition-all duration-300" style={navStyle}>
       <div className={cn(
         "mx-auto transition-all duration-300",
         device.isDesktop ? "max-w-3xl" : device.isTablet ? "max-w-2xl" : "max-w-full"

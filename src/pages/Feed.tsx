@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { AdaptiveHeading } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
@@ -91,7 +91,7 @@ const Feed = () => {
   const [hasReachedLimitThisSession, setHasReachedLimitThisSession] = useState(false);
   const [isInCooldown, setIsInCooldown] = useState(false);
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const lastRefreshRef = useRef<number>(Date.now());
   const captureAnchor = useGuideAnchor("capture_vibe");
   const feedHeaderRef = useRef<HTMLDivElement>(null);
@@ -271,7 +271,7 @@ const Feed = () => {
   }, [queryClient, silentRefresh]);
 
   return (
-    <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className={cn("min-h-screen relative bg-theme-bg transition-all duration-300")} style={navStyle}>
       {/* Watermark - subtle old money: hexagon + logo behind posts */}
       {!isLimitReached && !isLoading && posts.length > 0 && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">

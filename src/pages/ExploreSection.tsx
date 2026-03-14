@@ -1,6 +1,6 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export default function ExploreSection() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const logEvent = useLogItemEvent();
 
   const stateFilter = (location.state as any)?.filter as string | undefined;
@@ -93,7 +93,7 @@ export default function ExploreSection() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-background transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-background transition-all duration-300" style={navStyle}>
       <div className={cn(
         "space-y-6 transition-all",
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"

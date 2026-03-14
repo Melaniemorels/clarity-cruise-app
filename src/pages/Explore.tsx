@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState as useReactState } from "react";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
@@ -28,7 +28,7 @@ const Explore = () => {
   } | null>(null);
   const [playerOpen, setPlayerOpen] = useState(false);
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const [exploreCardTapped, setExploreCardTapped] = useReactState(false);
   const exploreCardRef = useRef<HTMLDivElement>(null);
   const exploreHeaderRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ const Explore = () => {
   }, []);
 
   return (
-    <div className={cn("min-h-screen bg-background transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-background transition-all duration-300" style={navStyle}>
       <div className={cn(
         "space-y-8 transition-all",
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"

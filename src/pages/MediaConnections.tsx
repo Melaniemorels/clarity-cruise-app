@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ResponsiveNav, useNavPadding } from "@/components/ResponsiveNav";
+import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { AdaptiveHeading } from "@/components/AdaptiveLayout";
 import { useDevice } from "@/hooks/use-device";
 import { MediaConnectionsSettings } from "@/components/explore/MediaConnectionsSettings";
@@ -11,11 +11,11 @@ import { cn } from "@/lib/utils";
 export default function MediaConnectionsPage() {
   const { t } = useTranslation();
   const device = useDevice();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
   const navigate = useNavigate();
 
   return (
-    <div className={cn("min-h-screen bg-theme-bg transition-all duration-300", navPadding)}>
+    <div className="min-h-screen bg-theme-bg transition-all duration-300" style={navStyle}>
       <div className={cn(
         "mx-auto transition-all duration-300",
         device.isDesktop ? "max-w-2xl" : device.isTablet ? "max-w-xl" : "max-w-full"

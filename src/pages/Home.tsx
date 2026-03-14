@@ -5,16 +5,16 @@ import { usePublicEntriesFeed } from "@/hooks/use-entries";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { HomeContextualRecs } from "@/components/HomeContextualRecs";
-import { useNavPadding } from "@/components/ResponsiveNav";
+import { useNavStyle } from "@/components/ResponsiveNav";
 
 const Home = () => {
   const { t } = useTranslation();
   const { data: entries = [], isLoading, error } = usePublicEntriesFeed();
-  const navPadding = useNavPadding();
+  const navStyle = useNavStyle();
 
   if (error) {
     return (
-      <div className={`min-h-screen bg-background ${navPadding}`}>
+      <div className="min-h-screen bg-background" style={navStyle}>
         <div className="mx-auto max-w-2xl p-4">
           <Card>
             <CardContent className="p-12 text-center">
@@ -32,7 +32,7 @@ const Home = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${navPadding}`}>
+    <div className="min-h-screen bg-background" style={navStyle}>
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
