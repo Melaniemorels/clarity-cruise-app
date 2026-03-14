@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CaptureDetailModal } from "@/components/CaptureDetailModal";
-import { BottomNav } from "@/components/BottomNav";
+import { ResponsiveNav } from "@/components/ResponsiveNav";
 import { Button } from "@/components/ui/button";
 import { Settings, Share2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
