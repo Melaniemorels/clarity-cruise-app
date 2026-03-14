@@ -1,5 +1,6 @@
 import { Hexagon } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useDevice } from "@/hooks/use-device";
 import { useAuth } from "@/contexts/AuthContext";
