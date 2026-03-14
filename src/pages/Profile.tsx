@@ -297,7 +297,7 @@ const Profile = () => {
                     {entry.photo_url ? (
                       <img 
                         src={entry.photo_url} 
-                        alt="Capture" 
+                        alt={t('calendar.capture')}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
