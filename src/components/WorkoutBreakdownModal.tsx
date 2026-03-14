@@ -86,9 +86,9 @@ export const WorkoutBreakdownModal = ({ open, onOpenChange, data, goal }: Workou
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon className={`h-4 w-4 ${colorClass}`} />
-                        <span className="text-sm font-medium">{capitalizeFirst(type)}</span>
+                        <span className="text-sm font-medium">{t(`workout.types.${type}`, { defaultValue: capitalizeFirst(type) })}</span>
                         <span className="text-xs text-muted-foreground">
-                          ({count} {count === 1 ? 'sesión' : 'sesiones'})
+                          ({count} {count === 1 ? t('workout.session') : t('workout.sessions')})
                         </span>
                       </div>
                       <span className="text-sm font-semibold">{minutes} {t('calendar.minShort')}</span>
