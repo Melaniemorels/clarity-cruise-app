@@ -964,5 +964,24 @@
     "breakdown": "Desglose",
     "noSessions": "Sin sesiones de entrenamiento hoy",
     "timeline": "Sesiones"
+  },
+  "brand": {
+    "tagline": "Visualize Your Vibe"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "¡Ups! Página no encontrada",
+    "returnHome": "Volver al inicio"
+  },
+  "authCallback": {
+    "signingIn": "Iniciando sesión..."
+  },
+  "legal": {
+    "lastUpdated": "Última actualización: 2025",
+    "switchToSpanish": "Español",
+    "switchToEnglish": "English"
+  },
+  "post": {
+    "activityTagPlaceholder": "ej: Yoga, Gym, Running..."
   }
 }
