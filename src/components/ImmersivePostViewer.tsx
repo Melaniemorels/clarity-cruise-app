@@ -33,21 +33,13 @@ export function ImmersivePostViewer({
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<number | null>(null);
 
-  // Reset state when opening or changing index
-  useEffect(() => {
-    setCurrentIndex(initialIndex);
-    setZoomed(false);
-    setTranslate({ x: 0, y: 0 });
-  }, [initialIndex, open]);
-
-  const post = posts[currentIndex];
-  if (!post) return null;
-
+  const post = posts[currentIndex] ?? null;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < posts.length - 1;
 
-  const goTo = (idx: number) => {
+  const goTo = useCallback((idx: number) => {
     setCurrentIndex(idx);
     setZoomed(false);
     setTranslate({ x: 0, y: 0 });
