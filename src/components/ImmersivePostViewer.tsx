@@ -79,6 +79,13 @@ export function ImmersivePostViewer({
 
   const handlePointerUp = () => setDragStart(null);
 
+  // Reset on open/index change
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+    setZoomed(false);
+    setTranslate({ x: 0, y: 0 });
+  }, [initialIndex, open]);
+
   // Keyboard nav
   useEffect(() => {
     if (!open) return;
@@ -89,10 +96,9 @@ export function ImmersivePostViewer({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, currentIndex, hasPrev, hasNext]);
+  }, [open, currentIndex, hasPrev, hasNext, goTo, onOpenChange]);
 
   // Swipe support
-  const touchStartRef = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
     if (zoomed) return;
     touchStartRef.current = e.touches[0].clientX;
@@ -106,6 +112,8 @@ export function ImmersivePostViewer({
     }
     touchStartRef.current = null;
   };
+
+  if (!post) return null;
 
   const handleProfileTap = () => {
     onOpenChange(false);
