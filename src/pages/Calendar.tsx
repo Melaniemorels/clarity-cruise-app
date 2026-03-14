@@ -298,11 +298,12 @@ const Calendar = () => {
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
 
-  const orientation = useOrientation();
-  const isLandscape = orientation === "landscape";
+  const device = useDevice();
+  const navStyle = useNavStyle();
+  const isLandscape = device.isLandscape;
 
   return (
-    <div className={cn("min-h-screen bg-background", isLandscape ? "pl-[72px]" : "pb-20")}>
+    <div className={cn("min-h-screen bg-background")} style={navStyle}>
       <div className={cn("p-4 space-y-4", isLandscape && "max-w-5xl mx-auto")}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">

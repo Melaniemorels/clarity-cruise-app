@@ -108,11 +108,12 @@ const Profile = () => {
     setActivityModalOpen(true);
   };
 
-  const orientation = useOrientation();
-  const isLandscape = orientation === "landscape";
+  const device = useDevice();
+  const navStyle = useNavStyle();
+  const isLandscape = device.isLandscape;
 
   return (
-    <div className={cn("min-h-screen bg-background", isLandscape ? "pl-[72px]" : "pb-20")}>
+    <div className={cn("min-h-screen bg-background")} style={navStyle}>
       <div className={cn("mx-auto p-4 space-y-4", isLandscape ? "max-w-5xl" : "max-w-2xl")}>
         {/* Header */}
         <div ref={profileHeaderRef} className="flex items-center justify-between mb-6">
