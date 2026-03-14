@@ -26,7 +26,7 @@ const Home = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+        <ResponsiveNav />
       </div>
     );
   }
