@@ -14,7 +14,7 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className={`min-h-screen bg-background ${navPadding}`}>
+      <div className="min-h-screen bg-background" style={navStyle}>
         <div className="mx-auto max-w-2xl p-4">
           <Card>
             <CardContent className="p-12 text-center">
