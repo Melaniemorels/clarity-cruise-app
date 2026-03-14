@@ -37,14 +37,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const GOALS: { value: RecommendationGoal; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: "auto", label: "Auto", icon: <Sparkles className="h-4 w-4" />, color: "bg-primary/10 text-primary" },
-  { value: "focus", label: "Focus", icon: <Brain className="h-4 w-4" />, color: "bg-blue-500/10 text-blue-500" },
-  { value: "energy", label: "Energy", icon: <Zap className="h-4 w-4" />, color: "bg-yellow-500/10 text-yellow-500" },
-  { value: "calm", label: "Calm", icon: <Wind className="h-4 w-4" />, color: "bg-green-500/10 text-green-500" },
-  { value: "recovery", label: "Recovery", icon: <Heart className="h-4 w-4" />, color: "bg-pink-500/10 text-pink-500" },
-  { value: "motivation", label: "Motivation", icon: <Flame className="h-4 w-4" />, color: "bg-orange-500/10 text-orange-500" },
-  { value: "sleep", label: "Sleep", icon: <Moon className="h-4 w-4" />, color: "bg-indigo-500/10 text-indigo-500" },
+const GOAL_DEFS: { value: RecommendationGoal; icon: React.ReactNode; color: string }[] = [
+  { value: "auto", icon: <Sparkles className="h-4 w-4" />, color: "bg-primary/10 text-primary" },
+  { value: "focus", icon: <Brain className="h-4 w-4" />, color: "bg-blue-500/10 text-blue-500" },
+  { value: "energy", icon: <Zap className="h-4 w-4" />, color: "bg-yellow-500/10 text-yellow-500" },
+  { value: "calm", icon: <Wind className="h-4 w-4" />, color: "bg-green-500/10 text-green-500" },
+  { value: "recovery", icon: <Heart className="h-4 w-4" />, color: "bg-pink-500/10 text-pink-500" },
+  { value: "motivation", icon: <Flame className="h-4 w-4" />, color: "bg-orange-500/10 text-orange-500" },
+  { value: "sleep", icon: <Moon className="h-4 w-4" />, color: "bg-indigo-500/10 text-indigo-500" },
 ];
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
