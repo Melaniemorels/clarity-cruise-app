@@ -279,6 +279,8 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Right column in landscape */}
+        <div className="space-y-4">
         {/* Latest Posts - Show real entries */}
         <div className="space-y-3">
           <h2 className="font-semibold">{t('profile.myCaptures')}</h2>
