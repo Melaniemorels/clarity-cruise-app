@@ -753,7 +753,7 @@ const Calendar = () => {
         </Dialog>
 
         {/* Focus Mode Section */}
-        <div className="space-y-4 mt-8 pt-8 border-t border-border">
+        <div className={cn("space-y-4 mt-8 pt-8 border-t border-border", isLandscape && "grid grid-cols-2 gap-6 space-y-0")}>
           <div className="flex items-center gap-3 mb-6">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
               <Lock className="h-6 w-6 text-primary" />
