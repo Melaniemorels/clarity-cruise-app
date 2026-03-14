@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
+import { useOrientation } from "@/hooks/use-orientation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight, Lock, Camera } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
@@ -295,9 +297,12 @@ const Calendar = () => {
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
 
+  const orientation = useOrientation();
+  const isLandscape = orientation === "landscape";
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="p-4 space-y-4">
+    <div className={cn("min-h-screen bg-background", isLandscape ? "pl-[72px]" : "pb-20")}>
+      <div className={cn("p-4 space-y-4", isLandscape && "max-w-5xl mx-auto")}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">
           <div>
