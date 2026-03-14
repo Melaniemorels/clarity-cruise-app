@@ -430,7 +430,8 @@
       "deleteError": "Error al eliminar el post",
       "likeError": "Error al actualizar reacción",
       "loginToLike": "Inicia sesión para dar like"
-    }
+    },
+    "activityTagPlaceholder": "ej: Yoga, Gym, Running..."
   },
   "captureDetail": {
     "visibility": "Visibilidad",

@@ -430,7 +430,8 @@
       "deleteError": "Error deleting post",
       "likeError": "Error updating reaction",
       "loginToLike": "Sign in to like"
-    }
+    },
+    "activityTagPlaceholder": "e.g: Yoga, Gym, Running..."
   },
   "captureDetail": {
     "visibility": "Visibility",
