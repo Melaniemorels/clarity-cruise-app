@@ -5,6 +5,7 @@ import { usePublicEntriesFeed } from "@/hooks/use-entries";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { HomeContextualRecs } from "@/components/HomeContextualRecs";
+import { useNavPadding } from "@/components/ResponsiveNav";
 
 const Home = () => {
   const { t } = useTranslation();
