@@ -65,6 +65,9 @@ const Auth = () => {
               <span className="text-lg font-semibold tracking-[0.08em] text-foreground">
                 {t("brand.tagline")}
               </span>
+              <p className="text-sm font-normal text-muted-foreground/70 tracking-wide">
+                {t("auth.brandSubtitle")}
+              </p>
             </div>
           )}
 
