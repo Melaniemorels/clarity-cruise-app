@@ -32,10 +32,19 @@ export function UserProfileCaptureViewer({
   const [direction, setDirection] = useState(0);
   const [dragY, setDragY] = useState(0);
   const [isDraggingY, setIsDraggingY] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const lastTapRef = useRef<number>(0);
 
+  // Local optimistic like state
+  const [optimisticLikes, setOptimisticLikes] = useState<Map<string, { liked: boolean; count: number }>>(new Map());
+
   const post = posts[currentIndex] ?? null;
+
+  // Resolve like state: local optimistic > server
+  const resolvedLiked = post ? (optimisticLikes.get(post.id)?.liked ?? post.user_has_liked) : false;
+  const resolvedCount = post ? (optimisticLikes.get(post.id)?.count ?? post.likes_count ?? 0) : 0;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < posts.length - 1;
 
