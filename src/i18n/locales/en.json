@@ -24,6 +24,10 @@
     "goBack": "Go back",
     "searchPeople": "Search people"
   },
+  "home": {
+    "greeting": "Your day, with intention",
+    "subtitle": "What will you focus on today?"
+  },
   "nav": {
     "feed": "Feed",
     "explore": "Explore",

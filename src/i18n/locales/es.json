@@ -24,6 +24,10 @@
     "goBack": "Regresar",
     "searchPeople": "Buscar personas"
   },
+  "home": {
+    "greeting": "Tu día, con intención",
+    "subtitle": "¿En qué te vas a enfocar hoy?"
+  },
   "nav": {
     "feed": "Inicio",
     "explore": "Explorar",
