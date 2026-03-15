@@ -33,13 +33,16 @@ const signInSchema = z.object({
 });
 
 const fadeIn = {
-  initial: { opacity: 0, y: 8 },
+  initial: { opacity: 0, y: 6 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const },
+  exit: { opacity: 0, y: -6 },
+  transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const },
 };
 
 const KEEP_SIGNED_IN_KEY = "vyv-keep-signed-in";
+
+const inputClassName =
+  "h-12 rounded-xl border border-border/40 bg-secondary/40 text-sm placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:ring-offset-0 focus-visible:border-primary/30 transition-colors duration-200";
 
 export function AuthForm() {
   const { t } = useTranslation();
@@ -61,7 +64,6 @@ export function AuthForm() {
     const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
     return isIOS || isSafari;
   }, []);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +124,7 @@ export function AuthForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Email + password form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <AnimatePresence mode="popLayout">
@@ -130,7 +132,7 @@ export function AuthForm() {
             <motion.div key="handle-field" {...fadeIn} className="space-y-1.5">
               <Label
                 htmlFor="handle"
-                className="text-xs font-normal text-muted-foreground"
+                className="text-xs font-normal text-muted-foreground/80"
               >
                 {t("auth.username")}
               </Label>
@@ -140,7 +142,7 @@ export function AuthForm() {
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 required
-                className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
+                className={inputClassName}
               />
               {errors.handle && (
                 <p className="text-xs text-destructive">{errors.handle}</p>
@@ -152,7 +154,7 @@ export function AuthForm() {
         <div className="space-y-1.5">
           <Label
             htmlFor="email"
-            className="text-xs font-normal text-muted-foreground"
+            className="text-xs font-normal text-muted-foreground/80"
           >
             {t("auth.email")}
           </Label>
@@ -163,7 +165,7 @@ export function AuthForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
+            className={inputClassName}
           />
           {errors.email && (
             <p className="text-xs text-destructive">{errors.email}</p>
@@ -173,7 +175,7 @@ export function AuthForm() {
         <div className="space-y-1.5">
           <Label
             htmlFor="password"
-            className="text-xs font-normal text-muted-foreground"
+            className="text-xs font-normal text-muted-foreground/80"
           >
             {t("auth.password")}
           </Label>
@@ -185,7 +187,7 @@ export function AuthForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={isSignUp ? 8 : 1}
-            className="h-12 rounded-xl border-transparent bg-secondary/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0 focus-visible:border-primary/20"
+            className={inputClassName}
           />
           {errors.password && (
             <p className="text-xs text-destructive">{errors.password}</p>
@@ -198,18 +200,18 @@ export function AuthForm() {
             <motion.div
               key="signin-options"
               {...fadeIn}
-              className="flex items-center justify-between"
+              className="flex items-center justify-between pt-0.5"
             >
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="keep-signed-in"
                   checked={keepSignedIn}
                   onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
-                  className="h-4 w-4 rounded border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                  className="h-3.5 w-3.5 rounded border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                 />
                 <Label
                   htmlFor="keep-signed-in"
-                  className="text-xs font-normal text-muted-foreground cursor-pointer"
+                  className="text-[11px] font-normal text-muted-foreground/70 cursor-pointer"
                 >
                   {t("auth.keepSignedIn")}
                 </Label>
@@ -217,7 +219,7 @@ export function AuthForm() {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-xs text-primary hover:text-primary/80 transition-colors duration-200"
+                className="text-[11px] text-primary/80 hover:text-primary transition-colors duration-200"
               >
                 {t("auth.forgotPassword")}
               </button>
@@ -229,7 +231,7 @@ export function AuthForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 rounded-xl text-sm font-medium tracking-wide"
+          className="w-full h-12 rounded-xl text-sm font-medium tracking-wide mt-2"
         >
           {loading
             ? t("auth.pleaseWait")
@@ -240,26 +242,26 @@ export function AuthForm() {
       </form>
 
       {/* Divider */}
-      <div className="relative">
+      <div className="relative py-1">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border/30" />
+          <div className="w-full border-t border-border/20" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-3 text-xs text-muted-foreground/50">
+          <span className="bg-background px-4 text-[11px] text-muted-foreground/40 uppercase tracking-widest">
             {t("auth.orContinueWith")}
           </span>
         </div>
       </div>
 
-      {/* Social sign-in — secondary, neutral */}
-      <div className="space-y-1.5">
+      {/* Social sign-in */}
+      <div className="space-y-2">
         <SocialSignInButton provider="google" />
         {showApple && <SocialSignInButton provider="apple" />}
       </div>
 
       {/* Toggle sign-in / sign-up */}
-      <div className="text-center pt-1">
-        <span className="text-sm text-muted-foreground">
+      <div className="text-center pt-2">
+        <span className="text-[13px] text-muted-foreground/60">
           {isSignUp ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}{" "}
         </span>
         <button
@@ -268,7 +270,7 @@ export function AuthForm() {
             setIsSignUp(!isSignUp);
             setErrors({});
           }}
-          className="text-sm text-primary font-medium hover:text-primary/80 transition-colors duration-200"
+          className="text-[13px] text-primary font-medium hover:text-primary/80 transition-colors duration-200"
         >
           {isSignUp ? t("auth.signIn") : t("auth.signUp")}
         </button>
@@ -285,19 +287,19 @@ export function AuthForm() {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="text-center text-xs text-muted-foreground/60 leading-relaxed">
-              <p className="mb-1.5">{t("auth.signUpAgreement")}</p>
+            <div className="text-center text-[11px] text-muted-foreground/50 leading-relaxed">
+              <p className="mb-1">{t("auth.signUpAgreement")}</p>
               <div className="flex items-center justify-center gap-1.5">
                 <Link
                   to="/privacy-policy"
-                  className="text-muted-foreground/70 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  className="text-muted-foreground/60 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border/50"
                 >
                   {t("auth.privacyPolicy")}
                 </Link>
                 <span>{t("auth.and")}</span>
                 <Link
                   to="/terms-of-use"
-                  className="text-muted-foreground/70 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border"
+                  className="text-muted-foreground/60 hover:text-foreground transition-colors duration-200 underline underline-offset-2 decoration-border/50"
                 >
                   {t("auth.termsOfUse")}
                 </Link>
