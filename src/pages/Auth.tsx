@@ -9,8 +9,11 @@ import { AuthForm } from "@/components/auth/AuthForm";
 
 const Auth = () => {
   const { t } = useTranslation();
-  const { isDesktop, isTablet } = useDevice();
+  const { isDesktop, isTablet, isLandscape, width } = useDevice();
   const { session, loading } = useAuth();
+
+  // Show two-column branding layout on desktop OR tablet landscape with enough width
+  const showBrandingPanel = isDesktop || (isTablet && isLandscape && width >= 900);
 
   if (loading) {
     return (
@@ -26,8 +29,8 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop: Two-column layout with branding panel */}
-      {isDesktop && (
+      {/* Branding panel — desktop & tablet landscape */}
+      {showBrandingPanel && (
         <div className="flex-1 flex border-r border-border/30">
           <AuthBranding />
         </div>
@@ -36,7 +39,7 @@ const Auth = () => {
       {/* Auth form column */}
       <div
         className={
-          isDesktop
+          showBrandingPanel
             ? "flex-1 flex items-center justify-center px-8"
             : "flex-1 flex items-center justify-center px-6"
         }
@@ -46,15 +49,15 @@ const Auth = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
           className={
-            isTablet
+            isTablet && !showBrandingPanel
               ? "w-full max-w-md rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-8 shadow-sm"
-              : isDesktop
+              : showBrandingPanel
               ? "w-full max-w-sm"
               : "w-full max-w-sm"
           }
         >
-          {/* Logo (shown on mobile/tablet — desktop shows it in branding panel) */}
-          {!isDesktop && (
+          {/* Logo (shown on mobile/tablet portrait — branding panel handles it otherwise) */}
+          {!showBrandingPanel && (
             <div className="mb-10 flex flex-col items-center gap-3">
               <Hexagon
                 size={56}
