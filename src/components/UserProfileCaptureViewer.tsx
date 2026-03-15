@@ -51,6 +51,8 @@ export function UserProfileCaptureViewer({
   const goTo = useCallback((idx: number, dir: number) => {
     setDirection(dir);
     setCurrentIndex(idx);
+    setImageLoading(true);
+    setImageError(false);
   }, []);
 
   // Reset on open/index change
@@ -58,6 +60,9 @@ export function UserProfileCaptureViewer({
     setCurrentIndex(initialIndex);
     setDirection(0);
     setDragY(0);
+    setImageLoading(true);
+    setImageError(false);
+    setOptimisticLikes(new Map());
   }, [initialIndex, open]);
 
   // Keyboard nav
