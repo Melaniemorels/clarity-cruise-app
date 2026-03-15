@@ -99,7 +99,7 @@ export function UserProfilePostsGrid({
         </CardContent>
       </Card>
 
-      <ImmersivePostViewer
+      <UserProfileCaptureViewer
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         posts={posts.slice(0, 9)}
