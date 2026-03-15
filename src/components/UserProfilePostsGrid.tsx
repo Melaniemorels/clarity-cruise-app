@@ -64,16 +64,17 @@ export function UserProfilePostsGrid({
                   key={post.id}
                   onClick={() => openViewer(index)}
                   className={cn(
-                    "aspect-square rounded-lg bg-muted relative overflow-hidden group",
+                    "aspect-square rounded-xl bg-muted relative overflow-hidden group",
                     "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                    "active:scale-[0.96] transition-transform duration-150 ease-out"
+                    "active:scale-[0.93] active:brightness-90 transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                    "will-change-transform"
                   )}
                 >
                   {post.image_url ? (
                     <img
                       src={post.image_url}
                       alt={t("calendar.capture")}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                       loading="lazy"
                     />
                   ) : (
@@ -81,9 +82,12 @@ export function UserProfilePostsGrid({
                       📸
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Resting subtle vignette */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/25 via-transparent to-transparent opacity-100 transition-opacity duration-300" />
+                  {/* Hover overlay with date */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute bottom-0 left-0 right-0 p-2">
-                      <p className="text-background text-xs">
+                      <p className="text-background text-[11px] font-light tracking-wide">
                         {format(parseISO(post.created_at), "d MMM, HH:mm")}
                       </p>
                     </div>
