@@ -62,21 +62,12 @@ const Auth = () => {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
               className="mb-10 flex flex-col items-center gap-4"
             >
-              <div className="relative">
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: "radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, transparent 70%)",
-                    transform: "scale(1.8)",
-                  }}
-                />
-                <img
-                  src={vyvIcon}
-                  alt="VYV"
-                  className="relative z-10 w-20 h-20 rounded-2xl object-contain"
-                  style={{ filter: "drop-shadow(0 4px 20px hsl(var(--primary) / 0.2))" }}
-                />
-              </div>
+              <Hexagon
+                size={56}
+                strokeWidth={1.2}
+                className="text-primary"
+                style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary) / 0.15))" }}
+              />
               <div className="flex flex-col items-center gap-1.5">
                 <h1 className="text-xl font-semibold tracking-[0.06em] text-foreground">
                   {t("brand.tagline")}
