@@ -64,7 +64,8 @@
     "continueWithGoogle": "Continue with Google",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
-    "brandSubtitle": "Your day, intentionally."
+    "brandSubtitle": "Your day, intentionally.",
+    "orContinueWith": "or continue with"
   },
   "welcome": {
     "tagline": "Visualize Your Vibe",
