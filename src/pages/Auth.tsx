@@ -1,3 +1,4 @@
+import { Hexagon } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -5,7 +6,6 @@ import { useDevice } from "@/hooks/use-device";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthBranding } from "@/components/auth/AuthBranding";
 import { AuthForm } from "@/components/auth/AuthForm";
-import vyvIcon from "@/assets/vyv-icon.jpeg";
 
 const Auth = () => {
   const { t } = useTranslation();
