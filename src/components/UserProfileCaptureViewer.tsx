@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
-import { ArrowLeft, Heart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Heart, ImageOff } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { usePostLike, type Post } from "@/hooks/use-posts";
@@ -31,16 +32,27 @@ export function UserProfileCaptureViewer({
   const [direction, setDirection] = useState(0);
   const [dragY, setDragY] = useState(0);
   const [isDraggingY, setIsDraggingY] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const lastTapRef = useRef<number>(0);
 
+  // Local optimistic like state
+  const [optimisticLikes, setOptimisticLikes] = useState<Map<string, { liked: boolean; count: number }>>(new Map());
+
   const post = posts[currentIndex] ?? null;
+
+  // Resolve like state: local optimistic > server
+  const resolvedLiked = post ? (optimisticLikes.get(post.id)?.liked ?? post.user_has_liked) : false;
+  const resolvedCount = post ? (optimisticLikes.get(post.id)?.count ?? post.likes_count ?? 0) : 0;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < posts.length - 1;
 
   const goTo = useCallback((idx: number, dir: number) => {
     setDirection(dir);
     setCurrentIndex(idx);
+    setImageLoading(true);
+    setImageError(false);
   }, []);
 
   // Reset on open/index change
@@ -48,6 +60,9 @@ export function UserProfileCaptureViewer({
     setCurrentIndex(initialIndex);
     setDirection(0);
     setDragY(0);
+    setImageLoading(true);
+    setImageError(false);
+    setOptimisticLikes(new Map());
   }, [initialIndex, open]);
 
   // Keyboard nav
@@ -64,14 +79,29 @@ export function UserProfileCaptureViewer({
 
   const handleLike = () => {
     if (!user || !post) return;
-    likeMutation.mutate({ postId: post.id, hasLiked: post.user_has_liked });
+    const currentlyLiked = resolvedLiked;
+    // Optimistic local update
+    setOptimisticLikes((prev) => {
+      const next = new Map(prev);
+      next.set(post.id, {
+        liked: !currentlyLiked,
+        count: resolvedCount + (currentlyLiked ? -1 : 1),
+      });
+      return next;
+    });
+    likeMutation.mutate({ postId: post.id, hasLiked: currentlyLiked });
   };
 
   // Double-tap to like
   const handleTap = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      if (!post?.user_has_liked && user && post) {
+      if (!resolvedLiked && user && post) {
+        setOptimisticLikes((prev) => {
+          const next = new Map(prev);
+          next.set(post.id, { liked: true, count: resolvedCount + 1 });
+          return next;
+        });
         likeMutation.mutate({ postId: post.id, hasLiked: false });
       }
     }
@@ -210,12 +240,32 @@ export function UserProfileCaptureViewer({
                 className="w-full h-full flex items-center justify-center px-0 sm:px-8 md:px-16"
               >
                 {post.image_url ? (
-                  <img
-                    src={post.image_url}
-                    alt={post.caption || t("calendar.capture")}
-                    className="max-w-full max-h-full object-contain select-none pointer-events-none rounded-sm"
-                    draggable={false}
-                  />
+                  <>
+                    {imageLoading && !imageError && (
+                      <Skeleton className="absolute inset-0 m-auto w-3/4 max-w-md aspect-square rounded-lg bg-white/5" />
+                    )}
+                    {imageError ? (
+                      <div className="w-full aspect-square max-w-md flex flex-col items-center justify-center gap-3 opacity-40">
+                        <ImageOff className="h-10 w-10 text-white/50" />
+                        <p className="text-white/40 text-xs font-light tracking-wide">
+                          {t("errors.imageLoadFailed", "Could not load image")}
+                        </p>
+                      </div>
+                    ) : (
+                      <img
+                        src={post.image_url}
+                        alt={post.caption || t("calendar.capture")}
+                        className={cn(
+                          "max-w-full max-h-full object-contain select-none pointer-events-none rounded-sm transition-opacity duration-300",
+                          imageLoading ? "opacity-0" : "opacity-100"
+                        )}
+                        draggable={false}
+                        loading="eager"
+                        onLoad={() => setImageLoading(false)}
+                        onError={() => { setImageError(true); setImageLoading(false); }}
+                      />
+                    )}
+                  </>
                 ) : (
                   <div className="w-full aspect-square max-w-md flex items-center justify-center text-6xl opacity-20">
                     📸
@@ -254,14 +304,14 @@ export function UserProfileCaptureViewer({
                   <Heart
                     className={cn(
                       "h-[18px] w-[18px] transition-all duration-250",
-                      post.user_has_liked
+                      resolvedLiked
                         ? "text-red-400 fill-red-400"
                         : "text-white/35 hover:text-white/50"
                     )}
                   />
-                  {(post.likes_count ?? 0) > 0 && (
+                  {resolvedCount > 0 && (
                     <span className="text-white/35 text-[11px] tabular-nums font-light">
-                      {post.likes_count}
+                      {resolvedCount}
                     </span>
                   )}
                 </button>
