@@ -148,7 +148,7 @@ export function UserProfileCaptureViewer({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none [&>button]:hidden"
+        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none [&>button]:hidden flex items-center justify-center"
         style={{ opacity: dismissOpacity, background: "#0A0A0A" }}
         aria-describedby={undefined}
       >
@@ -207,17 +207,17 @@ export function UserProfileCaptureViewer({
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-                className="w-full h-full flex items-center justify-center"
+                className="w-full h-full flex items-center justify-center px-0 sm:px-8 md:px-16"
               >
                 {post.image_url ? (
                   <img
                     src={post.image_url}
                     alt={post.caption || t("calendar.capture")}
-                    className="w-full h-full object-contain select-none pointer-events-none"
+                    className="max-w-full max-h-full object-contain select-none pointer-events-none rounded-sm"
                     draggable={false}
                   />
                 ) : (
-                  <div className="w-full aspect-square flex items-center justify-center text-6xl opacity-20">
+                  <div className="w-full aspect-square max-w-md flex items-center justify-center text-6xl opacity-20">
                     📸
                   </div>
                 )}
