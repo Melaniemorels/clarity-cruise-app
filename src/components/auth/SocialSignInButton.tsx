@@ -66,10 +66,10 @@ export function SocialSignInButton({ provider }: SocialSignInButtonProps) {
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       disabled={loading}
       onClick={handleSignIn}
-      className="w-full h-11 rounded-xl text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors duration-200 gap-2.5"
+      className="w-full h-11 rounded-xl text-[13px] font-normal border-border/30 bg-transparent hover:bg-secondary/30 text-muted-foreground hover:text-foreground transition-all duration-200 gap-2.5"
     >
       {provider === "google" ? <GoogleIcon /> : <AppleIcon />}
       {loading ? t("auth.pleaseWait") : label}
