@@ -79,14 +79,29 @@ export function UserProfileCaptureViewer({
 
   const handleLike = () => {
     if (!user || !post) return;
-    likeMutation.mutate({ postId: post.id, hasLiked: post.user_has_liked });
+    const currentlyLiked = resolvedLiked;
+    // Optimistic local update
+    setOptimisticLikes((prev) => {
+      const next = new Map(prev);
+      next.set(post.id, {
+        liked: !currentlyLiked,
+        count: resolvedCount + (currentlyLiked ? -1 : 1),
+      });
+      return next;
+    });
+    likeMutation.mutate({ postId: post.id, hasLiked: currentlyLiked });
   };
 
   // Double-tap to like
   const handleTap = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      if (!post?.user_has_liked && user && post) {
+      if (!resolvedLiked && user && post) {
+        setOptimisticLikes((prev) => {
+          const next = new Map(prev);
+          next.set(post.id, { liked: true, count: resolvedCount + 1 });
+          return next;
+        });
         likeMutation.mutate({ postId: post.id, hasLiked: false });
       }
     }
