@@ -148,8 +148,8 @@ export function UserProfileCaptureViewer({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none bg-black [&>button]:hidden"
-        style={{ opacity: dismissOpacity }}
+        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none [&>button]:hidden"
+        style={{ opacity: dismissOpacity, background: "#0A0A0A" }}
         aria-describedby={undefined}
       >
         <VisuallyHidden>
@@ -162,34 +162,35 @@ export function UserProfileCaptureViewer({
             transform: isDraggingY
               ? `translateY(${dragY}px) scale(${dismissScale})`
               : undefined,
-            transition: isDraggingY ? "none" : "transform 0.3s ease-out",
+            transition: isDraggingY ? "none" : "transform 0.35s cubic-bezier(0.32,0.72,0,1)",
           }}
         >
-          {/* Minimal top bar */}
-          <div className="absolute top-0 left-0 right-0 z-30 flex items-center gap-3 px-3 py-3 bg-gradient-to-b from-black/50 via-black/20 to-transparent">
+          {/* Minimal top bar — ultra-quiet */}
+          <div className="absolute top-0 left-0 right-0 z-30 flex items-center gap-3 px-4 pt-[env(safe-area-inset-top,12px)] pb-3">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
             <Button
               variant="ghost"
               size="icon"
-              className="text-white/90 hover:bg-white/10 h-9 w-9 shrink-0"
+              className="relative text-white/80 hover:text-white hover:bg-white/[0.06] h-8 w-8 shrink-0 rounded-full transition-all duration-200"
               onClick={() => onOpenChange(false)}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-[18px] w-[18px]" />
             </Button>
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="relative flex items-center gap-2.5 min-w-0">
               <ProfileAvatar
                 photoUrl={post.profiles?.photo_url || null}
                 handle={post.profiles?.handle || ""}
                 name={null}
                 size="sm"
-                className="ring-1 ring-white/20"
+                className="ring-1 ring-white/10 h-7 w-7"
               />
-              <span className="text-white/90 text-sm font-medium truncate">
+              <span className="text-white/70 text-[13px] font-normal tracking-wide truncate">
                 {post.profiles?.handle}
               </span>
             </div>
           </div>
 
-          {/* Image area — edge-to-edge */}
+          {/* Image area — edge-to-edge, centered */}
           <div
             className="flex-1 flex items-center justify-center w-full overflow-hidden"
             onTouchStart={handleTouchStart}
@@ -205,7 +206,7 @@ export function UserProfileCaptureViewer({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
                 className="w-full h-full flex items-center justify-center"
               >
                 {post.image_url ? (
@@ -216,7 +217,7 @@ export function UserProfileCaptureViewer({
                     draggable={false}
                   />
                 ) : (
-                  <div className="w-full aspect-square flex items-center justify-center text-7xl opacity-30">
+                  <div className="w-full aspect-square flex items-center justify-center text-6xl opacity-20">
                     📸
                   </div>
                 )}
@@ -224,63 +225,66 @@ export function UserProfileCaptureViewer({
             </AnimatePresence>
           </div>
 
-          {/* Bottom gradient overlay + metadata */}
+          {/* Bottom gradient — softer, taller */}
           <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="h-48 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="h-56 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 z-30 px-4 pb-safe">
-            <div className="max-w-lg mx-auto space-y-2.5 pb-5">
+          {/* Bottom metadata — quiet and elegant */}
+          <div className="absolute bottom-0 left-0 right-0 z-30 px-5 pb-safe">
+            <div className="max-w-md mx-auto space-y-3 pb-6">
               {/* Caption */}
               {post.caption && (
-                <p className="text-white/90 text-sm leading-relaxed">
+                <p className="text-white/80 text-[13px] leading-[1.6] font-light tracking-wide">
                   {post.caption}
                 </p>
               )}
 
-              {/* Date */}
-              <p className="text-white/40 text-xs tracking-wide">
+              {/* Date — very subtle */}
+              <p className="text-white/30 text-[11px] tracking-widest uppercase font-light">
                 {format(parseISO(post.created_at), "d MMM yyyy · HH:mm")}
               </p>
 
-              {/* Like interaction */}
-              <div className="flex items-center gap-1.5 pointer-events-auto">
+              {/* Like — minimal */}
+              <div className="flex items-center gap-2 pointer-events-auto pt-0.5">
                 <button
                   onClick={handleLike}
-                  className="flex items-center gap-1.5 active:scale-90 transition-transform"
+                  className="flex items-center gap-1.5 active:scale-90 transition-transform duration-150"
                 >
                   <Heart
                     className={cn(
-                      "h-5 w-5 transition-colors duration-200",
+                      "h-[18px] w-[18px] transition-all duration-250",
                       post.user_has_liked
-                        ? "text-red-500 fill-red-500"
-                        : "text-white/60"
+                        ? "text-red-400 fill-red-400"
+                        : "text-white/35 hover:text-white/50"
                     )}
                   />
-                  <span className="text-white/50 text-xs tabular-nums">
-                    {post.likes_count}
-                  </span>
+                  {(post.likes_count ?? 0) > 0 && (
+                    <span className="text-white/35 text-[11px] tabular-nums font-light">
+                      {post.likes_count}
+                    </span>
+                  )}
                 </button>
               </div>
 
-              {/* Dot indicators */}
+              {/* Dot indicators — softer */}
               {posts.length > 1 && posts.length <= 12 && (
-                <div className="flex justify-center gap-1 pt-1">
+                <div className="flex justify-center gap-[5px] pt-2">
                   {posts.map((_, i) => (
                     <span
                       key={i}
                       className={cn(
-                        "rounded-full transition-all duration-300",
+                        "rounded-full transition-all duration-400 ease-out",
                         i === currentIndex
-                          ? "bg-white w-5 h-1.5"
-                          : "bg-white/30 w-1.5 h-1.5"
+                          ? "bg-white/70 w-4 h-[3px]"
+                          : "bg-white/15 w-[5px] h-[3px]"
                       )}
                     />
                   ))}
                 </div>
               )}
               {posts.length > 12 && (
-                <p className="text-center text-white/40 text-xs tabular-nums">
+                <p className="text-center text-white/25 text-[11px] tabular-nums tracking-widest font-light">
                   {currentIndex + 1} / {posts.length}
                 </p>
               )}
