@@ -304,14 +304,14 @@ export function UserProfileCaptureViewer({
                   <Heart
                     className={cn(
                       "h-[18px] w-[18px] transition-all duration-250",
-                      post.user_has_liked
+                      resolvedLiked
                         ? "text-red-400 fill-red-400"
                         : "text-white/35 hover:text-white/50"
                     )}
                   />
-                  {(post.likes_count ?? 0) > 0 && (
+                  {resolvedCount > 0 && (
                     <span className="text-white/35 text-[11px] tabular-nums font-light">
-                      {post.likes_count}
+                      {resolvedCount}
                     </span>
                   )}
                 </button>
