@@ -35,9 +35,13 @@ const Home = () => {
     <div className="min-h-screen bg-background" style={navStyle}>
       <div className="mx-auto max-w-2xl p-4 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-foreground">VYV</h1>
-          <div className="text-sm text-muted-foreground">{t('nav.feed')}</div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            {t('home.greeting')}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t('home.subtitle')}
+          </p>
         </div>
 
         {/* Contextual AI recommendations — quick cards */}
