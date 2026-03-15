@@ -240,12 +240,32 @@ export function UserProfileCaptureViewer({
                 className="w-full h-full flex items-center justify-center px-0 sm:px-8 md:px-16"
               >
                 {post.image_url ? (
-                  <img
-                    src={post.image_url}
-                    alt={post.caption || t("calendar.capture")}
-                    className="max-w-full max-h-full object-contain select-none pointer-events-none rounded-sm"
-                    draggable={false}
-                  />
+                  <>
+                    {imageLoading && !imageError && (
+                      <Skeleton className="absolute inset-0 m-auto w-3/4 max-w-md aspect-square rounded-lg bg-white/5" />
+                    )}
+                    {imageError ? (
+                      <div className="w-full aspect-square max-w-md flex flex-col items-center justify-center gap-3 opacity-40">
+                        <ImageOff className="h-10 w-10 text-white/50" />
+                        <p className="text-white/40 text-xs font-light tracking-wide">
+                          {t("errors.imageLoadFailed", "Could not load image")}
+                        </p>
+                      </div>
+                    ) : (
+                      <img
+                        src={post.image_url}
+                        alt={post.caption || t("calendar.capture")}
+                        className={cn(
+                          "max-w-full max-h-full object-contain select-none pointer-events-none rounded-sm transition-opacity duration-300",
+                          imageLoading ? "opacity-0" : "opacity-100"
+                        )}
+                        draggable={false}
+                        loading="eager"
+                        onLoad={() => setImageLoading(false)}
+                        onError={() => { setImageError(true); setImageLoading(false); }}
+                      />
+                    )}
+                  </>
                 ) : (
                   <div className="w-full aspect-square max-w-md flex items-center justify-center text-6xl opacity-20">
                     📸
