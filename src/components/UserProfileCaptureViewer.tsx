@@ -148,7 +148,7 @@ export function UserProfileCaptureViewer({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none [&>button]:hidden"
+        className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none [&>button]:hidden flex items-center justify-center"
         style={{ opacity: dismissOpacity, background: "#0A0A0A" }}
         aria-describedby={undefined}
       >
