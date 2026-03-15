@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Lock } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { ImmersivePostViewer } from "@/components/ImmersivePostViewer";
+import { UserProfileCaptureViewer } from "@/components/UserProfileCaptureViewer";
 import type { Post } from "@/hooks/use-posts";
 import { cn } from "@/lib/utils";
 
