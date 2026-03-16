@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,11 @@ export function CaptureDetailModal({
 }: CaptureDetailModalProps) {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Sync currentIndex when initialIndex changes (e.g., reopening the modal with a different capture)
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const deleteEntry = useDeleteEntry();
   const updateVisibility = useUpdateEntryVisibility();
