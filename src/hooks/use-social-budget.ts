@@ -165,7 +165,7 @@ export function useSocialBudgetTracker() {
         .eq("user_id", user.id)
         .eq("module", "FEED")
         .eq("date", today)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         // Update existing record
