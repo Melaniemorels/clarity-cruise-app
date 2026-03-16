@@ -78,7 +78,7 @@ export function UserProfileCaptureViewer({
   }, [open, currentIndex, hasPrev, hasNext, goTo, onOpenChange]);
 
   const handleLike = () => {
-    if (!user || !post) return;
+    if (!user || !post || likeMutation.isPending) return;
     const currentlyLiked = resolvedLiked;
     // Optimistic local update
     setOptimisticLikes((prev) => {
@@ -89,20 +89,37 @@ export function UserProfileCaptureViewer({
       });
       return next;
     });
-    likeMutation.mutate({ postId: post.id, hasLiked: currentlyLiked });
+    likeMutation.mutate({ postId: post.id, hasLiked: currentlyLiked }, {
+      onSettled: () => {
+        // Clear optimistic state so server truth takes over after refetch
+        setOptimisticLikes((prev) => {
+          const next = new Map(prev);
+          next.delete(post.id);
+          return next;
+        });
+      },
+    });
   };
 
   // Double-tap to like
   const handleTap = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      if (!resolvedLiked && user && post) {
+      if (!resolvedLiked && user && post && !likeMutation.isPending) {
         setOptimisticLikes((prev) => {
           const next = new Map(prev);
           next.set(post.id, { liked: true, count: resolvedCount + 1 });
           return next;
         });
-        likeMutation.mutate({ postId: post.id, hasLiked: false });
+        likeMutation.mutate({ postId: post.id, hasLiked: false }, {
+          onSettled: () => {
+            setOptimisticLikes((prev) => {
+              const next = new Map(prev);
+              next.delete(post.id);
+              return next;
+            });
+          },
+        });
       }
     }
     lastTapRef.current = now;
