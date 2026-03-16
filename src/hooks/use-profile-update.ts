@@ -102,7 +102,7 @@ export function useUpdateCurrentUserProfile() {
           .select('id')
           .eq('handle', updates.handle)
           .neq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (existingHandle) {
           throw new Error(t('editProfile.usernameTaken'));
