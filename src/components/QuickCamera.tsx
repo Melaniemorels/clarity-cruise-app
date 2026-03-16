@@ -251,19 +251,24 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       if (postError) throw postError;
 
-      const captureTime = new Date(timestamp);
-      const endTime = new Date(captureTime.getTime() + 30 * 60 * 1000).toISOString();
+      // Schedule block is optional — don't abort the capture if it fails
+      try {
+        const captureTime = new Date(timestamp);
+        const endTime = new Date(captureTime.getTime() + 30 * 60 * 1000).toISOString();
 
-      const { error: blockError } = await supabase.from("schedule_blocks").insert({
-        user_id: user.id,
-        title: activityTag,
-        start_at: timestamp,
-        end_at: endTime,
-        visibility: "public",
-        note: urlData.publicUrl,
-      });
-
-      if (blockError) throw blockError;
+        await supabase.from("schedule_blocks").insert({
+          user_id: user.id,
+          title: activityTag,
+          start_at: timestamp,
+          end_at: endTime,
+          visibility: "public",
+          note: urlData.publicUrl,
+        });
+      } catch (blockErr) {
+        if (import.meta.env.DEV) {
+          console.warn("Schedule block insert failed (non-critical):", blockErr);
+        }
+      }
 
       toast.success(t('camera.photoSaved'));
 
