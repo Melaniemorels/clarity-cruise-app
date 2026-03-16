@@ -38,6 +38,7 @@ const MediaConnections = lazy(() => import("./pages/MediaConnections"));
 const FindFriends = lazy(() => import("./pages/FindFriends"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Minimal loading fallback — appears briefly while route chunk loads
 const PageLoader = () => (
