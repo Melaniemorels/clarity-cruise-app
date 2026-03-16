@@ -32,7 +32,7 @@ export function useModuleTimeTracker(module: AppModule) {
         .eq("user_id", user.id)
         .eq("module", module)
         .eq("date", today)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         await supabase
