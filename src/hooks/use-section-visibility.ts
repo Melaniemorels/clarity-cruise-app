@@ -27,6 +27,7 @@ interface RawSectionVisibility {
 
 export function useSectionVisibility() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [settings, setSettings] = useState<SectionVisibilitySettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
