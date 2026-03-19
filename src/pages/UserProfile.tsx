@@ -45,9 +45,10 @@ const UserProfile = () => {
   const { access, isLoading: accessLoading, isPrivateLocked } = useViewerAccess(userId);
   const { data: followStatus } = useFollowStatus(userId);
 
-  // Fetch user's posts (only when we have access)
+  // Fetch user's posts only when access allows (skip if private-locked or no post access)
+  const shouldFetchPosts = !accessLoading && !isPrivateLocked && access.canViewPosts;
   const { data: userPosts = [], isLoading: postsLoading } = usePosts({
-    userId: userId,
+    userId: shouldFetchPosts ? userId : undefined,
     feedType: "user",
   });
   const { data: profile, isLoading, error } = useQuery({
