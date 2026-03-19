@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ interface RawSectionVisibility {
 
 export function useSectionVisibility() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [settings, setSettings] = useState<SectionVisibilitySettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
@@ -89,6 +91,10 @@ export function useSectionVisibility() {
           .eq("user_id", user.id) as any);
 
         if (error) throw error;
+        // Invalidate queries that depend on visibility settings
+        queryClient.invalidateQueries({ queryKey: ["target-profile-privacy"] });
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+        queryClient.invalidateQueries({ queryKey: ["entries"] });
         return true;
       } catch (error) {
         console.error("Error updating section visibility:", error);
@@ -98,7 +104,7 @@ export function useSectionVisibility() {
         return false;
       }
     },
-    [user, settings]
+    [user, settings, queryClient]
   );
 
   return {
