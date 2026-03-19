@@ -91,6 +91,10 @@ export function useSectionVisibility() {
           .eq("user_id", user.id) as any);
 
         if (error) throw error;
+        // Invalidate queries that depend on visibility settings
+        queryClient.invalidateQueries({ queryKey: ["target-profile-privacy"] });
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+        queryClient.invalidateQueries({ queryKey: ["entries"] });
         return true;
       } catch (error) {
         console.error("Error updating section visibility:", error);
@@ -100,7 +104,7 @@ export function useSectionVisibility() {
         return false;
       }
     },
-    [user, settings]
+    [user, settings, queryClient]
   );
 
   return {
