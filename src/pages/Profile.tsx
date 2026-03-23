@@ -27,6 +27,27 @@ import { useDevice } from "@/hooks/use-device";
 import { useNavStyle } from "@/components/ResponsiveNav";
 import { cn } from "@/lib/utils";
 
+/** Renders a capture thumbnail with graceful fallback on load error */
+function CaptureImage({ src, alt }: { src: string; alt: string }) {
+  const [error, setError] = useState(false);
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
+        📸
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      loading="lazy"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 const Profile = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
