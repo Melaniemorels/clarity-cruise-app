@@ -274,6 +274,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       toast.success(t('camera.photoSaved'));
 
+      // Invalidate queries so captures appear immediately
+      queryClient.invalidateQueries({ queryKey: ["entries"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+
       // Check if we should show auto-save prompt or auto-save
       if (!wasAutoSavePrompted()) {
         pendingImageRef.current = capturedImage;

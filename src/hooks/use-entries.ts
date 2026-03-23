@@ -250,7 +250,7 @@ export function useUpdateEntryVisibility() {
   });
 }
 
-// Delete entry
+// Delete entry (also cleans up storage file)
 export function useDeleteEntry() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -259,6 +259,14 @@ export function useDeleteEntry() {
     mutationFn: async (entryId: string) => {
       if (!user) throw new Error(i18n.t('errors.unauthorized'));
 
+      // Fetch the entry first to get the photo_url for storage cleanup
+      const { data: entry } = await supabase
+        .from("entries")
+        .select("photo_url")
+        .eq("id", entryId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("entries")
         .delete()
@@ -266,10 +274,24 @@ export function useDeleteEntry() {
         .eq("user_id", user.id);
 
       if (error) throw error;
+
+      // Clean up storage file (non-blocking)
+      if (entry?.photo_url) {
+        try {
+          const url = new URL(entry.photo_url);
+          const pathMatch = url.pathname.match(/\/object\/public\/quick-captures\/(.+)$/);
+          if (pathMatch) {
+            await supabase.storage.from("quick-captures").remove([pathMatch[1]]);
+          }
+        } catch {
+          // Storage cleanup is best-effort
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
-      toast.success(i18n.t('captureDetail.visibilityUpdated'));
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast.success(i18n.t('captureDetail.deleted'));
     },
     onError: () => {
       toast.error(i18n.t('errors.generic'));
