@@ -242,6 +242,8 @@ export function useUpdateEntryVisibility() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entries"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["target-profile-privacy"] });
       toast.success(i18n.t('captureDetail.visibilityUpdated'));
     },
     onError: () => {

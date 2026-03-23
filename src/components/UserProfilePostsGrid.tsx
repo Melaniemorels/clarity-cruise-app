@@ -71,12 +71,7 @@ export function UserProfilePostsGrid({
                   )}
                 >
                   {post.image_url ? (
-                    <img
-                      src={post.image_url}
-                      alt={t("calendar.capture")}
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                      loading="lazy"
-                    />
+                    <PostThumbnail src={post.image_url} alt={t("calendar.capture")} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
                       📸
