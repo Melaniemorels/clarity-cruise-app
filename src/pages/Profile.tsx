@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CaptureDetailModal } from "@/components/CaptureDetailModal";
 import { ResponsiveNav } from "@/components/ResponsiveNav";
