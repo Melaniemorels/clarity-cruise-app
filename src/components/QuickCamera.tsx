@@ -83,6 +83,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const streamRef = useRef<MediaStream | null>(null);
   const pendingImageRef = useRef<string | null>(null);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const startCamera = async (mode: FacingMode = facingMode) => {
     if (streamRef.current) {
