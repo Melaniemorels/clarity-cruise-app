@@ -446,7 +446,8 @@
     "delete": "Eliminar captura",
     "deleteTitle": "¿Eliminar esta captura?",
     "deleteDesc": "Esta acción no se puede deshacer. La captura será eliminada permanentemente.",
-    "visibilityUpdated": "Visibilidad actualizada"
+    "visibilityUpdated": "Visibilidad actualizada",
+    "deleted": "Captura eliminada"
   },
   "editProfile": {
     "title": "Editar Perfil",

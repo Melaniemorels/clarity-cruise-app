@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { moderateContent } from "@/lib/moderation";
@@ -82,6 +83,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const streamRef = useRef<MediaStream | null>(null);
   const pendingImageRef = useRef<string | null>(null);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const startCamera = async (mode: FacingMode = facingMode) => {
     if (streamRef.current) {
@@ -271,6 +273,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       }
 
       toast.success(t('camera.photoSaved'));
+
+      // Invalidate queries so captures appear immediately
+      queryClient.invalidateQueries({ queryKey: ["entries"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
 
       // Check if we should show auto-save prompt or auto-save
       if (!wasAutoSavePrompted()) {
