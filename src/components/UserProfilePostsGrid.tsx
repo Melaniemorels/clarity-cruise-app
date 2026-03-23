@@ -8,6 +8,27 @@ import { UserProfileCaptureViewer } from "@/components/UserProfileCaptureViewer"
 import type { Post } from "@/hooks/use-posts";
 import { cn } from "@/lib/utils";
 
+/** Thumbnail with broken-image fallback */
+function PostThumbnail({ src, alt }: { src: string; alt: string }) {
+  const [error, setError] = useState(false);
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
+        📸
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+      loading="lazy"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 interface UserProfilePostsGridProps {
   posts: Post[];
   isLoading: boolean;
