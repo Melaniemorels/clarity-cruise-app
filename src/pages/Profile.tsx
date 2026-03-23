@@ -295,11 +295,9 @@ const Profile = () => {
                     className="aspect-square rounded-lg bg-muted relative overflow-hidden group cursor-pointer"
                   >
                     {entry.photo_url ? (
-                      <img 
-                        src={entry.photo_url} 
+                      <CaptureImage
+                        src={entry.photo_url}
                         alt={t('calendar.capture')}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-secondary/10">
