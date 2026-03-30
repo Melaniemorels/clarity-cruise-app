@@ -702,6 +702,7 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <LogOut className="mr-2 h-4 w-4" />
                 {t("auth.signOut")}
               </Button>
+            </div>
           </div>
       </BottomSheet>
 
