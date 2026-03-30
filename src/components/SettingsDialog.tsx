@@ -5,12 +5,8 @@ import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
