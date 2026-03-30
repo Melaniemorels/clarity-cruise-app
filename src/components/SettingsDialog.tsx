@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import {
   Select,
   SelectContent,
@@ -211,9 +211,9 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
         collapsedHeight={0.55}
         expandedHeight={0.93}
         header={
-          <DialogHeader className="px-6 pt-2 pb-2 flex-shrink-0">
-            <DialogTitle>{t("settings.title")}</DialogTitle>
-          </DialogHeader>
+          <div className="px-6 pt-2 pb-2 flex-shrink-0">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">{t("settings.title")}</h2>
+          </div>
         }
       >
           <div className="px-6 pb-6">

@@ -221,7 +221,7 @@ export function BottomSheet({
             ref={sheetRef}
             className={cn(
               "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl border border-border bg-card shadow-2xl",
-              "touch-none select-none",
+              "select-none",
               className,
             )}
             style={{
@@ -232,7 +232,7 @@ export function BottomSheet({
           >
             {/* Drag Handle */}
             <div
-              className="flex-shrink-0 flex items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+              className="flex-shrink-0 flex items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
               onPointerDown={(e) => onPointerDown(e, true)}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
