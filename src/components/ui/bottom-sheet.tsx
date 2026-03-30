@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type SnapState = "collapsed" | "expanded" | "closed";
@@ -17,9 +17,10 @@ interface BottomSheetProps {
   className?: string;
 }
 
-const VELOCITY_THRESHOLD = 300;
-const DRAG_UP_THRESHOLD = 0.2;
-const DRAG_DOWN_CLOSE_THRESHOLD = 0.3;
+const VELOCITY_THRESHOLD = 400; // px/s
+const DRAG_EXPAND_RATIO = 0.25;
+const DRAG_CLOSE_RATIO = 0.3;
+const DRAG_COLLAPSE_RATIO = 0.3;
 
 export function BottomSheet({
   open,
@@ -31,172 +32,263 @@ export function BottomSheet({
   className,
 }: BottomSheetProps) {
   const [snap, setSnap] = useState<SnapState>("collapsed");
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-  const startY = useRef(0);
-  const startTranslate = useRef(0);
-  const currentTranslate = useRef(0);
-  const lastTime = useRef(0);
-  const lastY = useRef(0);
-  const velocity = useRef(0);
-  const fromHandle = useRef(false);
+  const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [entering, setEntering] = useState(false);
 
-  // Spring-driven translateY
-  const springY = useSpring(0, { stiffness: 400, damping: 35, mass: 0.8 });
-  const backdropOpacity = useTransform(springY, (y) => {
-    const windowH = window.innerHeight;
-    const collapsedY = windowH * (1 - collapsedHeight);
-    const expandedY = windowH * (1 - expandedHeight);
-    // Map from expandedY..windowH to 0.6..0
-    const norm = Math.max(0, Math.min(1, (y - expandedY) / (windowH - expandedY)));
-    return 0.6 - norm * 0.6;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef({
+    active: false,
+    startY: 0,
+    startTranslate: 0,
+    lastY: 0,
+    lastTime: 0,
+    velocity: 0,
+    fromHandle: false,
+    // Track if we've decided this touch is a scroll vs drag
+    decided: false,
+    isScroll: false,
   });
 
   const getSnapY = useCallback(
     (state: SnapState) => {
-      const h = window.innerHeight;
+      const h = typeof window !== "undefined" ? window.innerHeight : 800;
       if (state === "collapsed") return h * (1 - collapsedHeight);
       if (state === "expanded") return h * (1 - expandedHeight);
-      return h; // closed
+      return h;
     },
     [collapsedHeight, expandedHeight],
   );
 
-  // Animate to snap
-  const animateTo = useCallback(
+  // Animate to a snap position
+  const snapTo = useCallback(
     (state: SnapState) => {
       setSnap(state);
-      springY.set(getSnapY(state));
+      setIsDragging(false);
+      setTranslateY(getSnapY(state));
       if (state === "closed") {
-        setTimeout(() => onOpenChange(false), 300);
+        setTimeout(() => onOpenChange(false), 280);
       }
     },
-    [springY, getSnapY, onOpenChange],
+    [getSnapY, onOpenChange],
   );
 
-  // On open, reset to collapsed
+  // On open → enter from bottom
   useEffect(() => {
     if (open) {
+      setEntering(true);
       setSnap("collapsed");
-      // Start off-screen, then animate in
-      springY.jump(window.innerHeight);
+      setTranslateY(window.innerHeight);
+      // Next frame: animate to collapsed
       requestAnimationFrame(() => {
-        springY.set(getSnapY("collapsed"));
+        requestAnimationFrame(() => {
+          setTranslateY(getSnapY("collapsed"));
+          setEntering(false);
+        });
       });
     }
-  }, [open, springY, getSnapY]);
+  }, [open, getSnapY]);
 
   const isScrollAtTop = () => {
     if (!scrollRef.current) return true;
-    return scrollRef.current.scrollTop <= 0;
+    return scrollRef.current.scrollTop <= 1;
   };
 
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent, isHandle: boolean) => {
-      // Only start drag from handle, or from content when expanded and scroll at top
-      if (!isHandle && snap !== "expanded") return;
-      if (!isHandle && !isScrollAtTop()) return;
-
-      fromHandle.current = isHandle;
-      dragging.current = true;
-      startY.current = e.clientY;
-      startTranslate.current = springY.get();
-      currentTranslate.current = startTranslate.current;
-      lastY.current = e.clientY;
-      lastTime.current = Date.now();
-      velocity.current = 0;
-
+  // ── Handle drag (pointer events — always draggable) ──
+  const onHandlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+      const ds = dragState.current;
+      ds.active = true;
+      ds.fromHandle = true;
+      ds.startY = e.clientY;
+      ds.startTranslate = getSnapY(snap);
+      ds.lastY = e.clientY;
+      ds.lastTime = Date.now();
+      ds.velocity = 0;
+      ds.decided = true;
+      ds.isScroll = false;
+      setIsDragging(true);
     },
-    [snap, springY],
+    [snap, getSnapY],
   );
 
-  const onPointerMove = useCallback(
+  const onHandlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!dragging.current) return;
+      const ds = dragState.current;
+      if (!ds.active) return;
 
-      const deltaY = e.clientY - startY.current;
-      let newY = startTranslate.current + deltaY;
+      const deltaY = e.clientY - ds.startY;
+      let newY = ds.startTranslate + deltaY;
 
-      // Clamp: don't go above expanded or below screen
+      // Rubber-band above expanded
       const expandedY = getSnapY("expanded");
-      const maxY = window.innerHeight;
-      // Rubber band effect above expanded
       if (newY < expandedY) {
         const over = expandedY - newY;
-        newY = expandedY - over * 0.15;
+        newY = expandedY - over * 0.12;
       }
-      newY = Math.min(newY, maxY);
+      newY = Math.min(newY, window.innerHeight);
 
-      springY.jump(newY);
-      currentTranslate.current = newY;
+      setTranslateY(newY);
 
-      // Track velocity
+      // velocity
       const now = Date.now();
-      const dt = now - lastTime.current;
+      const dt = now - ds.lastTime;
       if (dt > 0) {
-        velocity.current = (e.clientY - lastY.current) / dt * 1000;
+        ds.velocity = ((e.clientY - ds.lastY) / dt) * 1000;
       }
-      lastY.current = e.clientY;
-      lastTime.current = now;
+      ds.lastY = e.clientY;
+      ds.lastTime = now;
     },
-    [springY, getSnapY],
+    [getSnapY],
   );
 
-  const onPointerUp = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
+  const resolveSnap = useCallback(
+    (currentY: number, v: number) => {
+      const collapsedY = getSnapY("collapsed");
+      const expandedY = getSnapY("expanded");
+      const windowH = window.innerHeight;
 
-    const y = currentTranslate.current;
-    const collapsedY = getSnapY("collapsed");
-    const expandedY = getSnapY("expanded");
-    const windowH = window.innerHeight;
-    const v = velocity.current;
-
-    // Fast flick detection
-    if (v < -VELOCITY_THRESHOLD) {
-      // Flicking up → expand
-      animateTo("expanded");
-      return;
-    }
-    if (v > VELOCITY_THRESHOLD) {
-      // Flicking down
-      if (snap === "expanded") {
-        animateTo("collapsed");
-      } else {
-        animateTo("closed");
+      // Fast flick up → expand
+      if (v < -VELOCITY_THRESHOLD) {
+        snapTo("expanded");
+        return;
       }
-      return;
-    }
-
-    // Position-based snapping
-    if (snap === "collapsed") {
-      const dragDistance = collapsedY - y;
-      const range = collapsedY - expandedY;
-      if (dragDistance > range * DRAG_UP_THRESHOLD) {
-        animateTo("expanded");
-      } else {
-        const downDistance = y - collapsedY;
-        const downRange = windowH - collapsedY;
-        if (downDistance > downRange * DRAG_DOWN_CLOSE_THRESHOLD) {
-          animateTo("closed");
+      // Fast flick down
+      if (v > VELOCITY_THRESHOLD) {
+        if (snap === "expanded") {
+          snapTo("collapsed");
         } else {
-          animateTo("collapsed");
+          snapTo("closed");
+        }
+        return;
+      }
+
+      // Position-based
+      if (snap === "collapsed") {
+        const upDist = collapsedY - currentY;
+        const upRange = collapsedY - expandedY;
+        if (upDist > upRange * DRAG_EXPAND_RATIO) {
+          snapTo("expanded");
+          return;
+        }
+        const downDist = currentY - collapsedY;
+        const downRange = windowH - collapsedY;
+        if (downDist > downRange * DRAG_CLOSE_RATIO) {
+          snapTo("closed");
+          return;
+        }
+        snapTo("collapsed");
+      } else if (snap === "expanded") {
+        const downDist = currentY - expandedY;
+        const range = collapsedY - expandedY;
+        if (downDist > range * DRAG_COLLAPSE_RATIO) {
+          snapTo("collapsed");
+        } else {
+          snapTo("expanded");
         }
       }
-    } else if (snap === "expanded") {
-      const downDistance = y - expandedY;
-      const range = collapsedY - expandedY;
-      if (downDistance > range * 0.3) {
-        animateTo("collapsed");
-      } else {
-        animateTo("expanded");
+    },
+    [snap, getSnapY, snapTo],
+  );
+
+  const onHandlePointerUp = useCallback(() => {
+    const ds = dragState.current;
+    if (!ds.active) return;
+    ds.active = false;
+    resolveSnap(getSnapY(snap) + (translateY - getSnapY(snap)), ds.velocity);
+  }, [resolveSnap, snap, getSnapY, translateY]);
+
+  // ── Content area: touch events for scroll-vs-drag detection ──
+  const onContentTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      const ds = dragState.current;
+      ds.decided = false;
+      ds.isScroll = false;
+      ds.fromHandle = false;
+      ds.startY = e.touches[0].clientY;
+      ds.startTranslate = getSnapY(snap);
+      ds.lastY = e.touches[0].clientY;
+      ds.lastTime = Date.now();
+      ds.velocity = 0;
+    },
+    [snap, getSnapY],
+  );
+
+  const onContentTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      const ds = dragState.current;
+      if (ds.fromHandle) return; // handle takes over
+      const touchY = e.touches[0].clientY;
+      const deltaY = touchY - ds.startY;
+
+      if (!ds.decided) {
+        // Need at least 5px movement to decide
+        if (Math.abs(deltaY) < 5) return;
+        ds.decided = true;
+
+        // Dragging down while scroll is at top → sheet drag
+        if (deltaY > 0 && isScrollAtTop()) {
+          ds.isScroll = false;
+          ds.active = true;
+          setIsDragging(true);
+          // Prevent default scrolling
+          if (scrollRef.current) {
+            scrollRef.current.style.overflowY = "hidden";
+          }
+        } else {
+          // Everything else is a normal scroll
+          ds.isScroll = true;
+          return;
+        }
       }
+
+      if (ds.isScroll) return;
+      if (!ds.active) return;
+
+      e.preventDefault();
+      let newY = ds.startTranslate + deltaY;
+      const expandedY = getSnapY("expanded");
+      if (newY < expandedY) {
+        const over = expandedY - newY;
+        newY = expandedY - over * 0.12;
+      }
+      newY = Math.min(newY, window.innerHeight);
+      setTranslateY(newY);
+
+      const now = Date.now();
+      const dt = now - ds.lastTime;
+      if (dt > 0) {
+        ds.velocity = ((touchY - ds.lastY) / dt) * 1000;
+      }
+      ds.lastY = touchY;
+      ds.lastTime = now;
+    },
+    [getSnapY],
+  );
+
+  const onContentTouchEnd = useCallback(() => {
+    const ds = dragState.current;
+    // Restore scroll
+    if (scrollRef.current) {
+      scrollRef.current.style.overflowY = "auto";
     }
-  }, [snap, getSnapY, animateTo]);
+    if (!ds.active || ds.isScroll) {
+      ds.active = false;
+      return;
+    }
+    ds.active = false;
+    resolveSnap(translateY, ds.velocity);
+  }, [resolveSnap, translateY]);
 
   if (!open) return null;
+
+  const backdropOpacity = (() => {
+    const expandedY = getSnapY("expanded");
+    const windowH = typeof window !== "undefined" ? window.innerHeight : 800;
+    const norm = Math.max(0, Math.min(1, (translateY - expandedY) / (windowH - expandedY)));
+    return 0.6 - norm * 0.6;
+  })();
 
   return (
     <AnimatePresence>
@@ -206,26 +298,26 @@ export function BottomSheet({
           <motion.div
             className="fixed inset-0 z-50"
             style={{
-              backgroundColor: "hsl(var(--background) / 0.8)",
+              backgroundColor: `hsl(var(--background) / ${backdropOpacity})`,
               backdropFilter: "blur(4px)",
-              opacity: backdropOpacity,
             }}
-            onClick={() => animateTo("closed")}
+            onClick={() => snapTo("closed")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           />
 
           {/* Sheet */}
-          <motion.div
-            ref={sheetRef}
+          <div
             className={cn(
               "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl border border-border bg-card shadow-2xl",
               "select-none",
               className,
             )}
             style={{
-              y: springY,
+              transform: `translateY(${translateY}px)`,
+              transition: isDragging ? "none" : "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)",
               height: `${expandedHeight * 100}vh`,
               willChange: "transform",
             }}
@@ -233,36 +325,28 @@ export function BottomSheet({
             {/* Drag Handle */}
             <div
               className="flex-shrink-0 flex items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
-              onPointerDown={(e) => onPointerDown(e, true)}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
+              onPointerDown={onHandlePointerDown}
+              onPointerMove={onHandlePointerMove}
+              onPointerUp={onHandlePointerUp}
+              onPointerCancel={onHandlePointerUp}
             >
               <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
             </div>
 
-            {/* Header (non-draggable content) */}
+            {/* Header */}
             {header}
 
             {/* Scrollable content */}
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto overscroll-contain"
-              style={{
-                touchAction: snap === "expanded" ? "pan-y" : "none",
-              }}
-              onPointerDown={(e) => {
-                if (snap === "expanded" && isScrollAtTop()) {
-                  onPointerDown(e, false);
-                }
-              }}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
+              onTouchStart={onContentTouchStart}
+              onTouchMove={onContentTouchMove}
+              onTouchEnd={onContentTouchEnd}
             >
               {children}
             </div>
-          </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
