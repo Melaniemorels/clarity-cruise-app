@@ -232,7 +232,7 @@ export function BottomSheet({
           >
             {/* Drag Handle */}
             <div
-              className="flex-shrink-0 flex items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+              className="flex-shrink-0 flex items-center justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
               onPointerDown={(e) => onPointerDown(e, true)}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
