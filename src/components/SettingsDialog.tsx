@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import {
   Select,
   SelectContent,
