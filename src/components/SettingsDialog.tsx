@@ -205,13 +205,18 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[85vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+      <BottomSheet
+        open={open}
+        onOpenChange={onOpenChange}
+        collapsedHeight={0.55}
+        expandedHeight={0.93}
+        header={
+          <DialogHeader className="px-6 pt-2 pb-2 flex-shrink-0">
             <DialogTitle>{t("settings.title")}</DialogTitle>
           </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-6 pb-6">
+        }
+      >
+          <div className="px-6 pb-6">
             <div className="space-y-6 py-4 pr-4">
               {/* Appearance */}
               <div>
