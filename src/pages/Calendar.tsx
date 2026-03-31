@@ -303,8 +303,8 @@ const Calendar = () => {
   const isLandscape = device.isLandscape;
 
   return (
-    <div className={cn("min-h-screen bg-background flex flex-col")} style={navStyle}>
-      <div className={cn("p-4 space-y-4 flex-1 overflow-y-auto overscroll-contain", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
+    <div className={cn("min-h-screen h-[100dvh] bg-background flex flex-col", view === "day" && "overflow-hidden")} style={navStyle}>
+      <div className={cn("p-4 space-y-4 flex-1 min-h-0", view === "day" ? "flex flex-col overflow-hidden" : "overflow-y-auto overscroll-contain", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">
           <div>
@@ -334,7 +334,7 @@ const Calendar = () => {
         </div>
 
         {/* View Tabs */}
-        <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
+        <Tabs value={view} onValueChange={(v) => setView(v as any)} className={cn("w-full", view === "day" && "flex flex-1 min-h-0 flex-col")}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="day">{t('calendar.day')}</TabsTrigger>
             <TabsTrigger value="week">{t('calendar.week')}</TabsTrigger>
@@ -342,7 +342,7 @@ const Calendar = () => {
           </TabsList>
 
           {/* Day View */}
-          <TabsContent value="day" className="space-y-4">
+          <TabsContent value="day" className={cn("space-y-4", view === "day" && "flex flex-1 min-h-0 flex-col overflow-hidden")}>
             <div className="flex items-center justify-between">
               <Button variant="outline" size="icon" onClick={goToPrevious}>
                 <ChevronLeft className="h-4 w-4" />
@@ -357,12 +357,12 @@ const Calendar = () => {
               </Button>
             </div>
 
-            <Card>
-              <CardContent className="p-0">
+            <Card className="flex-1 min-h-0 overflow-hidden">
+              <CardContent className="p-0 h-full min-h-0">
                 {isLoading ? (
                   <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
-                  <div className="max-h-[55vh] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y' }}>
+                  <div className="h-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
                     {/* Hour grid with absolutely-positioned events */}
                     <div className="flex">
                       {/* Hour labels column */}
