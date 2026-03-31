@@ -303,8 +303,8 @@ const Calendar = () => {
   const isLandscape = device.isLandscape;
 
   return (
-    <div className={cn("min-h-screen h-[100dvh] bg-background flex flex-col", view === "day" && "overflow-hidden")} style={navStyle}>
-      <div className={cn("p-4 space-y-4 flex-1 min-h-0", view === "day" ? "flex flex-col overflow-hidden" : "overflow-y-auto overscroll-contain", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
+    <div className="min-h-screen bg-background flex flex-col" style={navStyle}>
+      <div className={cn("p-4 space-y-4 flex-1 overflow-y-auto overscroll-contain", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">
           <div>
