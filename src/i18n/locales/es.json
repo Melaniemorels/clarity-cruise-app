@@ -194,8 +194,39 @@
     "hShort": "h",
     "friendHint": {
       "bothFree": "Tú y {{name}} están libres",
-      "suggestPlan": "Sugerir plan",
+      "twoFree": "{{name1}} y {{name2}} están libres",
+      "manyFree": "{{name}} y {{count}} más están libres",
+      "prompt": "Momento perfecto para conectar",
+      "planIdeas": "Ideas",
+      "funIdeas": "Algo diferente",
+      "plans": {
+        "coffee": "Café",
+        "walk": "Paseo",
+        "lunch": "Almuerzo",
+        "study": "Estudiar juntos",
+        "catchUp": "Ponerse al día",
+        "sunsetPicnic": "Picnic al atardecer",
+        "beachWalk": "Paseo por la playa",
+        "newCafe": "Probar un café nuevo",
+        "workout": "Clase de ejercicio",
+        "dinner": "Cena espontánea"
+      },
+      "planSuggested": "\"{{plan}}\" sugerido",
+      "inviteFriends": "Invitar amigos",
+      "createPlan": "Crear plan",
       "inviteSent": "Invitación enviada a {{name}}"
+    },
+    "createPlan": {
+      "title": "Crear un plan",
+      "planName": "Plan",
+      "planNamePlaceholder": "¿Qué quieres hacer?",
+      "time": "Hora",
+      "friends": "Amigos",
+      "note": "Nota",
+      "notePlaceholder": "Añade una nota...",
+      "create": "Crear",
+      "created": "Plan creado",
+      "titleRequired": "Añade un nombre al plan"
     }
   },
   "profile": {
