@@ -448,6 +448,15 @@ const Calendar = () => {
                             </div>
                           );
                         })}
+
+                        {/* Friend availability hints — subtle inline suggestions */}
+                        {friendHints.map((hint, idx) => (
+                          <FriendAvailabilityHint
+                            key={`friend-hint-${idx}`}
+                            block={hint}
+                            pixelsPerMinute={PIXELS_PER_MINUTE}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
