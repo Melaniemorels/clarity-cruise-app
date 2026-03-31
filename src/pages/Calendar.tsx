@@ -358,7 +358,7 @@ const Calendar = () => {
             </div>
 
             <Card className="flex-1 min-h-0 overflow-hidden">
-              <CardContent className="p-0">
+              <CardContent className="p-0 h-full min-h-0">
                 {isLoading ? (
                   <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
