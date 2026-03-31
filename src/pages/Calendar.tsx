@@ -23,6 +23,8 @@ import { es, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
+import { useFriendAvailability } from "@/hooks/use-friend-availability";
+import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
