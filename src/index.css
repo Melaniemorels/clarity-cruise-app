@@ -303,43 +303,81 @@
 
   /* Category background utilities */
   .category-work {
-    background-color: hsl(var(--category-work) / 0.2);
+    background-color: hsl(var(--category-work) / 0.24);
     border-color: hsl(var(--category-work));
   }
   
   .category-sport {
-    background-color: hsl(var(--category-sport) / 0.2);
+    background-color: hsl(var(--category-sport) / 0.24);
     border-color: hsl(var(--category-sport));
   }
   
   .category-health {
-    background-color: hsl(var(--primary) / 0.2);
+    background-color: hsl(var(--primary) / 0.24);
     border-color: hsl(var(--primary));
   }
   
   .category-study {
-    background-color: hsl(var(--category-study) / 0.2);
+    background-color: hsl(var(--category-study) / 0.24);
     border-color: hsl(var(--category-study));
   }
   
   .category-reading {
-    background-color: hsl(var(--category-reading) / 0.2);
+    background-color: hsl(var(--category-reading) / 0.24);
     border-color: hsl(var(--category-reading));
   }
   
   .category-social {
-    background-color: hsl(var(--category-social) / 0.2);
+    background-color: hsl(var(--category-social) / 0.24);
     border-color: hsl(var(--category-social));
   }
   
   .category-photo {
-    background-color: hsl(var(--category-photo) / 0.2);
+    background-color: hsl(var(--category-photo) / 0.24);
     border-color: hsl(var(--category-photo));
   }
   
   .category-other {
-    background-color: hsl(var(--secondary) / 0.2);
+    background-color: hsl(var(--secondary) / 0.24);
     border-color: hsl(var(--secondary));
+  }
+
+  .timeline-item {
+    isolation: isolate;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    background-clip: padding-box;
+  }
+
+  .timeline-event-surface {
+    box-shadow:
+      0 0 0 1px hsl(var(--background) / 0.92),
+      0 1px 2px hsl(var(--foreground) / 0.04);
+  }
+
+  .timeline-capture-surface {
+    background-color: hsl(var(--card) / 0.96);
+    border: 1px solid hsl(var(--border));
+    border-left: 4px solid hsl(var(--category-photo));
+    box-shadow:
+      0 0 0 1px hsl(var(--background) / 0.92),
+      0 6px 16px hsl(var(--foreground) / 0.05);
+  }
+
+  .timeline-social-surface {
+    background-color: hsl(var(--primary) / 0.06);
+    border-color: hsl(var(--primary) / 0.14);
+    box-shadow:
+      0 0 0 1px hsl(var(--background) / 0.92),
+      0 1px 2px hsl(var(--foreground) / 0.03);
+  }
+
+  .timeline-social-surface-expanded {
+    background-color: hsl(var(--card) / 0.96);
+    border-color: hsl(var(--border) / 0.8);
+    box-shadow:
+      0 0 0 1px hsl(var(--background) / 0.92),
+      0 10px 24px hsl(var(--foreground) / 0.06);
   }
 
   /* Intensity utilities for heatmaps */

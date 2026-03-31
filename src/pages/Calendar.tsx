@@ -378,10 +378,10 @@ const Calendar = () => {
                       </div>
 
                       {/* Events column — relative container for absolute event blocks */}
-                      <div className="flex-1 relative" style={{ height: `${24 * 60 * PIXELS_PER_MINUTE}px` }}>
+                      <div className="flex-1 relative isolate" style={{ height: `${24 * 60 * PIXELS_PER_MINUTE}px` }}>
                         {/* Hour grid lines */}
                         {hours.map((hour) => (
-                          <div key={hour} className="absolute w-full border-b border-border" style={{ top: `${hour * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }} />
+                          <div key={hour} className="absolute z-0 w-full border-b border-border pointer-events-none" style={{ top: `${hour * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }} />
                         ))}
 
                         {/* Timed events — sorted by start, positioned absolutely */}
@@ -398,7 +398,7 @@ const Calendar = () => {
                             return (
                               <div
                                 key={event.id}
-                                className={`${getCategoryColor(event.category)} border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity absolute left-1 right-1 z-10 overflow-hidden`}
+                                className={`${getCategoryColor(event.category)} timeline-item timeline-event-surface rounded p-2 cursor-pointer absolute left-1 right-1 z-20 overflow-hidden`}
                                 style={{ top: `${topPx}px`, height: `${heightPx}px` }}
                                 onClick={() => handleViewEvent(event)}
                               >
@@ -420,7 +420,7 @@ const Calendar = () => {
                           return (
                             <div
                               key={photo.id}
-                              className="category-photo border-l-4 rounded p-2 cursor-pointer hover:opacity-80 transition-opacity flex gap-2 items-start absolute left-1 right-1 z-20"
+                              className="timeline-item timeline-capture-surface rounded p-2 cursor-pointer flex gap-2 items-start absolute left-1 right-1 z-30"
                               style={{ top: `${topPx}px` }}
                               onClick={() => setSelectedPhoto(photo.photo_url)}
                             >
@@ -562,7 +562,7 @@ const Calendar = () => {
                             return (
                               <div
                                 key={i}
-                                className="border-l border-border relative"
+                                className="border-l border-border relative isolate"
                                 style={{ height: `${16 * 60 * PIXELS_PER_MINUTE}px` }}
                                 onClick={(e) => {
                                   // Calculate hour from click position
@@ -580,7 +580,7 @@ const Calendar = () => {
                                 {Array.from({ length: 16 }, (_, h) => (
                                   <div
                                     key={h}
-                                    className="absolute w-full border-b border-border"
+                                    className="absolute z-0 w-full border-b border-border pointer-events-none"
                                     style={{ top: `${h * 60 * PIXELS_PER_MINUTE}px`, height: `${60 * PIXELS_PER_MINUTE}px` }}
                                   />
                                 ))}
@@ -600,7 +600,7 @@ const Calendar = () => {
                                   return (
                                     <div
                                       key={event.id}
-                                      className={`${getCategoryColor(event.category)} rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer absolute left-0.5 right-0.5 z-10 overflow-hidden hover:opacity-80 transition-opacity`}
+                                      className={`${getCategoryColor(event.category)} timeline-item timeline-event-surface rounded text-[10px] p-0.5 leading-tight truncate cursor-pointer absolute left-0.5 right-0.5 z-10 overflow-hidden`}
                                       style={{ top: `${topPx}px`, height: `${heightPx}px` }}
                                       onClick={(e) => {
                                         e.stopPropagation();
