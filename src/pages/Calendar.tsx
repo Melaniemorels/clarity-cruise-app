@@ -23,6 +23,8 @@ import { es, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
+import { useFriendAvailability } from "@/hooks/use-friend-availability";
+import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -297,6 +299,7 @@ const Calendar = () => {
 
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
+  const friendHints = useFriendAvailability(currentDate, dayEvents);
 
   const device = useDevice();
   const navStyle = useNavStyle();
@@ -445,6 +448,15 @@ const Calendar = () => {
                             </div>
                           );
                         })}
+
+                        {/* Friend availability hints — subtle inline suggestions */}
+                        {friendHints.map((hint, idx) => (
+                          <FriendAvailabilityHint
+                            key={`friend-hint-${idx}`}
+                            block={hint}
+                            pixelsPerMinute={PIXELS_PER_MINUTE}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
