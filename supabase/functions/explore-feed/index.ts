@@ -84,13 +84,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabase = createClient(
+    // Service role client for data queries (bypasses RLS)
+    const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+    // Validate the JWT token to get the user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userErr } = await adminClient.auth.getUser(token);
     if (userErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -111,11 +113,7 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const serviceClient = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-      );
-      const { error: insertErr } = await serviceClient
+      const { error: insertErr } = await adminClient
         .from("user_item_events")
         .insert({ user_id: userId, item_id, event });
       if (insertErr) {
@@ -136,18 +134,18 @@ Deno.serve(async (req) => {
 
     // Fetch user prefs, events, and items in parallel
     const [prefsRes, eventsRes, itemsRes] = await Promise.all([
-      supabase
+      adminClient
         .from("user_explore_preferences")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle(),
-      supabase
+      adminClient
         .from("user_item_events")
         .select("item_id, event")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(600),
-      supabase
+      adminClient
         .from("explore_items")
         .select("*")
         .order("created_at", { ascending: false })
