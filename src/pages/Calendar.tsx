@@ -342,7 +342,7 @@ const Calendar = () => {
           </TabsList>
 
           {/* Day View */}
-          <TabsContent value="day" className="space-y-4">
+          <TabsContent value="day" className={cn("space-y-4", view === "day" && "flex flex-1 min-h-0 flex-col overflow-hidden")}>
             <div className="flex items-center justify-between">
               <Button variant="outline" size="icon" onClick={goToPrevious}>
                 <ChevronLeft className="h-4 w-4" />
