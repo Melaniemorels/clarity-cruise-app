@@ -357,12 +357,12 @@ const Calendar = () => {
               </Button>
             </div>
 
-            <Card className="flex-1 min-h-0 overflow-hidden">
-              <CardContent className="p-0 h-full min-h-0">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
                 {isLoading ? (
                   <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
-                  <div className="h-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
+                  <div className="overflow-y-auto overscroll-contain" style={{ height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
                     {/* Hour grid with absolutely-positioned events */}
                     <div className="flex">
                       {/* Hour labels column */}
