@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { SharedFreeBlock } from "@/hooks/use-friend-availability";
 import { CreatePlanSheet } from "@/components/CreatePlanSheet";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Plan suggestion data
 const PLAN_CATEGORIES = {
   normal: [
     { key: "coffee", icon: "☕" },
@@ -36,22 +36,25 @@ export const FriendAvailabilityHint = ({
   const [expanded, setExpanded] = useState(false);
   const [createPlanOpen, setCreatePlanOpen] = useState(false);
 
+  // Guard against missing data
+  const friends = block?.friends ?? [];
+  if (friends.length === 0) return null;
+
   const topPx = block.startMinute * pixelsPerMinute;
   const baseHeight = block.endMinute - block.startMinute;
   const collapsedHeight = Math.max(36, baseHeight * pixelsPerMinute);
 
-  const friendCount = block.friends.length;
-  const firstName = block.friends[0]?.name ?? "";
+  const friendCount = friends.length;
+  const firstName = friends[0]?.name ?? "";
 
-  // Build the availability label
   const getLabel = () => {
     if (friendCount === 1) {
       return t("calendar.friendHint.bothFree", { name: firstName });
     }
     if (friendCount === 2) {
       return t("calendar.friendHint.twoFree", {
-        name1: block.friends[0].name,
-        name2: block.friends[1].name,
+        name1: friends[0].name,
+        name2: friends[1].name,
       });
     }
     return t("calendar.friendHint.manyFree", {
@@ -74,9 +77,6 @@ export const FriendAvailabilityHint = ({
     setExpanded(!expanded);
   };
 
-  const isCompact = collapsedHeight < 50;
-
-  // Format time range for display
   const formatMinute = (min: number) => {
     const h = Math.floor(min / 60);
     const m = min % 60;
@@ -95,129 +95,143 @@ export const FriendAvailabilityHint = ({
         }}
       >
         <div
-          className={`rounded-lg border border-dashed border-primary/20 bg-primary/[0.04] 
-            transition-all duration-200 ${expanded ? "shadow-sm" : ""}`}
+          className={`rounded-xl border border-dashed border-primary/15 bg-primary/[0.03] 
+            transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+            ${expanded ? "shadow-md bg-card border-border/40 border-solid" : ""}`}
         >
-          {/* Header row */}
+          {/* Header */}
           <button
             onClick={handleToggle}
-            className={`w-full flex items-center gap-2 px-3 text-left transition-colors 
-              hover:bg-primary/[0.07] rounded-t-lg ${isCompact ? "py-1.5" : "py-2.5"}`}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left 
+              transition-colors duration-200 hover:bg-primary/[0.05] rounded-xl"
           >
-            <Users className="h-3.5 w-3.5 text-primary/50 flex-shrink-0" />
+            <Users className="h-3.5 w-3.5 text-primary/40 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] leading-tight text-muted-foreground truncate">
+              <p className="text-[11px] leading-tight text-muted-foreground/80 truncate">
                 {getLabel()}
               </p>
-              {!isCompact && (
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                  {formatMinute(block.startMinute)} – {formatMinute(block.endMinute)}
-                </p>
-              )}
+              <p className="text-[10px] text-muted-foreground/50 mt-0.5">
+                {formatMinute(block.startMinute)} – {formatMinute(block.endMinute)}
+              </p>
             </div>
             {expanded ? (
-              <ChevronUp className="h-3 w-3 text-muted-foreground/50 flex-shrink-0" />
+              <ChevronUp className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
             ) : (
-              <ChevronDown className="h-3 w-3 text-muted-foreground/50 flex-shrink-0" />
+              <ChevronDown className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
             )}
           </button>
 
           {/* Expanded content */}
-          {expanded && (
-            <div className="px-3 pb-3 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
-              {/* Prompt */}
-              <p className="text-[11px] text-muted-foreground/70 italic">
-                {t("calendar.friendHint.prompt")}
-              </p>
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 space-y-4">
+                  {/* Prompt */}
+                  <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed">
+                    {t("calendar.friendHint.prompt")}
+                  </p>
 
-              {/* Friends list (if multiple) */}
-              {friendCount > 1 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {block.friends.map((f) => (
-                    <span
-                      key={f.name}
-                      className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
-                    >
-                      {f.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+                  {/* Friends list */}
+                  {friendCount > 1 && (
+                    <div className="flex flex-wrap gap-2">
+                      {friends.map((f) => (
+                        <span
+                          key={f.name}
+                          className="text-[10px] px-2.5 py-1 rounded-full bg-secondary/60 text-secondary-foreground/80"
+                        >
+                          {f.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-              {/* Plan suggestions */}
-              <div className="space-y-2">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                  {t("calendar.friendHint.planIdeas")}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PLAN_CATEGORIES.normal.map((plan) => (
+                  {/* Plan suggestions — horizontal scroll */}
+                  <div className="space-y-3">
+                    <p className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-widest">
+                      {t("calendar.friendHint.planIdeas")}
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                      {PLAN_CATEGORIES.normal.map((plan) => (
+                        <button
+                          key={plan.key}
+                          onClick={(e) => handleSuggestPlan(plan.key, e)}
+                          className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
+                            bg-background text-foreground/70 hover:bg-secondary/50 
+                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                        >
+                          {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                        </button>
+                      ))}
+                    </div>
+
+                    <p className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-widest pt-1">
+                      {t("calendar.friendHint.funIdeas")}
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                      {PLAN_CATEGORIES.fun.map((plan) => (
+                        <button
+                          key={plan.key}
+                          onClick={(e) => handleSuggestPlan(plan.key, e)}
+                          className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
+                            bg-background text-foreground/70 hover:bg-secondary/50 
+                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                        >
+                          {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Separator */}
+                  <div className="h-px bg-border/30" />
+
+                  {/* Actions */}
+                  <div className="flex gap-4">
                     <button
-                      key={plan.key}
-                      onClick={(e) => handleSuggestPlan(plan.key, e)}
-                      className="text-[10px] px-2.5 py-1 rounded-full border border-border 
-                        bg-background text-foreground hover:bg-secondary transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.success(
+                          t("calendar.friendHint.inviteSent", {
+                            name: friends.map((f) => f.name).join(", "),
+                          }),
+                          { duration: 2500 }
+                        );
+                      }}
+                      className="text-[10px] font-medium text-primary/60 hover:text-primary 
+                        transition-colors duration-200 flex items-center gap-1.5"
                     >
-                      {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                      <Users className="h-3 w-3" />
+                      {t("calendar.friendHint.inviteFriends")}
                     </button>
-                  ))}
-                </div>
-
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide pt-1">
-                  {t("calendar.friendHint.funIdeas")}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PLAN_CATEGORIES.fun.map((plan) => (
                     <button
-                      key={plan.key}
-                      onClick={(e) => handleSuggestPlan(plan.key, e)}
-                      className="text-[10px] px-2.5 py-1 rounded-full border border-border 
-                        bg-background text-foreground hover:bg-secondary transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCreatePlanOpen(true);
+                      }}
+                      className="text-[10px] font-medium text-primary/60 hover:text-primary 
+                        transition-colors duration-200 flex items-center gap-1.5"
                     >
-                      {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                      <Plus className="h-3 w-3" />
+                      {t("calendar.friendHint.createPlan")}
                     </button>
-                  ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toast.success(
-                      t("calendar.friendHint.inviteSent", {
-                        name: block.friends.map((f) => f.name).join(", "),
-                      }),
-                      { duration: 2500 }
-                    );
-                  }}
-                  className="text-[10px] font-medium text-primary/70 hover:text-primary 
-                    transition-colors flex items-center gap-1"
-                >
-                  <Users className="h-3 w-3" />
-                  {t("calendar.friendHint.inviteFriends")}
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCreatePlanOpen(true);
-                  }}
-                  className="text-[10px] font-medium text-primary/70 hover:text-primary 
-                    transition-colors flex items-center gap-1"
-                >
-                  <Plus className="h-3 w-3" />
-                  {t("calendar.friendHint.createPlan")}
-                </button>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       <CreatePlanSheet
         open={createPlanOpen}
         onOpenChange={setCreatePlanOpen}
-        friends={block.friends}
+        friends={friends}
         startMinute={block.startMinute}
         endMinute={block.endMinute}
       />
