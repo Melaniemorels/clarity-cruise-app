@@ -299,6 +299,7 @@ const Calendar = () => {
 
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
+  const friendHints = useFriendAvailability(currentDate, dayEvents);
 
   const device = useDevice();
   const navStyle = useNavStyle();

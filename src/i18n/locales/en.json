@@ -191,7 +191,12 @@
     "exploreCap": "Explore",
     "minutes": "minutes",
     "minShort": "min",
-    "hShort": "h"
+    "hShort": "h",
+    "friendHint": {
+      "bothFree": "You and {{name}} are both free",
+      "suggestPlan": "Suggest plan",
+      "inviteSent": "Invite sent to {{name}}"
+    }
   },
   "profile": {
     "title": "Profile",
