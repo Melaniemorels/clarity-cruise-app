@@ -85,25 +85,30 @@ export const FriendAvailabilityHint = ({
     return m === 0 ? `${h12} ${suffix}` : `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
   };
 
+  // Constrain expanded content to fit within the time slot
+  const slotHeight = (block.endMinute - block.startMinute) * pixelsPerMinute;
+  const maxExpandedHeight = Math.max(80, slotHeight);
+
   return (
     <>
       <div
         className="absolute left-1 right-1 z-[5] pointer-events-auto"
         style={{
           top: `${topPx}px`,
-          minHeight: `${collapsedHeight}px`,
+          height: `${slotHeight}px`,
         }}
       >
         <div
           className={`rounded-xl border border-dashed border-primary/15 bg-primary/[0.03] 
             transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+            h-full flex flex-col overflow-hidden
             ${expanded ? "shadow-md bg-card border-border/40 border-solid" : ""}`}
         >
           {/* Header */}
           <button
             onClick={handleToggle}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left 
-              transition-colors duration-200 hover:bg-primary/[0.05] rounded-xl"
+              transition-colors duration-200 hover:bg-primary/[0.05] rounded-xl flex-shrink-0"
           >
             <Users className="h-3.5 w-3.5 text-primary/40 flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -121,7 +126,7 @@ export const FriendAvailabilityHint = ({
             )}
           </button>
 
-          {/* Expanded content */}
+          {/* Expanded content — scrollable within slot bounds */}
           <AnimatePresence>
             {expanded && (
               <motion.div
@@ -129,9 +134,13 @@ export const FriendAvailabilityHint = ({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                className="overflow-hidden"
+                className="overflow-hidden flex-1 min-h-0"
+                style={{ maxHeight: `${maxExpandedHeight - 44}px` }}
               >
-                <div className="px-4 pb-4 space-y-4">
+                <div className="overflow-y-auto h-full overscroll-contain px-4 pb-4 space-y-4"
+                  style={{ touchAction: 'pan-y' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {/* Prompt */}
                   <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed">
                     {t("calendar.friendHint.prompt")}
