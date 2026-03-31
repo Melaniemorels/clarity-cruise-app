@@ -304,7 +304,7 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col" style={navStyle}>
-      <div className={cn("p-4 space-y-4 flex-1 overflow-y-auto overscroll-contain", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
+      <div className={cn("p-4 space-y-4 flex-1 overscroll-contain", view === "day" ? "overflow-hidden" : "overflow-y-auto", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
         {/* Header */}
         <div ref={calendarHeaderRef} className="flex items-center justify-between">
           <div>
