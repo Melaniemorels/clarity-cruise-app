@@ -4,13 +4,12 @@ import { isSameDay } from "date-fns";
 export interface FriendFreeSlot {
   friendName: string;
   friendAvatar?: string;
-  startMinute: number; // minutes from midnight
+  startMinute: number;
   endMinute: number;
 }
 
 export interface SharedFreeBlock {
-  friendName: string;
-  friendAvatar?: string;
+  friends: { name: string; avatar?: string }[];
   startMinute: number;
   endMinute: number;
 }
@@ -20,18 +19,19 @@ const SIMULATED_FRIENDS = [
   { name: "Emma", avatar: undefined },
   { name: "Lucas", avatar: undefined },
   { name: "Sofía", avatar: undefined },
+  { name: "Noah", avatar: undefined },
+  { name: "Mia", avatar: undefined },
 ];
 
 // Generate simulated free blocks for friends on a given date
 function getSimulatedFriendSlots(date: Date): FriendFreeSlot[] {
-  // Use date as seed for deterministic but varied results
   const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
   const slots: FriendFreeSlot[] = [];
 
   SIMULATED_FRIENDS.forEach((friend, idx) => {
     // Each friend gets 1-2 free blocks per day, seeded by date
-    const base = ((seed * (idx + 3)) % 14) + 7; // hour between 7-20
-    const duration = ((seed * (idx + 7)) % 3 + 1) * 60; // 1-3 hours
+    const base = ((seed * (idx + 3)) % 14) + 7;
+    const duration = ((seed * (idx + 7)) % 3 + 1) * 60;
     const startMinute = base * 60;
     const endMinute = Math.min(startMinute + duration, 23 * 60);
 
@@ -53,7 +53,7 @@ interface EventBlock {
 
 /**
  * Detects shared free time between the user and simulated friends.
- * Returns blocks where both are available, positioned for the timeline.
+ * Groups overlapping friends into single blocks.
  */
 export function useFriendAvailability(
   date: Date,
@@ -73,7 +73,7 @@ export function useFriendAvailability(
       })
       .sort((a, b) => a.start - b.start);
 
-    // 2. Build user's free intervals (only between 7am-22pm for relevance)
+    // 2. Build user's free intervals (only between 7am-22pm)
     const DAY_START = 7 * 60;
     const DAY_END = 22 * 60;
     const userFree: { start: number; end: number }[] = [];
@@ -92,27 +92,57 @@ export function useFriendAvailability(
     // 3. Get friend availability
     const friendSlots = getSimulatedFriendSlots(date);
 
-    // 4. Find overlaps — pick at most 2 to keep it calm
-    const shared: SharedFreeBlock[] = [];
+    // 4. Find all individual overlaps
+    const rawOverlaps: { friend: { name: string; avatar?: string }; start: number; end: number }[] = [];
 
     for (const freeBlock of userFree) {
       for (const friendSlot of friendSlots) {
         const overlapStart = Math.max(freeBlock.start, friendSlot.startMinute);
         const overlapEnd = Math.min(freeBlock.end, friendSlot.endMinute);
 
-        // Minimum 30 minutes of shared free time to suggest
         if (overlapEnd - overlapStart >= 30) {
-          shared.push({
-            friendName: friendSlot.friendName,
-            friendAvatar: friendSlot.friendAvatar,
-            startMinute: overlapStart,
-            endMinute: overlapEnd,
+          rawOverlaps.push({
+            friend: { name: friendSlot.friendName, avatar: friendSlot.friendAvatar },
+            start: overlapStart,
+            end: overlapEnd,
           });
         }
       }
     }
 
-    // Limit to 2 suggestions max to keep it non-intrusive
-    return shared.slice(0, 2);
+    // 5. Merge overlapping intervals and group friends
+    if (rawOverlaps.length === 0) return [];
+
+    // Sort by start time
+    rawOverlaps.sort((a, b) => a.start - b.start);
+
+    const merged: SharedFreeBlock[] = [];
+    let current = {
+      friends: [rawOverlaps[0].friend],
+      startMinute: rawOverlaps[0].start,
+      endMinute: rawOverlaps[0].end,
+    };
+
+    for (let i = 1; i < rawOverlaps.length; i++) {
+      const overlap = rawOverlaps[i];
+      // If overlaps with current block, merge
+      if (overlap.start < current.endMinute) {
+        current.endMinute = Math.max(current.endMinute, overlap.end);
+        if (!current.friends.some(f => f.name === overlap.friend.name)) {
+          current.friends.push(overlap.friend);
+        }
+      } else {
+        merged.push(current);
+        current = {
+          friends: [overlap.friend],
+          startMinute: overlap.start,
+          endMinute: overlap.end,
+        };
+      }
+    }
+    merged.push(current);
+
+    // Limit to 2 suggestions max
+    return merged.slice(0, 2);
   }, [date, events]);
 }
