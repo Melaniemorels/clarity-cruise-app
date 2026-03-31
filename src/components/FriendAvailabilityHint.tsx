@@ -92,17 +92,17 @@ export const FriendAvailabilityHint = ({
   return (
     <>
       <div
-        className="absolute left-1 right-1 z-[5] pointer-events-auto"
+        className="absolute left-1 right-1 z-10 pointer-events-auto"
         style={{
           top: `${topPx}px`,
           height: `${slotHeight}px`,
         }}
       >
         <div
-          className={`rounded-xl border border-dashed border-primary/15 bg-primary/[0.03] 
-            transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+          className={`timeline-item timeline-social-surface rounded-xl border 
+            transition-[background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
             h-full flex flex-col overflow-hidden
-            ${expanded ? "shadow-md bg-card border-border/40 border-solid" : ""}`}
+            ${expanded ? "timeline-social-surface-expanded border-solid" : "border-dashed"}`}
         >
           {/* Header */}
           <button
@@ -127,7 +127,7 @@ export const FriendAvailabilityHint = ({
           </button>
 
           {/* Expanded content — scrollable within slot bounds */}
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {expanded && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
