@@ -334,7 +334,7 @@ const Calendar = () => {
         </div>
 
         {/* View Tabs */}
-        <Tabs value={view} onValueChange={(v) => setView(v as any)} className={cn("w-full", view === "day" && "flex flex-1 min-h-0 flex-col")}>
+        <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="day">{t('calendar.day')}</TabsTrigger>
             <TabsTrigger value="week">{t('calendar.week')}</TabsTrigger>
