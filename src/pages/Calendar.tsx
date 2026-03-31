@@ -362,7 +362,7 @@ const Calendar = () => {
                 {isLoading ? (
                   <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
                 ) : (
-                  <div className="overflow-y-auto overscroll-contain" style={{ height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
+                  <div className="overflow-y-auto overscroll-contain day-timeline-scroll" style={{ height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
                     {/* Hour grid with absolutely-positioned events */}
                     <div className="flex">
                       {/* Hour labels column */}
