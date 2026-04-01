@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Users, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Users, ChevronDown, ChevronUp, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { SharedFreeBlock } from "@/hooks/use-friend-availability";
 import { CreatePlanSheet } from "@/components/CreatePlanSheet";
+import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const PLAN_CATEGORIES = {
   normal: [
@@ -35,15 +37,12 @@ export const FriendAvailabilityHint = ({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [createPlanOpen, setCreatePlanOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  // Guard against missing data
   const friends = block?.friends ?? [];
   if (friends.length === 0) return null;
 
   const topPx = block.startMinute * pixelsPerMinute;
-  const baseHeight = block.endMinute - block.startMinute;
-  const collapsedHeight = Math.max(36, baseHeight * pixelsPerMinute);
-
   const friendCount = friends.length;
   const firstName = friends[0]?.name ?? "";
 
@@ -65,16 +64,25 @@ export const FriendAvailabilityHint = ({
 
   const handleSuggestPlan = (planKey: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const planName = t(`calendar.friendHint.plans.${planKey}`);
-    toast.success(
-      t("calendar.friendHint.planSuggested", { plan: planName }),
-      { duration: 2500 }
-    );
+    setSelectedPlan((prev) => (prev === planKey ? null : planKey));
+  };
+
+  const handleConfirmPlan = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selectedPlan) {
+      const planName = t(`calendar.friendHint.plans.${selectedPlan}`);
+      toast.success(
+        t("calendar.friendHint.planSuggested", { plan: planName }),
+        { duration: 2500 }
+      );
+      setSelectedPlan(null);
+    }
   };
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setExpanded(!expanded);
+    setSelectedPlan(null);
   };
 
   const formatMinute = (min: number) => {
@@ -82,15 +90,17 @@ export const FriendAvailabilityHint = ({
     const m = min % 60;
     const suffix = h >= 12 ? "PM" : "AM";
     const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return m === 0 ? `${h12} ${suffix}` : `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
+    return m === 0
+      ? `${h12} ${suffix}`
+      : `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
   };
 
-  // Constrain expanded content to fit within the time slot
+  const timeLabel = `${formatMinute(block.startMinute)} – ${formatMinute(block.endMinute)}`;
   const slotHeight = (block.endMinute - block.startMinute) * pixelsPerMinute;
-  const maxExpandedHeight = Math.max(80, slotHeight);
 
   return (
     <>
+      {/* Collapsed hint — positioned inside the timeline slot */}
       <div
         className="absolute left-1 right-1 z-10 pointer-events-auto"
         style={{
@@ -98,144 +108,205 @@ export const FriendAvailabilityHint = ({
           height: `${slotHeight}px`,
         }}
       >
-        <div
-          className={`timeline-item timeline-social-surface rounded-xl border 
-            transition-[background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
-            h-full flex flex-col overflow-hidden
-            ${expanded ? "timeline-social-surface-expanded border-solid" : "border-dashed"}`}
+        <button
+          onClick={handleToggle}
+          className={cn(
+            "timeline-social-surface rounded-xl border border-dashed",
+            "w-full h-full flex items-center gap-2.5 px-3.5",
+            "transition-all duration-200 hover:bg-primary/[0.08]",
+            "min-h-[40px]"
+          )}
         >
-          {/* Header */}
-          <button
-            onClick={handleToggle}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left 
-              transition-colors duration-200 hover:bg-primary/[0.05] rounded-xl flex-shrink-0"
-          >
-            <Users className="h-3.5 w-3.5 text-primary/40 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] leading-tight text-muted-foreground/80 truncate">
-                {getLabel()}
-              </p>
-              <p className="text-[10px] text-muted-foreground/50 mt-0.5">
-                {formatMinute(block.startMinute)} – {formatMinute(block.endMinute)}
-              </p>
-            </div>
-            {expanded ? (
-              <ChevronUp className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
-            ) : (
-              <ChevronDown className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
-            )}
-          </button>
+          <Users className="h-3.5 w-3.5 text-primary/50 flex-shrink-0" />
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-[11px] leading-tight text-muted-foreground/80 truncate">
+              {getLabel()}
+            </p>
+            <p className="text-[10px] text-muted-foreground/50 mt-0.5">
+              {timeLabel}
+            </p>
+          </div>
+          <ChevronDown className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
+        </button>
+      </div>
 
-          {/* Expanded content — scrollable within slot bounds */}
-          <AnimatePresence initial={false}>
-            {expanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                className="overflow-hidden flex-1 min-h-0"
-                style={{ maxHeight: `${maxExpandedHeight - 44}px` }}
-              >
-                <div className="overflow-y-auto h-full overscroll-contain px-4 pb-4 space-y-4"
-                  style={{ touchAction: 'pan-y' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Prompt */}
-                  <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed">
-                    {t("calendar.friendHint.prompt")}
-                  </p>
+      {/* Expanded card — fixed overlay, not crammed into the slot */}
+      <AnimatePresence>
+        {expanded && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
+              onClick={handleToggle}
+            />
 
-                  {/* Friends list */}
-                  {friendCount > 1 && (
+            {/* Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+              className="fixed inset-x-4 bottom-4 z-50 max-w-lg mx-auto pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="timeline-social-surface-expanded rounded-2xl border border-border/60 shadow-lg overflow-hidden">
+                {/* Header */}
+                <div className="px-5 pt-5 pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground leading-snug">
+                          {getLabel()}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {timeLabel}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleToggle}
+                      className="p-1.5 -m-1.5 rounded-lg hover:bg-muted/60 transition-colors flex-shrink-0"
+                    >
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Friends (when multiple) */}
+                {friendCount > 1 && (
+                  <div className="px-5 pb-3">
                     <div className="flex flex-wrap gap-2">
                       {friends.map((f) => (
                         <span
                           key={f.name}
-                          className="text-[10px] px-2.5 py-1 rounded-full bg-secondary/60 text-secondary-foreground/80"
+                          className="text-xs px-3 py-1.5 rounded-full bg-secondary/60 text-secondary-foreground/80"
                         >
                           {f.name}
                         </span>
                       ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Plan suggestions — horizontal scroll */}
-                  <div className="space-y-3">
-                    <p className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-widest">
+                {/* Divider */}
+                <div className="h-px bg-border/30 mx-5" />
+
+                {/* Plan Suggestions */}
+                <div
+                  className="px-5 py-4 space-y-4 max-h-[50vh] overflow-y-auto overscroll-contain"
+                  style={{ touchAction: "pan-y" }}
+                >
+                  {/* Prompt */}
+                  <p className="text-xs text-muted-foreground/70 italic leading-relaxed">
+                    {t("calendar.friendHint.prompt")}
+                  </p>
+
+                  {/* Normal plans */}
+                  <div className="space-y-2.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
                       {t("calendar.friendHint.planIdeas")}
                     </p>
-                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                    <div className="flex flex-wrap gap-2">
                       {PLAN_CATEGORIES.normal.map((plan) => (
                         <button
                           key={plan.key}
                           onClick={(e) => handleSuggestPlan(plan.key, e)}
-                          className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
-                            bg-background text-foreground/70 hover:bg-secondary/50 
-                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                          className={cn(
+                            "text-xs px-3.5 py-2 rounded-full border transition-all duration-200",
+                            "min-h-[36px]",
+                            selectedPlan === plan.key
+                              ? "bg-primary/10 border-primary/40 text-primary ring-1 ring-primary/20"
+                              : "border-border/50 bg-background text-foreground/70 hover:bg-secondary/40 hover:border-border/80"
+                          )}
                         >
-                          {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                          <span className="mr-1">{plan.icon}</span>
+                          {t(`calendar.friendHint.plans.${plan.key}`)}
                         </button>
                       ))}
                     </div>
+                  </div>
 
-                    <p className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-widest pt-1">
+                  {/* Fun plans */}
+                  <div className="space-y-2.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
                       {t("calendar.friendHint.funIdeas")}
                     </p>
-                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                    <div className="flex flex-wrap gap-2">
                       {PLAN_CATEGORIES.fun.map((plan) => (
                         <button
                           key={plan.key}
                           onClick={(e) => handleSuggestPlan(plan.key, e)}
-                          className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
-                            bg-background text-foreground/70 hover:bg-secondary/50 
-                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                          className={cn(
+                            "text-xs px-3.5 py-2 rounded-full border transition-all duration-200",
+                            "min-h-[36px]",
+                            selectedPlan === plan.key
+                              ? "bg-primary/10 border-primary/40 text-primary ring-1 ring-primary/20"
+                              : "border-border/50 bg-background text-foreground/70 hover:bg-secondary/40 hover:border-border/80"
+                          )}
                         >
-                          {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
+                          <span className="mr-1">{plan.icon}</span>
+                          {t(`calendar.friendHint.plans.${plan.key}`)}
                         </button>
                       ))}
                     </div>
                   </div>
-
-                  {/* Separator */}
-                  <div className="h-px bg-border/30" />
-
-                  {/* Actions */}
-                  <div className="flex gap-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.success(
-                          t("calendar.friendHint.inviteSent", {
-                            name: friends.map((f) => f.name).join(", "),
-                          }),
-                          { duration: 2500 }
-                        );
-                      }}
-                      className="text-[10px] font-medium text-primary/60 hover:text-primary 
-                        transition-colors duration-200 flex items-center gap-1.5"
-                    >
-                      <Users className="h-3 w-3" />
-                      {t("calendar.friendHint.inviteFriends")}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCreatePlanOpen(true);
-                      }}
-                      className="text-[10px] font-medium text-primary/60 hover:text-primary 
-                        transition-colors duration-200 flex items-center gap-1.5"
-                    >
-                      <Plus className="h-3 w-3" />
-                      {t("calendar.friendHint.createPlan")}
-                    </button>
-                  </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+
+                {/* Divider */}
+                <div className="h-px bg-border/30 mx-5" />
+
+                {/* Actions */}
+                <div className="px-5 py-4 flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-10 rounded-xl text-xs font-medium gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.success(
+                        t("calendar.friendHint.inviteSent", {
+                          name: friends.map((f) => f.name).join(", "),
+                        }),
+                        { duration: 2500 }
+                      );
+                    }}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    {t("calendar.friendHint.inviteFriends")}
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    className="flex-1 h-10 rounded-xl text-xs font-medium gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (selectedPlan) {
+                        handleConfirmPlan(e);
+                      } else {
+                        setCreatePlanOpen(true);
+                      }
+                    }}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    {selectedPlan
+                      ? t("calendar.friendHint.planSuggested", {
+                          plan: "",
+                        }).trim() || t("calendar.friendHint.createPlan")
+                      : t("calendar.friendHint.createPlan")}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <CreatePlanSheet
         open={createPlanOpen}
