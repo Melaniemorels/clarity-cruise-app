@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 
 const DWELL_THRESHOLD_MS = 1500; // Only track if user pauses > 1.5s
@@ -17,6 +18,7 @@ interface DwellEntry {
  */
 export function useDwellTracker(source: string = "explore") {
   const { session } = useAuth();
+  const queryClient = useQueryClient();
   const batchRef = useRef<DwellEntry[]>([]);
   const visibleItemsRef = useRef<Map<string, { start: number; category?: string }>>(new Map());
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -43,10 +45,11 @@ export function useDwellTracker(source: string = "explore") {
           ).catch(() => {})
         )
       );
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
     } catch {
       // Silent fail — dwell tracking is non-critical
     }
-  }, [session]);
+  }, [session, queryClient]);
 
   // Periodic flush
   useEffect(() => {

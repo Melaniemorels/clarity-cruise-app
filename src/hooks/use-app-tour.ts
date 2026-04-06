@@ -1,13 +1,10 @@
 /**
- * useAppTour — Manages the first-time onboarding tour state.
+ * useAppTour — first-time tab spotlight tour (Feed).
  *
- * Strategy (same as Instagram / Facebook):
- *  1. localStorage key per user-id for instant check (avoids async flash).
- *  2. Supabase profile flag `app_tour_completed` for cross-device persistence.
- *     If the DB flag is true → mark localStorage immediately so we never show
- *     the tour on a new device.
+ * Important: device/security onboarding uses `profiles.onboarding_completed` separately.
+ * This tour must NOT use that flag — otherwise users who finish device onboarding never see the product tour.
  *
- * Returns `{ shouldShow, markComplete }`.
+ * Persistence: per-user localStorage (+ legacy keys). Optional `profiles.app_tour_completed` when present in DB.
  */
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,15 +53,16 @@ export function useAppTour() {
       return;
     }
 
-    // Async — check Supabase profile for cross-device sync
+    // Optional DB sync — column may not exist in all environments
     (async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
-          .select("onboarding_completed")
+          .select("app_tour_completed")
           .eq("user_id", user.id)
-          .single();
-        const done = (data as any)?.onboarding_completed ?? false;
+          .maybeSingle();
+        if (error) throw error;
+        const done = Boolean((data as { app_tour_completed?: boolean } | null)?.app_tour_completed);
         if (done) {
           localStorage.setItem(key, "1");
           setShouldShow(false);
@@ -72,8 +70,8 @@ export function useAppTour() {
           setShouldShow(true);
         }
       } catch {
-        // On error default to showing tour (better UX than blocking)
-        setShouldShow(true);
+        // No column or network issue — rely on localStorage only for this session/device
+        setShouldShow(localStorage.getItem(key) !== "1");
       } finally {
         setReady(true);
       }
@@ -97,13 +95,14 @@ export function useAppTour() {
 
     setShouldShow(false);
 
-    // Persist to DB so cross-device works (fire-and-forget)
     try {
       await supabase
         .from("profiles")
-        .update({ onboarding_completed: true } as any)
+        .update({ app_tour_completed: true })
         .eq("user_id", user.id);
-    } catch { /* ignore */ }
+    } catch {
+      /* app_tour_completed may be missing from schema — localStorage is enough */
+    }
   }, [user]);
 
   return { shouldShow, ready, markComplete };

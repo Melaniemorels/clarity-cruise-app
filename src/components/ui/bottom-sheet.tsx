@@ -318,7 +318,7 @@ export function BottomSheet({
             style={{
               transform: `translateY(${translateY}px)`,
               transition: isDragging ? "none" : "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)",
-              height: `${expandedHeight * 100}vh`,
+              height: `${expandedHeight * 100}dvh`,
               willChange: "transform",
             }}
           >
@@ -339,7 +339,7 @@ export function BottomSheet({
             {/* Scrollable content */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto overscroll-contain"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
               onTouchStart={onContentTouchStart}
               onTouchMove={onContentTouchMove}
               onTouchEnd={onContentTouchEnd}

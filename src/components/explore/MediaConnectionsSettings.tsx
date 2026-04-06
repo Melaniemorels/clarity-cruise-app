@@ -22,6 +22,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  buildSpotifyAuthorizeUrl,
+  buildGoogleYouTubeAuthorizeUrl,
+} from "@/lib/media-oauth";
 
 const PROVIDER_META: Record<
   string,
@@ -211,21 +215,22 @@ function ConnectionRow({
   if (!meta) return null;
   const Icon = meta.icon;
 
-  const OAUTH_URLS: Record<string, string> = {
-    spotify:
-      "https://accounts.spotify.com/authorize?client_id=&response_type=code&redirect_uri=&scope=user-top-read%20user-read-recently-played%20user-library-read",
-    youtube:
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=&response_type=code&redirect_uri=&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly&access_type=offline",
-  };
-
   const handleConnect = () => {
-    // OAuth requires client_id configured server-side — redirect to auth page
-    const url = OAUTH_URLS[provider];
-    if (url && url.includes("client_id=&")) {
-      // client_id not yet configured — show informative state
+    const url =
+      provider === "spotify"
+        ? buildSpotifyAuthorizeUrl()
+        : buildGoogleYouTubeAuthorizeUrl();
+    if (!url) {
+      toast.error(t("mediaConnections.credentialsNeeded"));
+      if (import.meta.env.DEV) {
+        console.warn(
+          `[media OAuth] Missing VITE_${provider === "spotify" ? "SPOTIFY_CLIENT_ID" : "GOOGLE_CLIENT_ID"} — add to .env and register redirect URI:`,
+          `${typeof window !== "undefined" ? window.location.origin : ""}/media-connections`
+        );
+      }
       return;
     }
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.location.assign(url);
   };
 
   return (

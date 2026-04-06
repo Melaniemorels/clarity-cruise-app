@@ -107,7 +107,9 @@
       "energy": "Energy",
       "exercises": "Exercises",
       "nutrition": "Nutrition",
-      "mealPlans": "Meal Plans"
+      "mealPlans": "Meal Plans",
+      "recipes": "Recipes",
+      "mealPreps": "Meal prep"
     },
     "items": {
       "natureSounds": "Nature Sounds",
@@ -151,7 +153,8 @@
       "tryAnother": "Try another title, author or keyword.",
       "maybeInterest": "You might also like"
     },
-    "searchSection": "Search in this section…"
+    "searchSection": "Search in this section…",
+    "curatedFallback": "Curated picks while your personalized feed loads."
   },
   "calendar": {
     "title": "Calendar",
@@ -193,6 +196,8 @@
     "minShort": "min",
     "hShort": "h",
     "friendHint": {
+      "livePrivacyNoteCollapsed": "Free/busy only — titles stay private",
+      "livePrivacyNoteExpanded": "We only compare when you and your friend are both free. Event titles are never shared. Mutual follow and matching settings in Privacy both need to be on.",
       "bothFree": "You and {{name}} are both free",
       "twoFree": "{{name1}} and {{name2}} are free",
       "manyFree": "{{name}} and {{count}} more are free",
@@ -283,6 +288,10 @@
     "privateProfile": "Private Profile",
     "privateProfileDesc": "Only your followers can see your content",
     "publicProfileDesc": "Anyone can see your profile",
+    "shareFreeBusyTitle": "Share free/busy with friends",
+    "shareFreeBusyDesc": "Allows matching your calendar gaps with friends who also opt in. Only time ranges are used — never event titles.",
+    "showFriendMatchSuggestionsTitle": "Friend time suggestions",
+    "showFriendMatchSuggestionsDesc": "Show overlapping free time on your calendar when a friend also shares and allows suggestions.",
     "healthDevices": "Health Devices",
     "healthDevicesDesc": "Connect watches, rings and apps",
     "aiExperience": "AI & Experience",
@@ -340,6 +349,8 @@
       "googleFit": "Google Fit",
       "googleFitDesc": "Access health and activity data from Android devices and wearables"
     },
+    "appleHealthNativeOnly": "Apple Health sync is available in the iOS app. HealthKit is not available in the browser.",
+    "googleFitNativeOnly": "Google Fit sync is available in the Android app. Connect there to enable it.",
     "dataTypes": {
       "steps": "Steps",
       "activity": "Activity",
@@ -586,7 +597,7 @@
   "onboarding": {
     "devices": {
       "title": "Connect your health & activity devices",
-      "description": "Sync your data from wearables and fitness apps to get personalized insights and track your progress.",
+      "description": "Link Apple Health or Google Fit when you use the native app — full sync needs platform permissions. On the web you can still explore VYV; device steps are optional and managed in Settings.",
       "appleHealth": "Apple Health / Apple Watch",
       "smartwatch": "Any smartwatch or fitness tracker",
       "fitnessApps": "Your favorite fitness or activity apps",
@@ -622,11 +633,11 @@
     "dataControls": "Data Controls",
     "dataControlsDescription": "Choose what data the AI can use to personalize your recommendations",
     "healthData": "Health & Activity",
-    "healthDataDescription": "Steps, workouts, sleep patterns",
+    "healthDataDescription": "Anonymous-style signals such as steps and sleep — used only to tune suggestions. Never sold or posted on your behalf.",
     "calendarData": "Calendar Patterns",
-    "calendarDataDescription": "Your schedule and focus sessions",
+    "calendarDataDescription": "Rhythm and timing patterns for personalization — not your private event titles shared with others.",
     "mediaPreferences": "Media Preferences",
-    "mediaPreferencesDescription": "Connected music services (Spotify)",
+    "mediaPreferencesDescription": "Taste from linked music services (when connected) to improve recommendations. Read-only where possible.",
     "privacyNotice": "Your data is used only to personalize recommendations and is never shared.",
     "goals": {
       "auto": "Auto",
@@ -654,7 +665,12 @@
     "notConnected": "Not connected",
     "readOnlyAccess": "Read-only access",
     "readOnlyNotice": "We only read your preferences. We never post or modify your content.",
-    "credentialsNeeded": "Platform credentials are not configured yet. Coming soon.",
+    "credentialsNeeded": "Add Spotify / Google client IDs in the app .env and OAuth secrets in Supabase (see connect-media function).",
+    "oauthError": "Could not complete connection: {{message}}",
+    "oauthInvalidCallback": "This link is invalid or expired. Open Settings and tap Connect again.",
+    "oauthNeedsSignIn": "Sign in to your account first, then connect Spotify or YouTube.",
+    "oauthExchangeFailed": "Could not complete the connection. Check that Supabase secrets and redirect URIs are configured.",
+    "oauthConnected": "{{provider}} connected.",
     "spotifyDescription": "Your favorite artists, genres, and playlists",
     "youtubeDescription": "Your wellness videos and playlists",
     "spotifyDataAccess": "Top artists, genres, saved playlists",
@@ -901,7 +917,7 @@
   "guide": {
     "tour": {
       "welcomeTitle": "Welcome to VYV",
-      "welcomeBody": "VYV is your system for living with intention. Let me show you the essentials in 30 seconds.",
+      "welcomeBody": "VYV helps you move through your day with clarity. A quick tour of the main areas — you stay in control of what you connect and share.",
       "homeTitle": "Home",
       "homeBody": "Your day at a glance: energy, habits, and direction. Everything starts here.",
       "exploreTitle": "Explore",
@@ -909,9 +925,13 @@
       "focusTitle": "Focus",
       "focusBody": "Your space for presence. Capture your moment and return to what matters.",
       "calendarTitle": "Calendar",
-      "calendarBody": "Organize your life visually. Events, rhythm, and balance in one place.",
+      "calendarBody": "Your schedule in one place. Connect accounts in Settings if you want; calendar sample ideas are optional and never expose your private event titles to others by default.",
       "profileTitle": "Profile",
-      "profileBody": "Your progress is yours. You choose what to share and what to keep private.",
+      "profileBody": "Your progress is yours. Adjust visibility for posts, calendar, and wellness sections — and revisit choices anytime in Settings.",
+      "connectionsTitle": "Connections",
+      "connectionsBody": "Health devices and music live under Profile → Settings. Native apps can connect more deeply; the web app stays honest about what is linked.",
+      "privacyControlTitle": "Privacy",
+      "privacyControlBody": "Nothing is shared with friends unless you enable it. Availability ideas on the calendar are off until you opt in. Change every choice later in Settings.",
       "skip": "Skip",
       "start": "Start",
       "next": "Next",

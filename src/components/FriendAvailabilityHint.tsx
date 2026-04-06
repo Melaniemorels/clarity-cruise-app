@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Users, ChevronDown, ChevronUp, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import type { SharedFreeBlock } from "@/hooks/use-friend-availability";
+import type { SharedFreeBlock } from "@/hooks/use-shared-availability-matches";
 import { CreatePlanSheet } from "@/components/CreatePlanSheet";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,16 +29,38 @@ const PLAN_CATEGORIES = {
 interface FriendAvailabilityHintProps {
   block: SharedFreeBlock;
   pixelsPerMinute: number;
+  /** Short privacy note: free/busy only, no event titles shared. */
+  showLivePrivacyNote?: boolean;
 }
 
 export const FriendAvailabilityHint = ({
   block,
   pixelsPerMinute,
+  showLivePrivacyNote = false,
 }: FriendAvailabilityHintProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [createPlanOpen, setCreatePlanOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [expanded]);
 
   const friends = block?.friends ?? [];
   if (friends.length === 0) return null;
@@ -109,6 +132,7 @@ export const FriendAvailabilityHint = ({
         }}
       >
         <button
+          type="button"
           onClick={handleToggle}
           className={cn(
             "timeline-social-surface rounded-xl border border-dashed",
@@ -125,35 +149,45 @@ export const FriendAvailabilityHint = ({
             <p className="text-[10px] text-muted-foreground/50 mt-0.5">
               {timeLabel}
             </p>
+            {showLivePrivacyNote && (
+              <p className="text-[10px] text-muted-foreground/50 mt-0.5 leading-tight line-clamp-2">
+                {t("calendar.friendHint.livePrivacyNoteCollapsed")}
+              </p>
+            )}
           </div>
           <ChevronDown className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
         </button>
       </div>
 
-      {/* Expanded card — fixed overlay, not crammed into the slot */}
-      <AnimatePresence>
-        {expanded && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
-              onClick={handleToggle}
-            />
+      {/* Expanded card — portaled to body so fixed overlay is not clipped by calendar scroll parents */}
+      {portalReady &&
+        createPortal(
+          <AnimatePresence>
+            {expanded && (
+              <>
+                <motion.div
+                  key="friend-hint-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
+                  onClick={handleToggle}
+                  aria-hidden
+                />
 
-            {/* Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.97 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-              className="fixed inset-x-4 bottom-4 z-50 max-w-lg mx-auto pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="timeline-social-surface-expanded rounded-2xl border border-border/60 shadow-lg overflow-hidden">
+                <motion.div
+                  key="friend-hint-panel"
+                  initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 16, scale: 0.97 }}
+                  transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                  className="fixed inset-x-4 bottom-4 z-50 max-w-lg mx-auto pointer-events-auto"
+                  role="dialog"
+                  aria-modal="true"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="timeline-social-surface-expanded rounded-2xl border border-border/60 shadow-lg overflow-hidden">
                 {/* Header */}
                 <div className="px-5 pt-5 pb-3">
                   <div className="flex items-start justify-between gap-3">
@@ -168,9 +202,15 @@ export const FriendAvailabilityHint = ({
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {timeLabel}
                         </p>
+                        {showLivePrivacyNote && (
+                          <p className="text-xs text-muted-foreground/70 mt-1.5 leading-relaxed">
+                            {t("calendar.friendHint.livePrivacyNoteExpanded")}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={handleToggle}
                       className="p-1.5 -m-1.5 rounded-lg hover:bg-muted/60 transition-colors flex-shrink-0"
                     >
@@ -290,6 +330,7 @@ export const FriendAvailabilityHint = ({
                       if (selectedPlan) {
                         handleConfirmPlan(e);
                       } else {
+                        setExpanded(false);
                         setCreatePlanOpen(true);
                       }
                     }}
@@ -302,11 +343,13 @@ export const FriendAvailabilityHint = ({
                       : t("calendar.friendHint.createPlan")}
                   </Button>
                 </div>
-              </div>
-            </motion.div>
-          </>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
 
       <CreatePlanSheet
         open={createPlanOpen}

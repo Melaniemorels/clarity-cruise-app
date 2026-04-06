@@ -35,8 +35,8 @@ export function ElevateSection() {
   const fonts = useResponsiveFontSize();
   const navigate = useNavigate();
 
-  const handleClick = async (url: string) => {
-    await openContent({ url, title: "" }, t);
+  const handleClick = (url: string) => {
+    openContent({ url, title: "" }, t);
   };
 
   return (

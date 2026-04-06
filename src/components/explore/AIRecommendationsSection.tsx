@@ -74,8 +74,10 @@ function RecommendationCard({
   const provider = externalLink ? detectProvider(externalLink) : 'other';
   const showComingSoon = externalLink ? COMING_SOON_PROVIDERS.includes(provider) : false;
 
-  const handleClick = async () => {
-    await openContent({ url: externalLink, provider: provider, title: recommendation.title }, t);
+  const handleClick = () => {
+    if (externalLink) {
+      openContent({ url: externalLink, provider, title: recommendation.title }, t);
+    }
   };
 
   return (

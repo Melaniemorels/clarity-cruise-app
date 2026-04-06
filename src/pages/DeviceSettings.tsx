@@ -13,6 +13,10 @@ import HealthPlatformCard from "@/components/devices/HealthPlatformCard";
 import VyvInsightsCard from "@/components/devices/VyvInsightsCard";
 import WatchNotificationsCard from "@/components/devices/WatchNotificationsCard";
 import CompatibleDevicesCard from "@/components/devices/CompatibleDevicesCard";
+import {
+  canRecordNativeDevicePreference,
+  logHealthNativeDevNote,
+} from "@/lib/native-health";
 
 type DeviceProvider = Database["public"]["Enums"]["device_provider"];
 
@@ -90,6 +94,16 @@ const DeviceSettings = () => {
 
   const handleConnect = async (platformId: DeviceProvider, platformName: string) => {
     if (!user) return;
+    if (!canRecordNativeDevicePreference(platformId)) {
+      toast.info(
+        platformId === "APPLE_HEALTH"
+          ? t("devices.appleHealthNativeOnly")
+          : t("devices.googleFitNativeOnly")
+      );
+      logHealthNativeDevNote("connect blocked (web or wrong platform)", platformId);
+      return;
+    }
+    logHealthNativeDevNote("recording preference row (HealthKit/Health Connect sync not implemented)", platformId);
     try {
       const { error } = await supabase.from("device_connections").insert({
         user_id: user.id,

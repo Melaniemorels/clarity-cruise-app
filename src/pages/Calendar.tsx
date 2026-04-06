@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { useDevice } from "@/hooks/use-device";
@@ -23,8 +23,12 @@ import { es, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
-import { useFriendAvailability } from "@/hooks/use-friend-availability";
 import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
+import { useAppVisibilityRefetch } from "@/hooks/use-app-visibility-refetch";
+import {
+  useSharedAvailabilityMatches,
+  useInvalidateSharedAvailability,
+} from "@/hooks/use-shared-availability-matches";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -41,6 +45,7 @@ const Calendar = () => {
   const addEventRef = useRef<HTMLButtonElement>(null);
   const calendarHeaderRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const invalidateSharedAvailability = useInvalidateSharedAvailability();
   const { user } = useAuth();
   
   const lang = i18n.language.startsWith('es') ? 'es' : 'en';
@@ -55,19 +60,33 @@ const Calendar = () => {
     ? ['D', 'L', 'M', 'M', 'J', 'V', 'S']
     : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-  // Fetch events from database
+  // Fetch events from database (scoped to signed-in user)
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ['calendar-events'],
+    queryKey: ['calendar-events', user?.id],
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await (supabase as any)
         .from('calendar_events')
         .select('*')
+        .eq('user_id', user.id)
         .order('starts_at', { ascending: true });
-      
+
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
+    enabled: !!user,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
+
+  useAppVisibilityRefetch(
+    user
+      ? [
+          ["calendar-events", user.id],
+          ["calendar-photo-entries", user.id],
+        ]
+      : []
+  );
 
   // Fetch photo entries from database
   const { data: photoEntries = [] } = useQuery({
@@ -85,6 +104,8 @@ const Calendar = () => {
       return data;
     },
     enabled: !!user,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 
   // Create/Update event mutation
@@ -103,8 +124,9 @@ const Calendar = () => {
             ends_at: event.ends_at,
             notes: event.notes,
           })
-          .eq('id', event.id);
-        
+          .eq('id', event.id)
+          .eq('user_id', user.id);
+
         if (error) throw error;
       } else {
         const { error } = await (supabase as any)
@@ -121,11 +143,12 @@ const Calendar = () => {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      invalidateSharedAvailability();
       setEventModalOpen(false);
       setSelectedEvent(null);
-      toast.success(selectedEvent ? t('event.eventUpdated') : t('event.eventCreated'));
+      toast.success(variables?.id ? t('event.eventUpdated') : t('event.eventCreated'));
     },
     onError: (error: any) => {
       toast.error(error.message || t('event.errors.saveError'));
@@ -135,15 +158,19 @@ const Calendar = () => {
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: async (id: string) => {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) throw new Error(t('event.errors.notAuthenticated'));
       const { error } = await (supabase as any)
         .from('calendar_events')
         .delete()
-        .eq('id', id);
-      
+        .eq('id', id)
+        .eq('user_id', u.id);
+
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      invalidateSharedAvailability();
       toast.success(t('event.eventDeleted'));
     },
     onError: (error: any) => {
@@ -194,7 +221,8 @@ const Calendar = () => {
   // Find nearby events for a photo
   const getNearbyContext = (photoTime: Date) => {
     const photoHour = photoTime.getTime();
-    const nearbyEvents = events.filter(event => {
+    const nearbyEvents = events.filter((event) => {
+      if (!isSameDay(parseISO(event.starts_at), photoTime)) return false;
       const start = new Date(event.starts_at).getTime();
       const end = new Date(event.ends_at).getTime();
       // Check if photo was during an event
@@ -299,17 +327,36 @@ const Calendar = () => {
 
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
-  const friendHints = useFriendAvailability(currentDate, dayEvents);
+  const { blocks: friendHints } = useSharedAvailabilityMatches(currentDate);
 
   const device = useDevice();
   const navStyle = useNavStyle();
   const isLandscape = device.isLandscape;
 
+  /** Week grid scroll — cap height by device so the grid stays usable without dominating the screen. */
+  const weekGridMaxHeight = useMemo(() => {
+    const { isDesktop, isTablet, isMobile, isCompactLandscape, isLandscape: ls } = device;
+    if (isCompactLandscape) return "min(38vh, 240px)";
+    if (ls && isMobile) return "min(44vh, 320px)";
+    if (isDesktop) return "min(600px, 62vh)";
+    if (isTablet) return "min(520px, 56vh)";
+    return "min(50vh, 460px)";
+  }, [device.isCompactLandscape, device.isLandscape, device.isMobile, device.isTablet, device.isDesktop]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col" style={navStyle}>
-      <div className={cn("p-4 space-y-4 flex-1 overscroll-contain", view === "day" ? "overflow-hidden" : "overflow-y-auto", isLandscape && "max-w-5xl mx-auto")} style={{ WebkitOverflowScrolling: 'touch' as any }}>
+      <div
+        className={cn(
+          "p-4 flex-1 overscroll-contain",
+          view === "day"
+            ? "flex min-h-0 flex-col gap-4 overflow-hidden"
+            : "space-y-4 overflow-y-auto",
+          isLandscape && "max-w-5xl mx-auto",
+        )}
+        style={{ WebkitOverflowScrolling: "touch" as any }}
+      >
         {/* Header */}
-        <div ref={calendarHeaderRef} className="flex items-center justify-between">
+        <div ref={calendarHeaderRef} className="flex shrink-0 items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('calendar.title')}</h1>
             <p className="text-sm text-muted-foreground">
@@ -337,16 +384,23 @@ const Calendar = () => {
         </div>
 
         {/* View Tabs */}
-        <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs
+          value={view}
+          onValueChange={(v) => setView(v as any)}
+          className={cn("w-full", view === "day" && "flex min-h-0 min-w-0 flex-1 flex-col")}
+        >
+          <TabsList className="grid w-full shrink-0 grid-cols-3">
             <TabsTrigger value="day">{t('calendar.day')}</TabsTrigger>
             <TabsTrigger value="week">{t('calendar.week')}</TabsTrigger>
             <TabsTrigger value="month">{t('calendar.month')}</TabsTrigger>
           </TabsList>
 
           {/* Day View */}
-          <TabsContent value="day" className="space-y-4">
-            <div className="flex items-center justify-between">
+          <TabsContent
+            value="day"
+            className="mt-2 flex min-h-0 min-w-0 flex-1 flex-col gap-4 data-[state=inactive]:hidden"
+          >
+            <div className="flex shrink-0 items-center justify-between">
               <Button variant="outline" size="icon" onClick={goToPrevious}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -360,12 +414,21 @@ const Calendar = () => {
               </Button>
             </div>
 
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
+            <Card className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col p-0">
                 {isLoading ? (
-                  <div className="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
+                  <div className="flex min-h-[12rem] flex-1 items-center justify-center p-8 text-muted-foreground">
+                    {t("common.loading")}
+                  </div>
                 ) : (
-                  <div className="overflow-y-auto overscroll-contain day-timeline-scroll" style={{ height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' as any, touchAction: 'pan-y', overscrollBehaviorY: 'contain' }}>
+                  <div
+                    className="day-timeline-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                    style={{
+                      WebkitOverflowScrolling: "touch" as any,
+                      touchAction: "pan-y",
+                      overscrollBehaviorY: "contain",
+                    }}
+                  >
                     {/* Hour grid with absolutely-positioned events */}
                     <div className="flex">
                       {/* Hour labels column */}
@@ -393,7 +456,9 @@ const Calendar = () => {
                             const startMinutes = start.getHours() * 60 + start.getMinutes();
                             const durationMin = Math.max(15, (end.getTime() - start.getTime()) / 60000);
                             const topPx = startMinutes * PIXELS_PER_MINUTE;
-                            const heightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+                            const dayEndPx = 24 * 60 * PIXELS_PER_MINUTE;
+                            const rawHeightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+                            const heightPx = Math.min(rawHeightPx, Math.max(15, dayEndPx - topPx));
 
                             return (
                               <div
@@ -455,6 +520,7 @@ const Calendar = () => {
                             key={`friend-hint-${idx}`}
                             block={hint}
                             pixelsPerMinute={PIXELS_PER_MINUTE}
+                            showLivePrivacyNote
                           />
                         ))}
                       </div>
@@ -465,7 +531,7 @@ const Calendar = () => {
             </Card>
 
             {/* Health Overlay */}
-            <Card>
+            <Card className="shrink-0">
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
                 {isHealthLoading ? (
@@ -539,7 +605,7 @@ const Calendar = () => {
                         })}
                       </div>
                       
-                      <div className="max-h-[50vh] overflow-y-auto">
+                      <div className="overflow-y-auto" style={{ maxHeight: weekGridMaxHeight }}>
                         <div className="grid grid-cols-8">
                           {/* Hour labels column */}
                           <div className="relative" style={{ height: `${16 * 60 * PIXELS_PER_MINUTE}px` }}>
@@ -590,12 +656,13 @@ const Calendar = () => {
                                   const start = new Date(event.starts_at);
                                   const end = new Date(event.ends_at);
                                   const startMinutes = start.getHours() * 60 + start.getMinutes();
-                                  const endMinutes = end.getHours() * 60 + end.getMinutes();
-                                  const durationMin = Math.max(15, endMinutes - startMinutes);
+                                  const durationMin = Math.max(15, (end.getTime() - start.getTime()) / 60000);
                                   // Offset from grid start (6:00 AM = 360 min)
                                   const dayStartMinutes = 6 * 60;
+                                  const gridHeightPx = 16 * 60 * PIXELS_PER_MINUTE;
                                   const topPx = Math.max(0, (startMinutes - dayStartMinutes) * PIXELS_PER_MINUTE);
-                                  const heightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+                                  const rawHeightPx = Math.max(15, durationMin * PIXELS_PER_MINUTE);
+                                  const heightPx = Math.min(rawHeightPx, Math.max(15, gridHeightPx - topPx));
 
                                   return (
                                     <div

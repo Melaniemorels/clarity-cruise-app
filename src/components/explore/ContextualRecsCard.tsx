@@ -27,9 +27,9 @@ function ContextualCard({ rec }: { rec: ContextualRec }) {
   const gradient = MOOD_GRADIENTS[rec.mood] ?? "from-muted/80 to-secondary/60";
   const provider = rec.url ? detectProvider(rec.url) : "other";
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (rec.url) {
-      await openContent({ url: rec.url, provider: provider.toString(), title: rec.title }, t);
+      openContent({ url: rec.url, provider, title: rec.title }, t);
     }
   };
 

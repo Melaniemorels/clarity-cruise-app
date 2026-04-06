@@ -28,7 +28,7 @@ export function useRecommendationFeedback() {
         {
           method: "POST",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal,resolution=merge-duplicates",
@@ -70,7 +70,7 @@ export function useMarkSeen() {
         {
           method: "POST",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal,resolution=ignore-duplicates",

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon } from "lucide-react";
+import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, ChefHat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
@@ -11,6 +11,10 @@ import { openContent } from "@/lib/open-content";
 import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
+import {
+  getExploreFallbackItems,
+  isCuratedExploreItem,
+} from "@/data/explore-fallback-items";
 
 export interface SectionConfig {
   key: string;
@@ -81,6 +85,11 @@ const SECTION_GRADIENTS: Record<string, string[]> = {
     "from-amber-900/50 to-orange-900/40",
     "from-indigo-900/50 to-violet-900/40",
   ],
+  Recetas: [
+    "from-orange-900/50 to-amber-900/40",
+    "from-rose-900/50 to-orange-900/40",
+    "from-green-900/50 to-emerald-900/40",
+  ],
 };
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
@@ -96,12 +105,13 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   Nutrición: Salad,
   PlanesDeComida: ClipboardList,
   MealPreps: ClipboardList,
+  Recetas: ChefHat,
 };
 
 export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "Música", titleKey: "music", icon: "music", emoji: "🎵" },
-  { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones", emoji: "🎧" },
   { key: "Podcasts", titleKey: "podcasts", icon: "headphones", emoji: "🎙️" },
+  { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones", emoji: "🎧" },
   { key: "Yoga", titleKey: "yoga", icon: "dumbbell", emoji: "🧘" },
   { key: "Pilates", titleKey: "pilates", icon: "dumbbell", emoji: "💪" },
   { key: "Meditación", titleKey: "meditation", icon: "brain", emoji: "🧠" },
@@ -109,6 +119,8 @@ export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "Energía", titleKey: "energy", icon: "flame", emoji: "⚡" },
   { key: "Ejercicios", titleKey: "exercises", icon: "dumbbell", emoji: "🏋️" },
   { key: "Nutrición", titleKey: "nutrition", icon: "salad", emoji: "🥗" },
+  { key: "Recetas", titleKey: "recipes", icon: "chefhat", emoji: "👩‍🍳" },
+  { key: "MealPreps", titleKey: "mealPreps", icon: "clipboard", emoji: "🍱" },
   { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
 ];
 
@@ -148,9 +160,14 @@ export function ExploreSectionCarousel({
   ];
   const IconComponent = SECTION_ICONS[section.key] ?? Hexagon;
 
-  const handleClick = async (item: ExploreItem) => {
-    logEvent.mutate({ itemId: item.id, event: "open" });
-    await openContent({ url: item.url, provider: detectProvider(item.url).toString(), title: item.title }, t);
+  const handleClick = (item: ExploreItem) => {
+    if (!isCuratedExploreItem(item.id)) {
+      logEvent.mutate({ itemId: item.id, event: "open" });
+    }
+    openContent(
+      { url: item.url, provider: detectProvider(item.url), title: item.title },
+      t,
+    );
   };
 
   if (isLoading) {
@@ -178,8 +195,12 @@ export function ExploreSectionCarousel({
     );
   }
 
-  const items = data?.items ?? [];
-  if (items.length === 0) return null;
+  const apiItems = data?.items ?? [];
+  const fallbackItems = getExploreFallbackItems(section.key);
+  const displayItems = apiItems.length > 0 ? apiItems : fallbackItems;
+  const usingFallback = apiItems.length === 0 && fallbackItems.length > 0;
+
+  if (displayItems.length === 0) return null;
 
   return (
     <div ref={sectionRef} className="space-y-4">
@@ -206,9 +227,13 @@ export function ExploreSectionCarousel({
         </Button>
       </div>
 
+      {usingFallback && (
+        <p className="text-xs text-muted-foreground -mt-1">{t("explore.curatedFallback")}</p>
+      )}
+
       <ScrollArea className="w-full whitespace-nowrap">
         <div className={cn("flex pb-4", device.isMobile ? "gap-3" : "gap-4")}>
-          {items.map((item, idx) => {
+          {displayItems.map((item, idx) => {
             const provider = detectProvider(item.url);
             const gradient = gradients[idx % gradients.length];
             return (
@@ -278,7 +303,9 @@ export function ExploreSectionCarousel({
                       className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        logEvent.mutate({ itemId: item.id, event: "save" });
+                        if (!isCuratedExploreItem(item.id)) {
+                          logEvent.mutate({ itemId: item.id, event: "save" });
+                        }
                       }}
                     >
                       <Bookmark className="h-4 w-4" />

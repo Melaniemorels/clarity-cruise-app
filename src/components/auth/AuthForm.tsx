@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { KEEP_SIGNED_IN_KEY } from "@/lib/auth-constants";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,8 +40,6 @@ const fadeIn = {
   transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const },
 };
 
-const KEEP_SIGNED_IN_KEY = "vyv-keep-signed-in";
-
 const inputClassName =
   "h-12 rounded-xl border border-border/40 bg-secondary/40 text-sm placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:ring-offset-0 focus-visible:border-primary/30 transition-colors duration-200";
 
@@ -56,14 +55,6 @@ export function AuthForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
-
-  // Show Apple Sign In only on iOS or Safari
-  const showApple = useMemo(() => {
-    const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    return isIOS || isSafari;
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,7 +247,7 @@ export function AuthForm() {
       {/* Social sign-in */}
       <div className="space-y-2">
         <SocialSignInButton provider="google" />
-        {showApple && <SocialSignInButton provider="apple" />}
+        <SocialSignInButton provider="apple" />
       </div>
 
       {/* Toggle sign-in / sign-up */}

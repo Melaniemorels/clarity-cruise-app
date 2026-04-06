@@ -219,11 +219,17 @@ export function useFollow() {
           .eq("follower_id", user.id)
           .eq("following_id", targetUserId);
         if (error) throw error;
+        await supabase.rpc("clear_friendship_pair_on_unfollow", {
+          p_other_user: targetUserId,
+        });
       } else {
         const { error } = await supabase
           .from("follows")
           .insert({ follower_id: user.id, following_id: targetUserId });
         if (error) throw error;
+        await supabase.rpc("ensure_friendship_from_mutual_follow", {
+          p_other_user: targetUserId,
+        });
       }
 
       return { targetUserId, newFollowingState: !isFollowing };
@@ -233,6 +239,7 @@ export function useFollow() {
       queryClient.invalidateQueries({ queryKey: ["profile-stats"] });
       queryClient.invalidateQueries({ queryKey: ["user-search"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["shared-availability"] });
       toast.success(variables.isFollowing ? i18n.t('follow.unfollowed') : i18n.t('follow.nowFollowing'));
     },
     onError: () => {

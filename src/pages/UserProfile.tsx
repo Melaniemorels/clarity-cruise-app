@@ -37,7 +37,8 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
-  
+  const navStyle = useNavStyle();
+
   // Redirect to own profile if viewing self
   const isOwnProfile = currentUser?.id === userId;
   
@@ -108,8 +109,6 @@ const UserProfile = () => {
     navigate("/profile", { replace: true });
     return null;
   }
-
-  const navStyle = useNavStyle();
 
   if (isLoading || accessLoading) {
     return (

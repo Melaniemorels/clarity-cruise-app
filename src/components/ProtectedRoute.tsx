@@ -23,7 +23,7 @@ export const ProtectedRoute = ({ children, skipOnboardingCheck = false }: Protec
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
   // Skip all onboarding checks if flag is set

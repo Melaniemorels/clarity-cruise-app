@@ -35,7 +35,8 @@ function scoreItem(
   item: ExploreItem,
   prefs: UserPrefs,
   topTags: string[],
-  recentCategories: string[]
+  recentCategories: string[],
+  dwellCategoryBoost: number
 ): number {
   const preferred = prefs.preferred_tags ?? [];
   const tags = item.tags ?? [];
@@ -54,7 +55,32 @@ function scoreItem(
         : 0.9;
   const pop = item.popularity_score ?? 0.4;
 
-  return (tagHits + pop * 2) * catBoost * verifiedBoost * langBoost;
+  return (
+    (tagHits + pop * 2) *
+    catBoost *
+    verifiedBoost *
+    langBoost *
+    dwellCategoryBoost
+  );
+}
+
+/** Aggregate dwell_ms per category (last N days); returns multiplier 1.0–1.3 per category */
+function buildDwellCategoryBoosts(
+  rows: { category: string | null; dwell_ms: number | null }[]
+): Map<string, number> {
+  const totals = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.category || !r.dwell_ms) continue;
+    totals.set(r.category, (totals.get(r.category) ?? 0) + r.dwell_ms);
+  }
+  let max = 0;
+  for (const v of totals.values()) if (v > max) max = v;
+  if (max <= 0) return new Map();
+  const out = new Map<string, number>();
+  for (const [cat, ms] of totals) {
+    out.set(cat, 1 + 0.3 * (ms / max));
+  }
+  return out;
 }
 
 function diversify<T>(sorted: T[], rate = 0.18): T[] {
@@ -130,10 +156,12 @@ Deno.serve(async (req) => {
 
     const category: string | null = body.category ?? null;
     const page: number = body.page ?? 0;
-    const pageSize: number = Math.min(body.pageSize ?? 8, 50);
+    const pageSize: number = Math.min(body.pageSize ?? 8, 60);
 
-    // Fetch user prefs, events, and items in parallel
-    const [prefsRes, eventsRes, itemsRes] = await Promise.all([
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Fetch user prefs, events, items, and dwell signals in parallel
+    const [prefsRes, eventsRes, itemsRes, dwellRes] = await Promise.all([
       adminClient
         .from("user_explore_preferences")
         .select("*")
@@ -144,12 +172,19 @@ Deno.serve(async (req) => {
         .select("item_id, event")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(600),
+        .limit(800),
       adminClient
         .from("explore_items")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(200),
+        .limit(mode === "see_all" ? 500 : 250),
+      adminClient
+        .from("dwell_events")
+        .select("category, dwell_ms, item_id")
+        .eq("user_id", userId)
+        .gte("created_at", sevenDaysAgo)
+        .order("created_at", { ascending: false })
+        .limit(500),
     ]);
 
     const prefs: UserPrefs = prefsRes.data ?? {
@@ -161,6 +196,8 @@ Deno.serve(async (req) => {
 
     const events = eventsRes.data ?? [];
     const allItems: ExploreItem[] = (itemsRes.data ?? []) as ExploreItem[];
+    const dwellRows = dwellRes.error ? [] : (dwellRes.data ?? []);
+    const dwellCategoryBoosts = buildDwellCategoryBoosts(dwellRows);
 
     // Filter by category if specified
     let pool = category
@@ -186,16 +223,24 @@ Deno.serve(async (req) => {
     const recentCategories = [...new Set(openedCategories)];
 
     // Infer top tags from opened items
+    const topTagsFromOpens = events
+      .filter((e) => ["open", "save"].includes(e.event))
+      .slice(0, 20)
+      .flatMap((e) => {
+        const item = allItems.find((i) => i.id === e.item_id);
+        return item?.tags ?? [];
+      });
+
+    const topTagsFromDwell = dwellRows
+      .filter((d) => d.item_id)
+      .slice(0, 40)
+      .flatMap((d) => {
+        const item = allItems.find((i) => i.id === d.item_id);
+        return item?.tags ?? [];
+      });
+
     const topTags = [
-      ...new Set(
-        events
-          .filter((e) => ["open", "save"].includes(e.event))
-          .slice(0, 20)
-          .flatMap((e) => {
-            const item = allItems.find((i) => i.id === e.item_id);
-            return item?.tags ?? [];
-          })
-      ),
+      ...new Set([...topTagsFromOpens, ...topTagsFromDwell]),
     ];
 
     const blockedCreators = new Set(prefs.blocked_creators ?? []);
@@ -217,28 +262,41 @@ Deno.serve(async (req) => {
         ? pool.filter((item) => !blockedCreators.has(item.creator ?? ""))
         : filtered;
 
-    // Score & rank
+    // Score & rank (dwell time boosts categories the user actually lingered on)
     const ranked = candidates
       .map((item) => ({
         item,
-        score: scoreItem(item, prefs, topTags, recentCategories),
+        score: scoreItem(
+          item,
+          prefs,
+          topTags,
+          recentCategories,
+          dwellCategoryBoosts.get(item.category) ?? 1.0
+        ),
       }))
       .sort((a, b) => b.score - a.score)
       .map((x) => x.item);
 
-    // Deduplicate creators in top results
+    const maxListForSeeAll = Math.min(ranked.length, 480);
+    const maxListForYou = pageSize * 4;
+
     const usedCreators = new Set<string>();
     const deduped: ExploreItem[] = [];
     for (const it of ranked) {
+      if (mode === "see_all") {
+        deduped.push(it);
+        if (deduped.length >= maxListForSeeAll) break;
+        continue;
+      }
       const c = it.creator ?? "";
       if (c && usedCreators.has(c)) continue;
       deduped.push(it);
       if (c) usedCreators.add(c);
-      if (deduped.length >= pageSize * 4) break;
+      if (deduped.length >= maxListForYou) break;
     }
 
     // Diversify
-    const explorationRate = mode === "for_you" ? 0.12 : 0.2;
+    const explorationRate = mode === "for_you" ? 0.12 : 0.18;
     const mixed = diversify(deduped, explorationRate);
 
     // Paginate

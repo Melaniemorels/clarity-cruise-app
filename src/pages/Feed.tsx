@@ -76,6 +76,20 @@ const getTourSteps = (t: (key: string) => string) => [
     selector: "#tab-profile",
     placement: "top" as const,
   },
+  {
+    id: "connections",
+    title: t('guide.tour.connectionsTitle'),
+    body: t('guide.tour.connectionsBody'),
+    selector: "body",
+    placement: "bottom" as const,
+  },
+  {
+    id: "privacyControl",
+    title: t('guide.tour.privacyControlTitle'),
+    body: t('guide.tour.privacyControlBody'),
+    selector: "body",
+    placement: "bottom" as const,
+  },
 ];
 
 const Feed = () => {

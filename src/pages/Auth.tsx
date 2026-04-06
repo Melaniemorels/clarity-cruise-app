@@ -1,5 +1,5 @@
 import { Hexagon } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useDevice } from "@/hooks/use-device";
@@ -9,8 +9,17 @@ import { AuthForm } from "@/components/auth/AuthForm";
 
 const Auth = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const { isDesktop, isTablet, isLandscape, width } = useDevice();
   const { session, loading } = useAuth();
+  const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
+  const redirectTo =
+    from?.pathname &&
+    from.pathname !== "/auth" &&
+    from.pathname.startsWith("/") &&
+    !from.pathname.startsWith("//")
+      ? `${from.pathname}${from.search ?? ""}`
+      : "/";
 
   // Show two-column branding layout on desktop OR tablet landscape with enough width
   const showBrandingPanel = isDesktop || (isTablet && isLandscape && width >= 900);
@@ -24,7 +33,7 @@ const Auth = () => {
   }
 
   if (session) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return (

@@ -28,16 +28,26 @@ export function useMediaConnections() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_integrations?user_id=eq.${user!.id}&is_active=eq.true&select=*`,
         {
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
           },
         }
       );
 
-      if (!response.ok) throw new Error("Failed to fetch connections");
+      if (!response.ok) {
+        const body = await response.text();
+        if (import.meta.env.DEV) {
+          console.error("[media-connections] fetch failed", response.status, body);
+        }
+        throw new Error("Failed to fetch connections");
+      }
       return response.json();
     },
     enabled: !!user,
+    staleTime: 30_000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
+    retry: 2,
   });
 }
 
@@ -55,7 +65,7 @@ export function useDisconnectMedia() {
         {
           method: "PATCH",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal",
@@ -69,7 +79,13 @@ export function useDisconnectMedia() {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to disconnect");
+      if (!response.ok) {
+        const body = await response.text();
+        if (import.meta.env.DEV) {
+          console.error("[media-connections] disconnect failed", response.status, body);
+        }
+        throw new Error("Failed to disconnect");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["media-connections"] });
@@ -90,7 +106,7 @@ export function useHealthyVerifiedMode() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=healthy_verified_mode`,
         {
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
           },
         }
@@ -118,7 +134,7 @@ export function useToggleHealthyVerified() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=id`,
         {
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${session.access_token}`,
           },
         }
@@ -132,7 +148,7 @@ export function useToggleHealthyVerified() {
           {
             method: "PATCH",
             headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
               Authorization: `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               Prefer: "return=minimal",
@@ -146,7 +162,7 @@ export function useToggleHealthyVerified() {
           {
             method: "POST",
             headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
               Authorization: `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               Prefer: "return=minimal",

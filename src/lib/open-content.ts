@@ -1,4 +1,4 @@
-import { openExternal } from "@/lib/external-link";
+import { openExternal, normalizeMediaUrl } from "@/lib/external-link";
 import { toast } from "sonner";
 
 /**
@@ -29,13 +29,14 @@ export interface ContentItem {
  * Opens content externally with fallback URL resolution and copy-link on error.
  * Returns true if a URL was found and open was attempted.
  */
-export async function openContent(
-  item: ContentItem,
-  t: (key: string) => string
-): Promise<boolean> {
-  const url = item.url || resolveUrl(item.provider ?? "other", item.contentId);
+/**
+ * Opens YouTube / Spotify / other media URLs in the system browser (or in-app browser on native).
+ * Runs synchronously so it stays within the user gesture (avoids blocked pop-ups).
+ */
+export function openContent(item: ContentItem, t: (key: string) => string): boolean {
+  const raw = item.url || resolveUrl(item.provider ?? "other", item.contentId);
 
-  if (!url) {
+  if (!raw?.trim()) {
     toast(t("explore.unavailable.title"), {
       description: t("explore.unavailable.noUrl"),
       duration: 4000,
@@ -43,8 +44,10 @@ export async function openContent(
     return false;
   }
 
+  const url = normalizeMediaUrl(raw);
+
   try {
-    await openExternal(url);
+    openExternal(url);
     return true;
   } catch {
     toast.error(t("explore.unavailable.title"), {
@@ -53,7 +56,7 @@ export async function openContent(
       action: {
         label: t("explore.copyLink"),
         onClick: () => {
-          navigator.clipboard.writeText(url).then(() => {
+          void navigator.clipboard.writeText(url).then(() => {
             toast.success(t("explore.linkCopied"));
           });
         },

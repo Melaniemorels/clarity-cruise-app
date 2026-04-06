@@ -3,6 +3,8 @@
  * and replays them when the connection is restored using raw REST calls.
  */
 
+import { supabase } from "@/integrations/supabase/client";
+
 export interface QueuedAction {
   id: string;
   table: string;
@@ -47,11 +49,10 @@ export function clearQueue() {
 }
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const { supabase } = await import("@/integrations/supabase/client");
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   return {
     apikey: key,

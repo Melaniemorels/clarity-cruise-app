@@ -15,8 +15,12 @@ const PROVIDER_PATTERNS: { pattern: RegExp; provider: ContentProvider }[] = [
 ];
 
 export function detectProvider(url: string): ContentProvider {
+  const u = url.trim();
+  if (/^spotify:/i.test(u) || /spotify\.com|open\.spotify/i.test(u)) {
+    return 'spotify';
+  }
   for (const { pattern, provider } of PROVIDER_PATTERNS) {
-    if (pattern.test(url)) return provider;
+    if (pattern.test(u)) return provider;
   }
   return 'other';
 }
@@ -44,16 +48,57 @@ function normalizeUrl(url: string): string {
   return url;
 }
 
+const SPOTIFY_WEB_TYPES = new Set([
+  'track',
+  'album',
+  'playlist',
+  'episode',
+  'show',
+  'artist',
+]);
+
+/**
+ * Spotify app URIs → https://open.spotify.com/… so links work in the browser.
+ * Trims input; adds https for bare host paths when needed.
+ */
+export function normalizeMediaUrl(input: string): string {
+  const u = input.trim();
+  if (!u) return u;
+  if (/^spotify:/i.test(u)) {
+    const parts = u.split(':');
+    if (parts.length >= 3) {
+      const type = parts[1].toLowerCase();
+      const id = parts[2];
+      if (SPOTIFY_WEB_TYPES.has(type) && id) {
+        return `https://open.spotify.com/${type}/${id}`;
+      }
+    }
+    return u;
+  }
+  return normalizeUrl(u);
+}
+
 /**
  * Opens a URL externally (system browser / native app).
- * Never opens inside an iframe or WebView.
+ * Synchronous on web so popup blockers do not block after async gaps in click handlers.
  */
-export async function openExternal(url: string): Promise<void> {
-  const normalised = normalizeUrl(url);
+export function openExternal(url: string): void {
+  const normalised = normalizeMediaUrl(url);
 
   if (Capacitor.isNativePlatform()) {
-    await Browser.open({ url: normalised });
-  } else {
+    void Browser.open({ url: normalised });
+    return;
+  }
+
+  try {
+    const a = document.createElement('a');
+    a.href = normalised;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch {
     window.open(normalised, '_blank', 'noopener,noreferrer');
   }
 }

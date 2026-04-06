@@ -82,14 +82,14 @@ export function useSeeAllFeed(category?: string) {
         mode: "see_all",
         category: category || undefined,
         page: pageParam,
-        pageSize: 24,
+        pageSize: 36,
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!session,
-    staleTime: 3 * 60 * 1000,
+    staleTime: 60 * 1000,
     refetchOnWindowFocus: true,
-    refetchInterval: 120 * 1000, // silent refresh every 2 min
+    refetchInterval: 90 * 1000,
   });
 }
 

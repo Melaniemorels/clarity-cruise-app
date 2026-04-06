@@ -44,6 +44,27 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_sharing: {
+        Row: {
+          share_free_busy_with_friends: boolean
+          show_friend_match_suggestions: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          share_free_busy_with_friends?: boolean
+          show_friend_match_suggestions?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          share_free_busy_with_friends?: boolean
+          show_friend_match_suggestions?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           criteria: Json | null
@@ -292,6 +313,33 @@ export type Database = {
           follower_id?: string
           following_id?: string
           id?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_one_id: string
+          user_two_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_one_id: string
+          user_two_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_one_id?: string
+          user_two_id?: string
         }
         Relationships: []
       }
@@ -559,6 +607,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_tour_completed?: boolean | null
           bio: string | null
           created_at: string | null
           handle: string
@@ -570,6 +619,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          app_tour_completed?: boolean | null
           bio?: string | null
           created_at?: string | null
           handle: string
@@ -581,6 +631,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          app_tour_completed?: boolean | null
           bio?: string | null
           created_at?: string | null
           handle?: string
@@ -957,7 +1008,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clear_friendship_pair_on_unfollow: {
+        Args: { p_other_user: string }
+        Returns: undefined
+      }
+      ensure_friendship_from_mutual_follow: {
+        Args: { p_other_user: string }
+        Returns: undefined
+      }
     }
     Enums: {
       content_type:

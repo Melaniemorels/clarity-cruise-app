@@ -127,7 +127,7 @@ export function useMediaConsent() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=*`,
         {
           headers: {
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
         }
@@ -163,7 +163,7 @@ export function useUpdateMediaConsent() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=id`,
         {
           headers: {
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${session.access_token}`,
           },
         }
@@ -177,7 +177,7 @@ export function useUpdateMediaConsent() {
           {
             method: "PATCH",
             headers: {
-              "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
               "Authorization": `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               "Prefer": "return=minimal",
@@ -197,7 +197,7 @@ export function useUpdateMediaConsent() {
           {
             method: "POST",
             headers: {
-              "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
               "Authorization": `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               "Prefer": "return=minimal",

@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { format, isToday, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 const TRAVEL_KEYWORDS = [
   // English
@@ -68,25 +68,11 @@ export function useTravelDetection(): TravelDetectionResult {
     checkCalendar();
   }, [user]);
 
-  // Already traveling — no suggestion needed
   const alreadyTraveling = profile?.is_traveling ?? false;
-  
-  // If travel mode is "off", never detect
   const modeStatus = profile?.travel_mode_status ?? "auto";
-  if (modeStatus === "off") {
-    return {
-      isTravelDetected: false,
-      reason: null,
-      currentTimezone,
-      homeTimezone,
-      isDismissed: false,
-      dismiss: () => {},
-      activateTravelMode: () => {},
-    };
-  }
 
-  // Check dismissal
   const getDismissKey = () => `${DISMISS_KEY}-${format(new Date(), "yyyy-MM-dd")}`;
+
   const isDismissed = (() => {
     try {
       return localStorage.getItem(getDismissKey()) === "true";
@@ -94,12 +80,6 @@ export function useTravelDetection(): TravelDetectionResult {
       return false;
     }
   })();
-
-  const isTravelDetected =
-    !alreadyTraveling &&
-    !isDismissed &&
-    modeStatus === "auto" &&
-    (timezoneChanged || calendarHasTravel.current);
 
   const reason: "timezone" | "calendar" | null = timezoneChanged
     ? "timezone"
@@ -124,6 +104,24 @@ export function useTravelDetection(): TravelDetectionResult {
     });
     dismiss();
   }, [updateProfile, currentTimezone, homeTimezone, reason, dismiss]);
+
+  if (modeStatus === "off") {
+    return {
+      isTravelDetected: false,
+      reason: null,
+      currentTimezone,
+      homeTimezone,
+      isDismissed: false,
+      dismiss: () => {},
+      activateTravelMode: () => {},
+    };
+  }
+
+  const isTravelDetected =
+    !alreadyTraveling &&
+    !isDismissed &&
+    modeStatus === "auto" &&
+    (timezoneChanged || calendarHasTravel.current);
 
   return {
     isTravelDetected,

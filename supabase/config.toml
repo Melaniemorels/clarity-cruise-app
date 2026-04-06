@@ -1,4 +1,4 @@
-project_id = "ithgwfirbaexaooahzbm"
+project_id = "ihmigjoaxuwiriiqkesk"
 
 [functions.analyze-image]
 verify_jwt = false
@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.contextual-recommendations]
 verify_jwt = false
+
+[functions.shared-availability]
+verify_jwt = true
+
+[functions.connect-media]
+verify_jwt = true

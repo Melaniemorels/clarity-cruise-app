@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseProjectRef } from "@/lib/auth-oauth-diagnostics";
 
 interface SocialSignInButtonProps {
   provider: "google" | "apple";
@@ -45,14 +46,67 @@ export function SocialSignInButton({ provider }: SocialSignInButtonProps) {
 
   const handleSignIn = async () => {
     setLoading(true);
-    try {
-      const { error } = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: `${window.location.origin}/auth/callback`,
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
+    if (import.meta.env.DEV) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+      console.groupCollapsed(`[auth] OAuth start → ${provider}`);
+      console.log("redirectTo (app)", redirectTo);
+      console.log("VITE_SUPABASE_URL host", supabaseUrl ? new URL(supabaseUrl).host : "(missing)");
+      console.log("project ref", getSupabaseProjectRef() ?? "(unknown)");
+      console.log("signInWithOAuth options", {
+        provider,
+        redirectTo,
+        ...(provider === "google" && {
+          scopes: "https://www.googleapis.com/auth/youtube.readonly",
+          queryParams: { access_type: "offline", prompt: "consent" },
+        }),
       });
+      console.groupEnd();
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          ...(provider === "google" && {
+            scopes: "https://www.googleapis.com/auth/youtube.readonly",
+            queryParams: {
+              access_type: "offline",
+              prompt: "consent",
+            },
+          }),
+        },
+      });
+
       if (error) {
+        console.error("[auth] signInWithOAuth failed:", provider, error.message, error);
         toast.error(error.message || t("errors.generic"));
+        return;
       }
-    } catch {
+
+      if (import.meta.env.DEV) {
+        let redirectHost: string | undefined;
+        try {
+          redirectHost = data?.url ? new URL(data.url).host : undefined;
+        } catch {
+          redirectHost = undefined;
+        }
+        console.log("[auth] OAuth redirect issued:", {
+          provider,
+          hasUrl: !!data?.url,
+          redirectHost,
+        });
+      }
+
+      // Browser follows data.url; if no redirect (e.g. misconfiguration), stop loading
+      if (!data?.url) {
+        console.warn("[auth] signInWithOAuth returned no redirect URL — check Supabase URL config.");
+        toast.error(t("errors.generic"));
+      }
+    } catch (e) {
+      console.error("[auth] signInWithOAuth exception:", provider, e);
       toast.error(t("errors.generic"));
     } finally {
       setLoading(false);

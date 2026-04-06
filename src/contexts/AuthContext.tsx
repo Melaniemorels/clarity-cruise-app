@@ -2,8 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-
-const KEEP_SIGNED_IN_KEY = "vyv-keep-signed-in";
+import { KEEP_SIGNED_IN_KEY } from "@/lib/auth-constants";
 
 interface AuthContextType {
   user: User | null;
@@ -51,12 +50,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Session persistence: if "keep signed in" is OFF and this is a new browser session, sign out
+      // Session persistence: if "keep signed in" is OFF and this is a new browser session, sign out.
+      // Never sign out on /auth/callback — OAuth session is established here before sessionStorage is set.
       if (session) {
         const keepSignedIn = localStorage.getItem(KEEP_SIGNED_IN_KEY);
         const sessionActive = sessionStorage.getItem(KEEP_SIGNED_IN_KEY);
-        
-        if (keepSignedIn === "false" && !sessionActive) {
+        const isOAuthReturn =
+          typeof window !== "undefined" && window.location.pathname.includes("/auth/callback");
+
+        if (keepSignedIn === "false" && !sessionActive && !isOAuthReturn) {
           supabase.auth.signOut().then(() => {
             if (!isMounted) return;
             setSession(null);

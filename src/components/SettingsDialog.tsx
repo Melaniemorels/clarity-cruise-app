@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/ThemeProvider";
@@ -24,7 +24,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -63,9 +62,15 @@ import {
   Download,
   Plane,
   RotateCcw,
+  Calendar,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
 import { useGuide } from "@/contexts/GuideContext";
+import {
+  useAvailabilitySharing,
+  useUpdateAvailabilitySharing,
+} from "@/hooks/use-availability-sharing";
+import { useDevice } from "@/hooks/use-device";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -82,6 +87,50 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const updateProfileMutation = useUpdateProfile();
   const navigate = useNavigate();
   const { replayTour } = useGuide();
+  const { data: availabilitySharing } = useAvailabilitySharing();
+  const updateAvailabilitySharing = useUpdateAvailabilitySharing();
+  const device = useDevice();
+
+  /** Bottom sheet snap heights + width: tuned per form factor (useDevice). */
+  const sheetLayout = useMemo(() => {
+    const { isDesktop, isTablet, isMobile, isCompactLandscape, isLandscape } = device;
+    if (isCompactLandscape) {
+      return {
+        collapsedHeight: 0.42,
+        expandedHeight: 0.9,
+        sheetClassName:
+          "left-3 right-3 mx-auto max-w-xl rounded-2xl border border-border shadow-2xl",
+      };
+    }
+    if (isLandscape && isMobile) {
+      return {
+        collapsedHeight: 0.46,
+        expandedHeight: 0.91,
+        sheetClassName: "left-3 right-3 mx-auto max-w-xl rounded-2xl",
+      };
+    }
+    if (isDesktop) {
+      return {
+        collapsedHeight: 0.5,
+        expandedHeight: 0.84,
+        sheetClassName:
+          "left-4 right-4 mx-auto max-w-md rounded-2xl border border-border shadow-2xl sm:max-w-lg",
+      };
+    }
+    if (isTablet) {
+      return {
+        collapsedHeight: 0.52,
+        expandedHeight: 0.88,
+        sheetClassName:
+          "left-5 right-5 mx-auto max-w-lg rounded-2xl border border-border shadow-2xl",
+      };
+    }
+    return {
+      collapsedHeight: 0.55,
+      expandedHeight: 0.93,
+      sheetClassName: "",
+    };
+  }, [device]);
 
   // Local state for toggles (these would connect to real settings in production)
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -166,7 +215,9 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
         <div className="min-w-0">
           <Label className="text-base">{label}</Label>
           {description && (
-            <p className="text-sm text-muted-foreground truncate">{description}</p>
+            <p className="text-sm text-muted-foreground truncate" title={description}>
+              {description}
+            </p>
           )}
         </div>
       </div>
@@ -203,21 +254,8 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
     </Button>
   );
 
-  return (
+  const settingsScrollContent = (
     <>
-      <BottomSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        collapsedHeight={0.55}
-        expandedHeight={0.93}
-        header={
-          <div className="px-6 pt-2 pb-2 flex-shrink-0">
-            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">{t("settings.title")}</h2>
-          </div>
-        }
-      >
-          <div className="px-6 pb-6">
-            <div className="space-y-6 py-4 pr-4">
               {/* Appearance */}
               <div>
                 <SectionHeader>{t("settings.appearance")}</SectionHeader>
@@ -360,6 +398,38 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                         checked={profile?.is_private ?? false}
                         onCheckedChange={handlePrivacyChange}
                         disabled={updateProfileMutation.isPending}
+                      />
+                    }
+                  />
+                  <SettingRow
+                    icon={Calendar}
+                    label={t("settings.shareFreeBusyTitle")}
+                    description={t("settings.shareFreeBusyDesc")}
+                    action={
+                      <Switch
+                        checked={availabilitySharing?.share_free_busy_with_friends ?? false}
+                        onCheckedChange={(v) =>
+                          updateAvailabilitySharing.mutate({
+                            share_free_busy_with_friends: v,
+                          })
+                        }
+                        disabled={updateAvailabilitySharing.isPending}
+                      />
+                    }
+                  />
+                  <SettingRow
+                    icon={Users}
+                    label={t("settings.showFriendMatchSuggestionsTitle")}
+                    description={t("settings.showFriendMatchSuggestionsDesc")}
+                    action={
+                      <Switch
+                        checked={availabilitySharing?.show_friend_match_suggestions ?? true}
+                        onCheckedChange={(v) =>
+                          updateAvailabilitySharing.mutate({
+                            show_friend_match_suggestions: v,
+                          })
+                        }
+                        disabled={updateAvailabilitySharing.isPending}
                       />
                     }
                   />
@@ -693,17 +763,34 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
               <Separator />
 
-              {/* Sign Out */}
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={signOut}
-              >
+              <Button variant="destructive" className="w-full" onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t("auth.signOut")}
               </Button>
-            </div>
+    </>
+  );
+
+  return (
+    <>
+      <BottomSheet
+        open={open}
+        onOpenChange={onOpenChange}
+        collapsedHeight={sheetLayout.collapsedHeight}
+        expandedHeight={sheetLayout.expandedHeight}
+        className={sheetLayout.sheetClassName}
+        header={
+          <div className="flex-shrink-0 px-6 pb-2 pt-2">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
+              {t("settings.title")}
+            </h2>
           </div>
+        }
+      >
+        <div className="px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          <div className="space-y-6 py-4 pr-4">
+            {settingsScrollContent}
+          </div>
+        </div>
       </BottomSheet>
 
       {/* Delete Account Confirmation */}

@@ -11,10 +11,15 @@ import { openContent } from "@/lib/open-content";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
+import {
+  getExploreFallbackItems,
+  isCuratedExploreItem,
+} from "@/data/explore-fallback-items";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { useInView } from "react-intersection-observer";
+import { useDwellTracker } from "@/hooks/use-dwell-tracker";
 
 /** Normalize text: lowercase, trim, strip diacritics */
 function normalize(text: string): string {
@@ -155,7 +160,16 @@ export default function ExploreSection() {
         {/* Content grid */}
         {isParaTi && <ParaTiGrid recommendations={recQuery.data?.recommendations ?? []} isLoading={recQuery.isLoading} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
         {isElevate && <ElevateGrid items={ELEVATE_ITEMS} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
-        {sectionConfig && <SectionGrid feedQuery={feedQuery} logEvent={logEvent} onOpen={handleOpenItem} t={t} searchQuery={searchQuery} />}
+        {sectionConfig && (
+          <SectionGrid
+            categoryKey={sectionConfig.key}
+            feedQuery={feedQuery}
+            logEvent={logEvent}
+            onOpen={handleOpenItem}
+            t={t}
+            searchQuery={searchQuery}
+          />
+        )}
 
         {/* Empty state */}
         {!isParaTi && !isElevate && !sectionConfig && (
@@ -365,9 +379,96 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_
   );
 }
 
-function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuery: any; logEvent: any; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
+function SectionGrid({
+  categoryKey,
+  feedQuery,
+  logEvent,
+  onOpen,
+  t,
+  searchQuery,
+}: {
+  categoryKey: string;
+  feedQuery: any;
+  logEvent: any;
+  onOpen: (item: any) => void;
+  t: (k: string) => string;
+  searchQuery: string;
+}) {
   const device = useDevice();
+  const dwellTracker = useDwellTracker("explore_section");
   const allItems: ExploreItem[] = feedQuery.data?.pages?.flatMap((p: any) => p.items) ?? [];
+
+  // Track item-level dwell on "See all" cards
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const itemElsRef = useRef<Map<string, Element>>(new Map());
+  const visibleIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const el = entry.target as HTMLElement;
+          const itemId = el.dataset.itemId;
+          if (!itemId) continue;
+          const cat = el.dataset.category || undefined;
+
+          if (entry.isIntersecting) {
+            if (!visibleIdsRef.current.has(itemId)) {
+              visibleIdsRef.current.add(itemId);
+              dwellTracker.onItemVisible(itemId, cat);
+            }
+          } else {
+            if (visibleIdsRef.current.has(itemId)) {
+              visibleIdsRef.current.delete(itemId);
+              dwellTracker.onItemHidden(itemId);
+            }
+          }
+        }
+      },
+      { threshold: 0.6 }
+    );
+
+    // Observe any elements already registered
+    for (const el of itemElsRef.current.values()) {
+      observerRef.current.observe(el);
+    }
+
+    return () => {
+      // Flush currently-visible items so we don't lose dwell on navigation
+      for (const itemId of visibleIdsRef.current) {
+        dwellTracker.onItemHidden(itemId);
+      }
+      visibleIdsRef.current.clear();
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      dwellTracker.flush();
+    };
+  }, [dwellTracker]);
+
+  const setItemRef = useCallback(
+    (itemId: string, category?: string) => (el: Element | null) => {
+      const prev = itemElsRef.current.get(itemId);
+      if (prev && observerRef.current) observerRef.current.unobserve(prev);
+
+      if (!el) {
+        itemElsRef.current.delete(itemId);
+        if (visibleIdsRef.current.has(itemId)) {
+          visibleIdsRef.current.delete(itemId);
+          dwellTracker.onItemHidden(itemId);
+        }
+        return;
+      }
+
+      (el as HTMLElement).dataset.itemId = itemId;
+      (el as HTMLElement).dataset.category = category ?? "";
+
+      itemElsRef.current.set(itemId, el);
+      observerRef.current?.observe(el);
+    },
+    [dwellTracker]
+  );
 
   // Deduplicate by id
   const deduped = useMemo(() => {
@@ -379,11 +480,24 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
     });
   }, [allItems]);
 
-  const filtered = useMemo(() =>
-    deduped.filter((item) =>
-      matchesSearch(searchQuery, item.title, item.url, item.creator, item.tags?.join(" "), item.duration_min?.toString())
-    ),
-    [deduped, searchQuery]
+  const withFallback = useMemo(() => {
+    if (deduped.length > 0) return deduped;
+    return getExploreFallbackItems(categoryKey);
+  }, [deduped, categoryKey]);
+
+  const filtered = useMemo(
+    () =>
+      withFallback.filter((item) =>
+        matchesSearch(
+          searchQuery,
+          item.title,
+          item.url,
+          item.creator,
+          item.tags?.join(" "),
+          item.duration_min?.toString(),
+        ),
+      ),
+    [withFallback, searchQuery],
   );
 
   // Auto-fetch next page callback
@@ -396,7 +510,7 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
   const renderSectionCard = useCallback((item: ExploreItem, i: number) => {
     const provider = detectProvider(item.url);
     return (
-      <div key={`sug-${item.id}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => { logEvent.mutate({ itemId: item.id, event: "open" }); onOpen(item); }}>
+      <div key={`sug-${item.id}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => { if (!isCuratedExploreItem(item.id)) logEvent.mutate({ itemId: item.id, event: "open" }); onOpen(item); }}>
         <div className="p-4 space-y-2">
           <h3 className="font-semibold text-foreground text-sm line-clamp-2">{item.title}</h3>
           <div className="flex items-center gap-1.5">
@@ -409,7 +523,17 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
   }, [logEvent, onOpen, t]);
 
   if (feedQuery.isLoading) return <GridSkeleton />;
-  if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && deduped.length > 0} query={searchQuery} suggestedItems={deduped.slice(0, 6)} renderCard={renderSectionCard} />;
+  if (filtered.length === 0) {
+    return (
+      <EmptyState
+        t={t}
+        noResults={!!searchQuery && withFallback.length > 0}
+        query={searchQuery}
+        suggestedItems={withFallback.slice(0, 6)}
+        renderCard={renderSectionCard}
+      />
+    );
+  }
 
   return (
     <>
@@ -419,9 +543,16 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
           return (
             <div
               key={item.id}
+              ref={
+                isCuratedExploreItem(item.id)
+                  ? undefined
+                  : setItemRef(item.id, item.category)
+              }
               className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all"
               onClick={() => {
-                logEvent.mutate({ itemId: item.id, event: "open" });
+                if (!isCuratedExploreItem(item.id)) {
+                  logEvent.mutate({ itemId: item.id, event: "open" });
+                }
                 onOpen(item);
               }}
             >
@@ -440,7 +571,9 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
                     className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      logEvent.mutate({ itemId: item.id, event: "open" });
+                      if (!isCuratedExploreItem(item.id)) {
+                        logEvent.mutate({ itemId: item.id, event: "open" });
+                      }
                       onOpen(item);
                     }}
                   >
@@ -451,7 +584,9 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
                     className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      logEvent.mutate({ itemId: item.id, event: "save" });
+                      if (!isCuratedExploreItem(item.id)) {
+                        logEvent.mutate({ itemId: item.id, event: "save" });
+                      }
                     }}
                   >
                     <Bookmark className="h-4 w-4" />
