@@ -7,6 +7,12 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const QUICK_PROMPTS = [
   "I feel unmotivated",
+  "I want to reset my energy",
+  "I need clarity",
+  "I feel a bit off today",
+  "I want to do something meaningful",
+  "I need a small win",
+  "I want to get out of my head",
   "I don't know what to do",
   "I'm stuck",
   "I need to move",
