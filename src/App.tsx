@@ -126,6 +126,7 @@ const App = () => (
               </QueryErrorBoundary>
               </NetworkProvider>
               
+              <VYVAssistantButton />
               <FindFriendsModal />
               </GuideProvider>
               </VYVProvider>
