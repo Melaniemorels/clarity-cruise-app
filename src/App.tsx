@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
 import { FindFriendsModal } from "./components/FindFriendsModal";
+import { VYVAssistantButton } from "./components/VYVAssistantButton";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
