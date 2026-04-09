@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUp } from "lucide-react";
+import { X, ArrowUp, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -29,26 +29,63 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // auto-scroll on new content
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // focus input when opened
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [open]);
 
+  const downloadChat = useCallback(() => {
+    const text = messages
+      .map((m) => `${m.role === "user" ? "You" : "VYV Guide"}: ${m.content}`)
+      .join("\n\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vyv-guide-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Saved", description: "Conversation downloaded." });
+  }, [messages]);
+
+  const handleNewChat = useCallback(() => {
+    if (messages.length > 0 && !showSavePrompt) {
+      setShowSavePrompt(true);
+      return;
+    }
+    setMessages([]);
+    setShowSavePrompt(false);
+    setInput("");
+  }, [messages.length, showSavePrompt]);
+
+  const dismissSaveAndReset = useCallback(() => {
+    setMessages([]);
+    setShowSavePrompt(false);
+    setInput("");
+  }, []);
+
+  const saveAndReset = useCallback(() => {
+    downloadChat();
+    setMessages([]);
+    setShowSavePrompt(false);
+    setInput("");
+  }, [downloadChat]);
+
   const send = useCallback(
     async (text: string) => {
       if (!text.trim() || isLoading) return;
+      setShowSavePrompt(false);
       const userMsg: Msg = { role: "user", content: text.trim() };
       const updatedMessages = [...messages, userMsg];
       setMessages(updatedMessages);
@@ -158,13 +195,47 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
           <span className="text-sm font-semibold tracking-tight text-foreground">
             VYV Guide
           </span>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
-          >
-            <X className="h-4 w-4 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-1">
+            {messages.length > 0 && (
+              <button
+                onClick={handleNewChat}
+                aria-label="New conversation"
+                className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
+            <button
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
+
+        {/* save prompt banner */}
+        {showSavePrompt && (
+          <div className="px-5 py-3 border-b border-border/30 bg-secondary/20 animate-in fade-in-0 duration-200">
+            <p className="text-xs text-muted-foreground mb-2">
+              Would you like to save this conversation before starting fresh?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={saveAndReset}
+                className="px-3 py-1 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Save and start new
+              </button>
+              <button
+                onClick={dismissSaveAndReset}
+                className="px-3 py-1 text-xs rounded-lg border border-border text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                Just start new
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
