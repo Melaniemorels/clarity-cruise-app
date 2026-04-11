@@ -312,12 +312,13 @@ export function NotificationCenter() {
               ) : (
                 <div className="divide-y">
                   {activityNotifications.map((notification) => (
-                    <button
+                    <div
                       key={notification.id}
-                      onClick={() => handleNotificationClick(notification)}
+                      onClick={() => notification.type !== "plan_invite" && handleNotificationClick(notification)}
                       className={cn(
                         "w-full flex items-start gap-3 p-4 text-left transition-colors hover:bg-muted/50",
-                        !notification.is_read && "bg-primary/5"
+                        !notification.is_read && "bg-primary/5",
+                        notification.type !== "plan_invite" && "cursor-pointer"
                       )}
                     >
                       <ProfileAvatar
@@ -336,17 +337,48 @@ export function NotificationCenter() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {getNotificationMessage(notification)}
                         </p>
+                        {notification.message && notification.type === "plan_invite" && (
+                          <p className="text-xs font-medium text-foreground/70 mt-0.5">
+                            "{notification.message}"
+                          </p>
+                        )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
                             locale: dateLocale,
                           })}
                         </p>
+                        {/* Accept/Decline buttons for plan invites */}
+                        {notification.type === "plan_invite" && !notification.is_read && (
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              className="h-7 text-xs px-3"
+                              onClick={(e) => { e.stopPropagation(); handlePlanResponse(notification, true); }}
+                              disabled={respondingTo === notification.id}
+                            >
+                              {respondingTo === notification.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <><Check className="h-3 w-3 mr-1" />{t("common.accept")}</>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs px-3"
+                              onClick={(e) => { e.stopPropagation(); handlePlanResponse(notification, false); }}
+                              disabled={respondingTo === notification.id}
+                            >
+                              <X className="h-3 w-3 mr-1" />{t("common.decline")}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      {!notification.is_read && (
+                      {!notification.is_read && notification.type !== "plan_invite" && (
                         <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
