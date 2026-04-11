@@ -321,12 +321,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       setCapturedImage(null);
       setCapturedTimestamp(null);
       setCaptionText("");
+      setLocationText("");
       startCamera(facingMode);
     } else {
       stopCamera();
       setCapturedImage(null);
       setCapturedTimestamp(null);
       setCaptionText("");
+      setLocationText("");
     }
   };
 
