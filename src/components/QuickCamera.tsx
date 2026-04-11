@@ -73,6 +73,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const setIsOpen = onOpenChange || setInternalOpen;
   const [filter, setFilter] = useState<FilterType>("natural");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [captionText, setCaptionText] = useState("");
   const [capturedTimestamp, setCapturedTimestamp] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>("environment");
