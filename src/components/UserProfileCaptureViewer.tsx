@@ -11,6 +11,7 @@ import { usePostLike, type Post } from "@/hooks/use-posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { ScreenshotGuard } from "@/components/ScreenshotGuard";
 
 interface UserProfileCaptureViewerProps {
   open: boolean;
@@ -192,6 +193,8 @@ export function UserProfileCaptureViewer({
     }),
   };
 
+  const isOtherUser = post?.user_id !== user?.id;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -199,6 +202,7 @@ export function UserProfileCaptureViewer({
         style={{ opacity: dismissOpacity, background: "#0A0A0A" }}
         aria-describedby={undefined}
       >
+        <ScreenshotGuard enabled={isOtherUser} className="w-full h-full flex items-center justify-center">
         <VisuallyHidden>
           <DialogTitle>{t("postViewer.title")}</DialogTitle>
         </VisuallyHidden>
@@ -358,6 +362,7 @@ export function UserProfileCaptureViewer({
             </div>
           </div>
         </div>
+        </ScreenshotGuard>
       </DialogContent>
     </Dialog>
   );

@@ -1,32 +1,24 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Capacitor } from "@capacitor/core";
 
 interface UseScreenshotProtectionOptions {
-  /** Whether this content is protected from screenshots */
   enabled: boolean;
-  /** Duration in ms to keep the blur active after detection */
   blurDuration?: number;
 }
 
 interface ScreenshotProtectionState {
-  /** Whether content is currently blurred due to screenshot detection */
   isBlurred: boolean;
-  /** Manually dismiss the blur overlay */
   dismiss: () => void;
 }
 
 /**
- * Cross-platform screenshot protection hook.
+ * Cross-platform screenshot protection hook (Snapchat-style).
  *
- * Web:
- *  - Detects PrintScreen / Cmd+Shift+3/4 keyboard shortcuts
- *  - Uses CSS protections (applied via the ScreenshotGuard component)
- *
- * Capacitor (Android):
- *  - Attempts to set FLAG_SECURE via plugin when enabled
- *
- * Capacitor (iOS):
- *  - Listens for screenshot notification events
+ * Detection layers:
+ *  1. Keyboard shortcuts (PrintScreen, Cmd+Shift+3/4/5, Win+Shift+S)
+ *  2. Visibility API – iOS takes a snapshot when the app goes to background;
+ *     we blur instantly when the page becomes hidden.
+ *  3. Context-menu prevention on the wrapped region (handled via ScreenshotGuard).
+ *  4. CSS protections (user-select: none, pointer-events on images) via component.
  */
 export function useScreenshotProtection({
   enabled,
@@ -52,20 +44,15 @@ export function useScreenshotProtection({
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // PrintScreen
       if (e.key === "PrintScreen") {
         e.preventDefault();
         triggerBlur();
         return;
       }
-
-      // macOS: Cmd+Shift+3 or Cmd+Shift+4 or Cmd+Shift+5
       if (e.metaKey && e.shiftKey && ["3", "4", "5"].includes(e.key)) {
         triggerBlur();
         return;
       }
-
-      // Windows: Win+Shift+S (Snipping Tool)
       if (e.metaKey && e.shiftKey && e.key.toLowerCase() === "s") {
         triggerBlur();
         return;
@@ -76,9 +63,19 @@ export function useScreenshotProtection({
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [enabled, triggerBlur]);
 
-  // Note: For Android native FLAG_SECURE support, install
-  // @capacitor-community/privacy-screen and enable it in the native layer.
-  // CSS-only protections (user-select: none) are applied via ScreenshotGuard.
+  // --- Visibility API: blur when page hidden (iOS screenshot / app-switcher) ---
+  useEffect(() => {
+    if (!enabled) return;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        triggerBlur();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [enabled, triggerBlur]);
 
   // Cleanup timer on unmount
   useEffect(() => {

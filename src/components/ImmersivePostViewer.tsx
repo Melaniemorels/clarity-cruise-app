@@ -10,6 +10,7 @@ import { usePostLike, type Post } from "@/hooks/use-posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { ScreenshotGuard } from "@/components/ScreenshotGuard";
 
 interface ImmersivePostViewerProps {
   open: boolean;
@@ -124,12 +125,15 @@ export function ImmersivePostViewer({
     }
   };
 
+  const isOtherUser = post?.user_id !== user?.id;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-w-none w-screen h-[100dvh] p-0 gap-0 border-0 rounded-none bg-black/95 backdrop-blur-xl [&>button]:hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
         aria-describedby={undefined}
       >
+        <ScreenshotGuard enabled={isOtherUser} className="w-full h-full">
         <VisuallyHidden>
           <DialogTitle>{t("postViewer.title")}</DialogTitle>
         </VisuallyHidden>
@@ -296,6 +300,7 @@ export function ImmersivePostViewer({
             )}
           </div>
         </div>
+        </ScreenshotGuard>
       </DialogContent>
     </Dialog>
   );
