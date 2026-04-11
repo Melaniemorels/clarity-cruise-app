@@ -267,18 +267,18 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
             <div
               key={i}
               className={cn(
-                "text-sm leading-relaxed max-w-[85%]",
+                "max-w-[85%]",
                 m.role === "user"
-                  ? "ml-auto text-right text-foreground"
-                  : "mr-auto text-muted-foreground"
+                  ? "ml-auto text-right"
+                  : "mr-auto"
               )}
             >
               {m.role === "user" ? (
-                <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2 text-left text-foreground">
+                <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2.5 text-left text-[13px] leading-[1.6] text-foreground tracking-[-0.01em]">
                   {m.content}
                 </span>
               ) : (
-                <span className="inline-block">{m.content}</span>
+                <AssistantMessage content={m.content} />
               )}
             </div>
           ))}
