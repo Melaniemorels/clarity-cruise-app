@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Camera, X, SwitchCamera, Download } from "lucide-react";
+import { Camera, X, SwitchCamera, Download, MapPin } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
