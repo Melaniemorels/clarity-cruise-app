@@ -440,7 +440,9 @@
     "autoSavePromptDesc": "Podemos guardar automáticamente cada foto que tomes en tu galería.",
     "autoSaveYes": "Sí, guardar",
     "autoSaveNo": "No, gracias",
-    "savedToDevice": "Foto guardada en tu dispositivo"
+    "savedToDevice": "Foto guardada en tu dispositivo",
+    "captionPlaceholder": "Agrega una nota…",
+    "locationPlaceholder": "Agrega ubicación…"
   },
   "post": {
     "captureMoment": "Capturar Momento",
