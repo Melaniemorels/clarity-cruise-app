@@ -797,7 +797,11 @@
     "requestRejected": "{{name}} rejected your request",
     "likedPost": "{{name}} liked your post",
     "commented": "{{name}} commented on your post",
-    "planInvite": "{{name}} invited you to a plan"
+    "planInvite": "{{name}} invited you to a plan",
+    "planAccepted": "{{name}} accepted your plan invite",
+    "planDeclined": "{{name}} declined your plan invite",
+    "planAcceptSuccess": "Plan accepted!",
+    "planDeclineSuccess": "Plan declined"
   },
   "followRequests": {
     "title": "Requests",
