@@ -425,22 +425,38 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                {/* Optional caption */}
-                <div className="w-[84%] mt-4">
-                  <input
-                    type="text"
-                    value={captionText}
-                    onChange={(e) => setCaptionText(e.target.value.slice(0, 120))}
-                    placeholder={t('camera.captionPlaceholder', 'Add a note…')}
-                    maxLength={120}
-                    className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
-                      text-sm text-foreground placeholder:text-muted-foreground/40 
-                      py-2 px-1 outline-none transition-colors duration-200
-                      font-light tracking-wide"
-                  />
-                  <p className="text-[10px] text-muted-foreground/30 text-right mt-1">
-                    {captionText.length}/120
-                  </p>
+                {/* Optional caption & location */}
+                <div className="w-[84%] mt-4 space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      value={captionText}
+                      onChange={(e) => setCaptionText(e.target.value.slice(0, 120))}
+                      placeholder={t('camera.captionPlaceholder', 'Add a note…')}
+                      maxLength={120}
+                      className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
+                        text-sm text-foreground placeholder:text-muted-foreground/40 
+                        py-2 px-1 outline-none transition-colors duration-200
+                        font-light tracking-wide"
+                    />
+                    <p className="text-[10px] text-muted-foreground/30 text-right mt-1">
+                      {captionText.length}/120
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value.slice(0, 80))}
+                      placeholder={t('camera.locationPlaceholder', 'Add location…')}
+                      maxLength={80}
+                      className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
+                        text-sm text-foreground placeholder:text-muted-foreground/40 
+                        py-2 px-1 outline-none transition-colors duration-200
+                        font-light tracking-wide"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-4 w-[84%]">
