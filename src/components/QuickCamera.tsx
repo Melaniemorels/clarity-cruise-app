@@ -254,7 +254,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         caption: captionText.trim(),
         activity_tag: activityTag,
         created_at: timestamp,
-      });
+        location: locationVal,
+      } as any);
 
       if (postError) throw postError;
 
