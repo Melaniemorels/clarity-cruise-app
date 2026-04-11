@@ -18,6 +18,7 @@
     "viewAll": "View all",
     "loadMore": "Load more",
     "today": "Today",
+    "loginRequired": "You need to log in first",
     "less": "Less",
     "more": "More",
     "done": "Done",
@@ -226,7 +227,8 @@
       "notePlaceholder": "Add a note...",
       "create": "Create",
       "created": "Plan created",
-      "titleRequired": "Add a plan name"
+      "titleRequired": "Add a plan name",
+      "error": "Could not create the plan"
     }
   },
   "profile": {
@@ -794,7 +796,8 @@
     "requestAccepted": "{{name}} accepted your request",
     "requestRejected": "{{name}} rejected your request",
     "likedPost": "{{name}} liked your post",
-    "commented": "{{name}} commented on your post"
+    "commented": "{{name}} commented on your post",
+    "planInvite": "{{name}} invited you to a plan"
   },
   "followRequests": {
     "title": "Requests",

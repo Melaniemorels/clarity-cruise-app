@@ -18,6 +18,7 @@
     "viewAll": "Ver todo",
     "loadMore": "Cargar más",
     "today": "Hoy",
+    "loginRequired": "Necesitas iniciar sesión primero",
     "less": "Menos",
     "more": "Más",
     "done": "Listo",
@@ -226,7 +227,8 @@
       "notePlaceholder": "Añade una nota...",
       "create": "Crear",
       "created": "Plan creado",
-      "titleRequired": "Añade un nombre al plan"
+      "titleRequired": "Añade un nombre al plan",
+      "error": "No se pudo crear el plan"
     }
   },
   "profile": {
@@ -794,7 +796,8 @@
     "requestAccepted": "{{name}} aceptó tu solicitud",
     "requestRejected": "{{name}} rechazó tu solicitud",
     "likedPost": "{{name}} le dio me gusta a tu publicación",
-    "commented": "{{name}} comentó tu publicación"
+    "commented": "{{name}} comentó tu publicación",
+    "planInvite": "{{name}} te invitó a un plan"
   },
   "followRequests": {
     "title": "Solicitudes",

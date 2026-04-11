@@ -8,7 +8,8 @@ export type NotificationType =
   | "request_accepted" 
   | "request_rejected" 
   | "like" 
-  | "comment";
+  | "comment"
+  | "plan_invite";
 
 export interface Notification {
   id: string;
