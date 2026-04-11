@@ -1379,6 +1379,80 @@ export type Database = {
         }
         Relationships: []
       }
+      social_plan_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          plan_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          plan_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          plan_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_plan_invites_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "social_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_plans: {
+        Row: {
+          created_at: string
+          creator_id: string
+          end_minute: number
+          id: string
+          note: string | null
+          plan_date: string
+          start_minute: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          end_minute: number
+          id?: string
+          note?: string | null
+          plan_date?: string
+          start_minute: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          end_minute?: number
+          id?: string
+          note?: string | null
+          plan_date?: string
+          start_minute?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       streaks: {
         Row: {
           current_streak: number | null
