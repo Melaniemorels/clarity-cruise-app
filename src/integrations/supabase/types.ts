@@ -364,6 +364,7 @@ export type Database = {
           category_id: string | null
           created_at: string | null
           id: string
+          location: string | null
           mood: number | null
           occurred_at: string | null
           photo_url: string | null
@@ -377,6 +378,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          location?: string | null
           mood?: number | null
           occurred_at?: string | null
           photo_url?: string | null
@@ -390,6 +392,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          location?: string | null
           mood?: number | null
           occurred_at?: string | null
           photo_url?: string | null
@@ -1007,6 +1010,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          location: string | null
           updated_at: string
           user_id: string
         }
@@ -1016,6 +1020,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          location?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1025,6 +1030,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          location?: string | null
           updated_at?: string
           user_id?: string
         }

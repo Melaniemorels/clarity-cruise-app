@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Camera, X, SwitchCamera, Download } from "lucide-react";
+import { Camera, X, SwitchCamera, Download, MapPin } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -74,6 +74,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const [filter, setFilter] = useState<FilterType>("natural");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [captionText, setCaptionText] = useState("");
+  const [locationText, setLocationText] = useState("");
   const [capturedTimestamp, setCapturedTimestamp] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>("environment");
@@ -234,13 +235,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         return;
       }
 
+      const locationVal = locationText.trim() || null;
+
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
         photo_url: urlData.publicUrl,
         caption: captionText.trim(),
         occurred_at: timestamp,
         visibility: "public",
-      });
+        location: locationVal,
+      } as any);
 
       if (entryError) throw entryError;
 
@@ -250,7 +254,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         caption: captionText.trim(),
         activity_tag: activityTag,
         created_at: timestamp,
-      });
+        location: locationVal,
+      } as any);
 
       if (postError) throw postError;
 
@@ -316,12 +321,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       setCapturedImage(null);
       setCapturedTimestamp(null);
       setCaptionText("");
+      setLocationText("");
       startCamera(facingMode);
     } else {
       stopCamera();
       setCapturedImage(null);
       setCapturedTimestamp(null);
       setCaptionText("");
+      setLocationText("");
     }
   };
 
@@ -420,22 +427,38 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                {/* Optional caption */}
-                <div className="w-[84%] mt-4">
-                  <input
-                    type="text"
-                    value={captionText}
-                    onChange={(e) => setCaptionText(e.target.value.slice(0, 120))}
-                    placeholder={t('camera.captionPlaceholder', 'Add a note…')}
-                    maxLength={120}
-                    className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
-                      text-sm text-foreground placeholder:text-muted-foreground/40 
-                      py-2 px-1 outline-none transition-colors duration-200
-                      font-light tracking-wide"
-                  />
-                  <p className="text-[10px] text-muted-foreground/30 text-right mt-1">
-                    {captionText.length}/120
-                  </p>
+                {/* Optional caption & location */}
+                <div className="w-[84%] mt-4 space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      value={captionText}
+                      onChange={(e) => setCaptionText(e.target.value.slice(0, 120))}
+                      placeholder={t('camera.captionPlaceholder', 'Add a note…')}
+                      maxLength={120}
+                      className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
+                        text-sm text-foreground placeholder:text-muted-foreground/40 
+                        py-2 px-1 outline-none transition-colors duration-200
+                        font-light tracking-wide"
+                    />
+                    <p className="text-[10px] text-muted-foreground/30 text-right mt-1">
+                      {captionText.length}/120
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value.slice(0, 80))}
+                      placeholder={t('camera.locationPlaceholder', 'Add location…')}
+                      maxLength={80}
+                      className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
+                        text-sm text-foreground placeholder:text-muted-foreground/40 
+                        py-2 px-1 outline-none transition-colors duration-200
+                        font-light tracking-wide"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-4 w-[84%]">
@@ -445,6 +468,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                       setCapturedImage(null);
                       setCapturedTimestamp(null);
                       setCaptionText("");
+                      setLocationText("");
                       startCamera(facingMode);
                     }}
                     className="flex-1"
