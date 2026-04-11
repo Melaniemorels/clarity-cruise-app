@@ -23,7 +23,9 @@
     "more": "More",
     "done": "Done",
     "goBack": "Go back",
-    "searchPeople": "Search people"
+    "searchPeople": "Search people",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "home": {
     "greeting": "Your day, with intention",

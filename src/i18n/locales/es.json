@@ -23,7 +23,9 @@
     "more": "Más",
     "done": "Listo",
     "goBack": "Regresar",
-    "searchPeople": "Buscar personas"
+    "searchPeople": "Buscar personas",
+    "accept": "Aceptar",
+    "decline": "Rechazar"
   },
   "home": {
     "greeting": "Tu día, con intención",
