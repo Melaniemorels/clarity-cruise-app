@@ -92,17 +92,17 @@ export const FriendAvailabilityHint = ({
   return (
     <>
       <div
-        className="absolute left-1 right-1 z-10 pointer-events-auto"
+        className={`absolute left-1 right-1 pointer-events-auto ${expanded ? "z-30" : "z-10"}`}
         style={{
           top: `${topPx}px`,
-          height: `${slotHeight}px`,
+          height: expanded ? "auto" : `${slotHeight}px`,
         }}
       >
         <div
           className={`timeline-item timeline-social-surface rounded-xl border 
             transition-[background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
-            h-full flex flex-col overflow-hidden
-            ${expanded ? "timeline-social-surface-expanded border-solid" : "border-dashed"}`}
+            flex flex-col
+            ${expanded ? "timeline-social-surface-expanded border-solid shadow-lg" : "border-dashed h-full overflow-hidden"}`}
         >
           {/* Header */}
           <button
@@ -134,8 +134,7 @@ export const FriendAvailabilityHint = ({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                className="overflow-hidden flex-1 min-h-0"
-                style={{ maxHeight: `${maxExpandedHeight - 44}px` }}
+                className="overflow-hidden"
               >
                 <div className="overflow-y-auto h-full overscroll-contain px-4 pb-4 space-y-4"
                   style={{ touchAction: 'pan-y' }}
