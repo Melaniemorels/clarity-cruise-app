@@ -794,7 +794,8 @@
     "requestAccepted": "{{name}} accepted your request",
     "requestRejected": "{{name}} rejected your request",
     "likedPost": "{{name}} liked your post",
-    "commented": "{{name}} commented on your post"
+    "commented": "{{name}} commented on your post",
+    "planInvite": "{{name}} invited you to a plan"
   },
   "followRequests": {
     "title": "Requests",
