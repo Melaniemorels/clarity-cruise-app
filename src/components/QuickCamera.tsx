@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, X, SwitchCamera, Download } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const setIsOpen = onOpenChange || setInternalOpen;
   const [filter, setFilter] = useState<FilterType>("natural");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [captionText, setCaptionText] = useState("");
   const [capturedTimestamp, setCapturedTimestamp] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>("environment");
@@ -236,7 +237,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
         photo_url: urlData.publicUrl,
-        caption: "",
+        caption: captionText.trim(),
         occurred_at: timestamp,
         visibility: "public",
       });
@@ -246,7 +247,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       const { error: postError } = await supabase.from("posts").insert({
         user_id: user.id,
         image_url: urlData.publicUrl,
-        caption: "",
+        caption: captionText.trim(),
         activity_tag: activityTag,
         created_at: timestamp,
       });
@@ -314,11 +315,13 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     if (open) {
       setCapturedImage(null);
       setCapturedTimestamp(null);
+      setCaptionText("");
       startCamera(facingMode);
     } else {
       stopCamera();
       setCapturedImage(null);
       setCapturedTimestamp(null);
+      setCaptionText("");
     }
   };
 
@@ -417,12 +420,31 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                   />
                 </div>
 
-                <div className="flex gap-3 mt-6 w-[84%]">
+                {/* Optional caption */}
+                <div className="w-[84%] mt-4">
+                  <input
+                    type="text"
+                    value={captionText}
+                    onChange={(e) => setCaptionText(e.target.value.slice(0, 120))}
+                    placeholder={t('camera.captionPlaceholder', 'Add a note…')}
+                    maxLength={120}
+                    className="w-full bg-transparent border-b border-border/40 focus:border-primary/50 
+                      text-sm text-foreground placeholder:text-muted-foreground/40 
+                      py-2 px-1 outline-none transition-colors duration-200
+                      font-light tracking-wide"
+                  />
+                  <p className="text-[10px] text-muted-foreground/30 text-right mt-1">
+                    {captionText.length}/120
+                  </p>
+                </div>
+
+                <div className="flex gap-3 mt-4 w-[84%]">
                   <Button
                     variant="outline"
                     onClick={() => {
                       setCapturedImage(null);
                       setCapturedTimestamp(null);
+                      setCaptionText("");
                       startCamera(facingMode);
                     }}
                     className="flex-1"
