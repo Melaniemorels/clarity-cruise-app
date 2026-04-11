@@ -1772,6 +1772,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_plan_creator: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_plan_invitee: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
+      }
       record_login_attempt: {
         Args: {
           attempt_email: string
