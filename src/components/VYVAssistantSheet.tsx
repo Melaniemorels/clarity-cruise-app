@@ -5,6 +5,41 @@ import { toast } from "@/hooks/use-toast";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+function AssistantMessage({ content }: { content: string }) {
+  // Parse numbered steps and render with visual hierarchy
+  const lines = content.split("\n");
+  const hasSteps = lines.some((l) => /^\d+\.\s/.test(l.trim()));
+
+  if (!hasSteps) {
+    return (
+      <span className="inline-block text-[13px] leading-[1.7] text-foreground/80 tracking-[-0.01em]">
+        {content}
+      </span>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5 text-[13px] leading-[1.7] text-foreground/80 tracking-[-0.01em]">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return null;
+        const stepMatch = trimmed.match(/^(\d+)\.\s(.+)/);
+        if (stepMatch) {
+          return (
+            <div key={i} className="flex gap-2.5 items-start">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-primary/8 flex items-center justify-center text-[10px] font-medium text-primary/70 mt-0.5">
+                {stepMatch[1]}
+              </span>
+              <span className="flex-1">{stepMatch[2]}</span>
+            </div>
+          );
+        }
+        return <p key={i}>{trimmed}</p>;
+      })}
+    </div>
+  );
+}
+
 const QUICK_PROMPTS = [
   "I feel unmotivated",
   "I want to reset my energy",
@@ -267,18 +302,18 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
             <div
               key={i}
               className={cn(
-                "text-sm leading-relaxed max-w-[85%]",
+                "max-w-[85%]",
                 m.role === "user"
-                  ? "ml-auto text-right text-foreground"
-                  : "mr-auto text-muted-foreground"
+                  ? "ml-auto text-right"
+                  : "mr-auto"
               )}
             >
               {m.role === "user" ? (
-                <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2 text-left text-foreground">
+                <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2.5 text-left text-[13px] leading-[1.6] text-foreground tracking-[-0.01em]">
                   {m.content}
                 </span>
               ) : (
-                <span className="inline-block">{m.content}</span>
+                <AssistantMessage content={m.content} />
               )}
             </div>
           ))}
