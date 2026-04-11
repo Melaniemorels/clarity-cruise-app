@@ -57,6 +57,10 @@ export function NotificationCenter() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
+  const createNotification = useCreateNotification();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   // Follow requests
   const { data: followRequests = [], isLoading: requestsLoading } = useFollowRequests();
@@ -106,6 +110,40 @@ export function NotificationCenter() {
     navigate(`/profile/${userId}`);
   };
 
+  const handlePlanResponse = async (notification: typeof notifications[0], accepted: boolean) => {
+    if (!user || !notification.reference_id) return;
+    setRespondingTo(notification.id);
+    try {
+      // Update invite status
+      await supabase
+        .from("social_plan_invites" as any)
+        .update({ status: accepted ? "accepted" : "declined", responded_at: new Date().toISOString() })
+        .eq("plan_id", notification.reference_id)
+        .eq("invitee_id", user.id);
+
+      // Mark notification as read
+      if (!notification.is_read) {
+        markAsRead.mutate(notification.id);
+      }
+
+      // Send notification back to plan creator
+      await createNotification.mutateAsync({
+        user_id: notification.actor_id,
+        type: accepted ? "plan_accepted" : "plan_declined",
+        actor_id: user.id,
+        reference_id: notification.reference_id,
+        message: notification.message,
+      });
+
+      toast.success(t(accepted ? "notifications.planAcceptSuccess" : "notifications.planDeclineSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setRespondingTo(null);
+    }
+  };
+
   const getNotificationMessage = (notification: typeof notifications[0]) => {
     const actorName = notification.actor?.name || notification.actor?.handle || t("notifications.someone");
     
@@ -124,6 +162,10 @@ export function NotificationCenter() {
         return t("notifications.commented", { name: actorName });
       case "plan_invite":
         return t("notifications.planInvite", { name: actorName });
+      case "plan_accepted":
+        return t("notifications.planAccepted", { name: actorName });
+      case "plan_declined":
+        return t("notifications.planDeclined", { name: actorName });
       default:
         return notification.message || "";
     }
