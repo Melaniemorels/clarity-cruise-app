@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2, CalendarHeart } from "lucide-react";
+import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2, CalendarHeart, CalendarCheck, CalendarX } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   useNotifications, 
   useUnreadCount, 
   useMarkAsRead,
   useMarkAllAsRead,
+  useCreateNotification,
   type NotificationType 
 } from "@/hooks/use-notifications";
 import {
@@ -27,6 +30,7 @@ import {
   useAcceptRequest,
   useRejectRequest,
 } from "@/hooks/use-follow-requests";
+import { useQueryClient } from "@tanstack/react-query";
 
 const notificationIcons: Record<NotificationType, React.ReactNode> = {
   new_follower: <UserPlus className="h-4 w-4 text-primary" />,
@@ -36,10 +40,12 @@ const notificationIcons: Record<NotificationType, React.ReactNode> = {
   like: <Heart className="h-4 w-4 text-pink-500" />,
   comment: <MessageCircle className="h-4 w-4 text-blue-500" />,
   plan_invite: <CalendarHeart className="h-4 w-4 text-violet-500" />,
+  plan_accepted: <CalendarCheck className="h-4 w-4 text-green-500" />,
+  plan_declined: <CalendarX className="h-4 w-4 text-red-400" />,
 };
 
 // Activity types (excluding follow_request which goes to Requests tab)
-const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment", "plan_invite"];
+const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment", "plan_invite", "plan_accepted", "plan_declined"];
 
 export function NotificationCenter() {
   const { t, i18n } = useTranslation();
@@ -51,6 +57,10 @@ export function NotificationCenter() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
+  const createNotification = useCreateNotification();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   // Follow requests
   const { data: followRequests = [], isLoading: requestsLoading } = useFollowRequests();
@@ -100,6 +110,40 @@ export function NotificationCenter() {
     navigate(`/profile/${userId}`);
   };
 
+  const handlePlanResponse = async (notification: typeof notifications[0], accepted: boolean) => {
+    if (!user || !notification.reference_id) return;
+    setRespondingTo(notification.id);
+    try {
+      // Update invite status
+      await supabase
+        .from("social_plan_invites" as any)
+        .update({ status: accepted ? "accepted" : "declined", responded_at: new Date().toISOString() })
+        .eq("plan_id", notification.reference_id)
+        .eq("invitee_id", user.id);
+
+      // Mark notification as read
+      if (!notification.is_read) {
+        markAsRead.mutate(notification.id);
+      }
+
+      // Send notification back to plan creator
+      await createNotification.mutateAsync({
+        user_id: notification.actor_id,
+        type: accepted ? "plan_accepted" : "plan_declined",
+        actor_id: user.id,
+        reference_id: notification.reference_id,
+        message: notification.message,
+      });
+
+      toast.success(t(accepted ? "notifications.planAcceptSuccess" : "notifications.planDeclineSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setRespondingTo(null);
+    }
+  };
+
   const getNotificationMessage = (notification: typeof notifications[0]) => {
     const actorName = notification.actor?.name || notification.actor?.handle || t("notifications.someone");
     
@@ -118,6 +162,10 @@ export function NotificationCenter() {
         return t("notifications.commented", { name: actorName });
       case "plan_invite":
         return t("notifications.planInvite", { name: actorName });
+      case "plan_accepted":
+        return t("notifications.planAccepted", { name: actorName });
+      case "plan_declined":
+        return t("notifications.planDeclined", { name: actorName });
       default:
         return notification.message || "";
     }
@@ -264,12 +312,13 @@ export function NotificationCenter() {
               ) : (
                 <div className="divide-y">
                   {activityNotifications.map((notification) => (
-                    <button
+                    <div
                       key={notification.id}
-                      onClick={() => handleNotificationClick(notification)}
+                      onClick={() => notification.type !== "plan_invite" && handleNotificationClick(notification)}
                       className={cn(
                         "w-full flex items-start gap-3 p-4 text-left transition-colors hover:bg-muted/50",
-                        !notification.is_read && "bg-primary/5"
+                        !notification.is_read && "bg-primary/5",
+                        notification.type !== "plan_invite" && "cursor-pointer"
                       )}
                     >
                       <ProfileAvatar
@@ -288,17 +337,48 @@ export function NotificationCenter() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {getNotificationMessage(notification)}
                         </p>
+                        {notification.message && notification.type === "plan_invite" && (
+                          <p className="text-xs font-medium text-foreground/70 mt-0.5">
+                            "{notification.message}"
+                          </p>
+                        )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
                             locale: dateLocale,
                           })}
                         </p>
+                        {/* Accept/Decline buttons for plan invites */}
+                        {notification.type === "plan_invite" && !notification.is_read && (
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              className="h-7 text-xs px-3"
+                              onClick={(e) => { e.stopPropagation(); handlePlanResponse(notification, true); }}
+                              disabled={respondingTo === notification.id}
+                            >
+                              {respondingTo === notification.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <><Check className="h-3 w-3 mr-1" />{t("common.accept")}</>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs px-3"
+                              onClick={(e) => { e.stopPropagation(); handlePlanResponse(notification, false); }}
+                              disabled={respondingTo === notification.id}
+                            >
+                              <X className="h-3 w-3 mr-1" />{t("common.decline")}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      {!notification.is_read && (
+                      {!notification.is_read && notification.type !== "plan_invite" && (
                         <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}

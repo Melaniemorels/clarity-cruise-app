@@ -9,7 +9,9 @@ export type NotificationType =
   | "request_rejected" 
   | "like" 
   | "comment"
-  | "plan_invite";
+  | "plan_invite"
+  | "plan_accepted"
+  | "plan_declined";
 
 export interface Notification {
   id: string;

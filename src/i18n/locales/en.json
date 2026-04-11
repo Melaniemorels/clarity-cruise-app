@@ -23,7 +23,9 @@
     "more": "More",
     "done": "Done",
     "goBack": "Go back",
-    "searchPeople": "Search people"
+    "searchPeople": "Search people",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "home": {
     "greeting": "Your day, with intention",
@@ -797,7 +799,11 @@
     "requestRejected": "{{name}} rejected your request",
     "likedPost": "{{name}} liked your post",
     "commented": "{{name}} commented on your post",
-    "planInvite": "{{name}} invited you to a plan"
+    "planInvite": "{{name}} invited you to a plan",
+    "planAccepted": "{{name}} accepted your plan invite",
+    "planDeclined": "{{name}} declined your plan invite",
+    "planAcceptSuccess": "Plan accepted!",
+    "planDeclineSuccess": "Plan declined"
   },
   "followRequests": {
     "title": "Requests",
