@@ -247,7 +247,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       const { error: postError } = await supabase.from("posts").insert({
         user_id: user.id,
         image_url: urlData.publicUrl,
-        caption: "",
+        caption: captionText.trim(),
         activity_tag: activityTag,
         created_at: timestamp,
       });
