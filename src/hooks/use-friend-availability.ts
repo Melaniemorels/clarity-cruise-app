@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { isSameDay } from "date-fns";
 
 export interface FriendFreeSlot {
+  friendId?: string;
   friendName: string;
   friendAvatar?: string;
   startMinute: number;
@@ -9,7 +10,7 @@ export interface FriendFreeSlot {
 }
 
 export interface SharedFreeBlock {
-  friends: { name: string; avatar?: string }[];
+  friends: { id?: string; name: string; avatar?: string }[];
   startMinute: number;
   endMinute: number;
 }
