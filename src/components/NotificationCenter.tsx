@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2, CalendarHeart } from "lucide-react";
+import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2, CalendarHeart, CalendarCheck, CalendarX } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   useNotifications, 
   useUnreadCount, 
   useMarkAsRead,
   useMarkAllAsRead,
+  useCreateNotification,
   type NotificationType 
 } from "@/hooks/use-notifications";
 import {
@@ -27,6 +30,7 @@ import {
   useAcceptRequest,
   useRejectRequest,
 } from "@/hooks/use-follow-requests";
+import { useQueryClient } from "@tanstack/react-query";
 
 const notificationIcons: Record<NotificationType, React.ReactNode> = {
   new_follower: <UserPlus className="h-4 w-4 text-primary" />,
@@ -36,10 +40,12 @@ const notificationIcons: Record<NotificationType, React.ReactNode> = {
   like: <Heart className="h-4 w-4 text-pink-500" />,
   comment: <MessageCircle className="h-4 w-4 text-blue-500" />,
   plan_invite: <CalendarHeart className="h-4 w-4 text-violet-500" />,
+  plan_accepted: <CalendarCheck className="h-4 w-4 text-green-500" />,
+  plan_declined: <CalendarX className="h-4 w-4 text-red-400" />,
 };
 
 // Activity types (excluding follow_request which goes to Requests tab)
-const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment", "plan_invite"];
+const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment", "plan_invite", "plan_accepted", "plan_declined"];
 
 export function NotificationCenter() {
   const { t, i18n } = useTranslation();
