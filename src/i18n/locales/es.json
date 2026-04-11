@@ -226,7 +226,8 @@
       "notePlaceholder": "Añade una nota...",
       "create": "Crear",
       "created": "Plan creado",
-      "titleRequired": "Añade un nombre al plan"
+      "titleRequired": "Añade un nombre al plan",
+      "error": "No se pudo crear el plan"
     }
   },
   "profile": {
