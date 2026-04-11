@@ -235,13 +235,16 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
         return;
       }
 
+      const locationVal = locationText.trim() || null;
+
       const { error: entryError } = await supabase.from("entries").insert({
         user_id: user.id,
         photo_url: urlData.publicUrl,
         caption: captionText.trim(),
         occurred_at: timestamp,
         visibility: "public",
-      });
+        location: locationVal,
+      } as any);
 
       if (entryError) throw entryError;
 
