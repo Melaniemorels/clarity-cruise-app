@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { X, Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreateNotification } from "@/hooks/use-notifications";
 
 interface CreatePlanSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  friends: { name: string; avatar?: string }[];
+  friends: { id?: string; name: string; avatar?: string }[];
   startMinute: number;
   endMinute: number;
 }
@@ -28,8 +31,11 @@ export const CreatePlanSheet = ({
   endMinute,
 }: CreatePlanSheetProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const createNotification = useCreateNotification();
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>(
     friends.map((f) => f.name)
   );
@@ -48,15 +54,74 @@ export const CreatePlanSheet = ({
     );
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!title.trim()) {
       toast.error(t("calendar.createPlan.titleRequired"));
       return;
     }
-    toast.success(t("calendar.createPlan.created"), { duration: 2500 });
-    setTitle("");
-    setNote("");
-    onOpenChange(false);
+
+    if (!user) {
+      toast.error(t("common.loginRequired"));
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // 1. Create the plan
+      const { data: plan, error: planError } = await supabase
+        .from("social_plans" as any)
+        .insert({
+          creator_id: user.id,
+          title: title.trim(),
+          note: note.trim() || null,
+          plan_date: new Date().toISOString().split("T")[0],
+          start_minute: startMinute,
+          end_minute: endMinute,
+        })
+        .select("id")
+        .single();
+
+      if (planError) throw planError;
+
+      const planId = (plan as any)?.id;
+
+      // 2. Create invites and notifications for friends with real IDs
+      const invitedFriends = friends.filter(
+        (f) => f.id && selectedFriends.includes(f.name)
+      );
+
+      if (invitedFriends.length > 0 && planId) {
+        // Insert invites
+        const invites = invitedFriends.map((f) => ({
+          plan_id: planId,
+          invitee_id: f.id!,
+        }));
+
+        await supabase.from("social_plan_invites" as any).insert(invites);
+
+        // Send notifications to each invited friend
+        for (const friend of invitedFriends) {
+          await createNotification.mutateAsync({
+            user_id: friend.id!,
+            type: "plan_invite",
+            actor_id: user.id,
+            reference_id: planId,
+            message: title.trim(),
+          });
+        }
+      }
+
+      toast.success(t("calendar.createPlan.created"), { duration: 2500 });
+      setTitle("");
+      setNote("");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating plan:", error);
+      toast.error(t("calendar.createPlan.error"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -142,10 +207,14 @@ export const CreatePlanSheet = ({
               variant="outline"
               className="flex-1"
               onClick={() => onOpenChange(false)}
+              disabled={saving}
             >
               {t("common.cancel")}
             </Button>
-            <Button className="flex-1" onClick={handleCreate}>
+            <Button className="flex-1" onClick={handleCreate} disabled={saving}>
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
               {t("calendar.createPlan.create")}
             </Button>
           </div>
