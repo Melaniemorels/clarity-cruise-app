@@ -294,10 +294,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       setIsOpen(false);
       setCapturedImage(null);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error uploading photo:", error);
-      }
+    } catch (error: any) {
+      console.error("Error uploading photo:", error?.message || error);
       toast.error(t('camera.uploadError'));
     } finally {
       setIsUploading(false);
