@@ -794,7 +794,8 @@
     "requestAccepted": "{{name}} aceptó tu solicitud",
     "requestRejected": "{{name}} rechazó tu solicitud",
     "likedPost": "{{name}} le dio me gusta a tu publicación",
-    "commented": "{{name}} comentó tu publicación"
+    "commented": "{{name}} comentó tu publicación",
+    "planInvite": "{{name}} te invitó a un plan"
   },
   "followRequests": {
     "title": "Solicitudes",
