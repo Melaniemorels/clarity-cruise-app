@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2 } from "lucide-react";
+import { Bell, Check, UserPlus, UserCheck, UserX, Heart, MessageCircle, X, Loader2, CalendarHeart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -35,10 +35,11 @@ const notificationIcons: Record<NotificationType, React.ReactNode> = {
   request_rejected: <UserX className="h-4 w-4 text-red-500" />,
   like: <Heart className="h-4 w-4 text-pink-500" />,
   comment: <MessageCircle className="h-4 w-4 text-blue-500" />,
+  plan_invite: <CalendarHeart className="h-4 w-4 text-violet-500" />,
 };
 
 // Activity types (excluding follow_request which goes to Requests tab)
-const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment"];
+const activityTypes: NotificationType[] = ["new_follower", "request_accepted", "request_rejected", "like", "comment", "plan_invite"];
 
 export function NotificationCenter() {
   const { t, i18n } = useTranslation();
@@ -115,6 +116,8 @@ export function NotificationCenter() {
         return t("notifications.likedPost", { name: actorName });
       case "comment":
         return t("notifications.commented", { name: actorName });
+      case "plan_invite":
+        return t("notifications.planInvite", { name: actorName });
       default:
         return notification.message || "";
     }
