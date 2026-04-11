@@ -9,6 +9,7 @@ export interface Entry {
   user_id: string;
   photo_url: string | null;
   caption: string | null;
+  location: string | null;
   mood: number | null;
   category_id: string | null;
   tags: string[];

@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Globe, Lock, Eye, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Globe, Lock, Eye, X, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useDeleteEntry } from "@/hooks/use-entries";
@@ -138,6 +138,14 @@ export function CaptureDetailModal({
             {/* Caption */}
             {entry.caption && (
               <p className="text-sm leading-relaxed">{entry.caption}</p>
+            )}
+
+            {/* Location */}
+            {entry.location && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span className="text-xs">{entry.location}</span>
+              </div>
             )}
 
             {/* Tags */}
