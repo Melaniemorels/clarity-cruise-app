@@ -271,6 +271,7 @@ const NoteEditor = ({
   onClose,
   onPatch,
   onDelete,
+  onTogglePin,
 }: {
   note: NoteRow;
   dateLocale: Locale;
@@ -278,16 +279,15 @@ const NoteEditor = ({
   onClose: () => void;
   onPatch: (patch: Partial<NoteRow>) => void;
   onDelete: () => void;
+  onTogglePin: () => void;
 }) => {
   const { t } = useTranslation();
-  const [title, setTitle] = useState(note.title ?? "");
   const [content, setContent] = useState(note.content);
-  const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setTitle(note.title ?? "");
     setContent(note.content);
   }, [note.id]);
 
@@ -299,14 +299,6 @@ const NoteEditor = ({
     }
   }, [content]);
 
-  const scheduleTitle = (v: string) => {
-    setTitle(v);
-    if (titleTimer.current) clearTimeout(titleTimer.current);
-    titleTimer.current = setTimeout(() => {
-      if (v !== (note.title ?? "")) onPatch({ title: v });
-    }, 400);
-  };
-
   const scheduleContent = (v: string) => {
     setContent(v);
     if (contentTimer.current) clearTimeout(contentTimer.current);
@@ -316,10 +308,6 @@ const NoteEditor = ({
   };
 
   const flush = () => {
-    if (titleTimer.current) {
-      clearTimeout(titleTimer.current);
-      if (title !== (note.title ?? "")) onPatch({ title });
-    }
     if (contentTimer.current) {
       clearTimeout(contentTimer.current);
       if (content !== note.content) onPatch({ content });
@@ -331,57 +319,154 @@ const NoteEditor = ({
     onClose();
   };
 
+  // Wrap or insert at selection
+  const applyAtSelection = (transform: (sel: string) => { text: string; cursorOffset?: number }) => {
+    const el = editorRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? content.length;
+    const end = el.selectionEnd ?? content.length;
+    const before = content.slice(0, start);
+    const sel = content.slice(start, end);
+    const after = content.slice(end);
+    const { text, cursorOffset } = transform(sel);
+    const next = before + text + after;
+    scheduleContent(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = before.length + (cursorOffset ?? text.length);
+      el.setSelectionRange(pos, pos);
+    });
+  };
+
+  const wrap = (token: string) =>
+    applyAtSelection((sel) =>
+      sel
+        ? { text: `${token}${sel}${token}`, cursorOffset: token.length + sel.length + token.length }
+        : { text: `${token}${token}`, cursorOffset: token.length }
+    );
+
+  const insertChecklist = () =>
+    applyAtSelection((sel) => {
+      const lines = (sel || "").split("\n");
+      const text = lines.map((l) => `- [ ] ${l}`.trimEnd()).join("\n");
+      const out = (content && !content.endsWith("\n") && content.length ? "\n" : "") + text;
+      return { text: out };
+    });
+
+  const handleAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `${note.user_id}/${note.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("images").getPublicUrl(path);
+      const url = data.publicUrl;
+      const insert = `\n![](${url})\n`;
+      scheduleContent(content + insert);
+      toast({ title: t("notes.attached", "Attached") as string });
+    } catch {
+      toast({ title: t("notes.attachFailed", "Couldn't attach") as string, variant: "destructive" });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleShare = async () => {
+    flush();
+    const firstLine = (content.split("\n").find((l) => l.trim()) || "").slice(0, 80);
+    const shareData = { title: firstLine || (t("notes.title", "Notes") as string), text: content };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(content);
+        toast({ title: t("notes.copied", "Copied") as string });
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
   return (
     <div className="min-h-dvh bg-background flex flex-col">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 -ml-2"
-            onClick={handleClose}
-          >
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9 -ml-2" onClick={handleClose}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <span className="text-xs text-muted-foreground flex-1 text-center tabular-nums">
             {formatRelative(note.updated_at, dateLocale, lang)}
           </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => onPatch({ pinned: !note.pinned })}
-          >
-            <Pin className={cn("h-4 w-4", note.pinned && "fill-current")} />
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleShare}>
+            <Share className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={onTogglePin}>
+                <Pin className={cn("h-4 w-4 mr-2", note.pinned && "fill-current")} />
+                {note.pinned ? t("notes.unpin", "Unpin") : t("notes.pin", "Pin")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("notes.delete", "Delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
       <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-4">
-        <Input
-          value={title}
-          onChange={(e) => scheduleTitle(e.target.value)}
-          onBlur={flush}
-          placeholder={t("notes.titlePlaceholder", "Title") as string}
-          className="text-2xl font-semibold border-0 px-0 h-auto py-2 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/60"
-        />
         <Textarea
           ref={editorRef}
           autoFocus
           value={content}
           onChange={(e) => scheduleContent(e.target.value)}
           onBlur={flush}
-          placeholder={t("notes.contentPlaceholder", "Write freely…") as string}
+          placeholder={t("notes.contentPlaceholder", "Capture your moment…") as string}
           className="min-h-[60vh] text-[15px] leading-relaxed border-0 px-0 focus-visible:ring-0 bg-transparent resize-none placeholder:text-muted-foreground/60"
         />
+      </div>
+
+      {/* Floating toolbar */}
+      <div className="sticky bottom-0 z-10 bg-background/85 backdrop-blur-md border-t border-border/40 pb-safe">
+        <div className="max-w-2xl mx-auto px-2 py-2 flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => wrap("**")} aria-label="Bold">
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => wrap("_")} aria-label="Italic">
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={insertChecklist} aria-label="Checklist">
+            <CheckSquare className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAttach}
+          />
+        </div>
       </div>
     </div>
   );
