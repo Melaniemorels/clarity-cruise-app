@@ -22,6 +22,7 @@ import {
   Paperclip,
   MoreHorizontal,
   Copy,
+  Check,
 } from "lucide-react";
 import {
   DropdownMenu,
