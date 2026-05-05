@@ -297,33 +297,62 @@ const SwipeableNoteRow = ({
   const { t } = useTranslation();
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
   const startOffset = useRef(0);
   const moved = useRef(false);
+  const axisLock = useRef<"none" | "x" | "y">("none");
+  const pointerId = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const LEFT_REVEAL = -160; // reveal share + delete
   const RIGHT_REVEAL = 88; // reveal pin
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
+  const onPointerDown = (e: React.PointerEvent) => {
+    // Only react to primary button for mouse / any touch / pen
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    startX.current = e.clientX;
+    startY.current = e.clientY;
     startOffset.current = offset;
     moved.current = false;
+    axisLock.current = "none";
+    pointerId.current = e.pointerId;
   };
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (startX.current == null) return;
-    const dx = e.touches[0].clientX - startX.current;
-    if (Math.abs(dx) > 6) moved.current = true;
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (startX.current == null || startY.current == null) return;
+    const dx = e.clientX - startX.current;
+    const dy = e.clientY - startY.current;
+    if (axisLock.current === "none") {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      axisLock.current = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (axisLock.current === "x") {
+        try {
+          containerRef.current?.setPointerCapture(e.pointerId);
+        } catch {}
+      }
+    }
+    if (axisLock.current !== "x") return;
+    moved.current = true;
     let next = startOffset.current + dx;
     next = Math.max(LEFT_REVEAL - 40, Math.min(RIGHT_REVEAL + 40, next));
     setOffset(next);
   };
-  const onTouchEnd = () => {
-    if (offset <= LEFT_REVEAL / 2) setOffset(LEFT_REVEAL);
-    else if (offset >= RIGHT_REVEAL / 2) {
-      // Trigger pin and snap back
-      onTogglePin();
-      setOffset(0);
-    } else setOffset(0);
+  const finish = () => {
+    if (axisLock.current === "x") {
+      if (offset <= LEFT_REVEAL / 2) setOffset(LEFT_REVEAL);
+      else if (offset >= RIGHT_REVEAL / 2) {
+        onTogglePin();
+        setOffset(0);
+      } else setOffset(0);
+    }
     startX.current = null;
+    startY.current = null;
+    axisLock.current = "none";
+    if (pointerId.current != null) {
+      try {
+        containerRef.current?.releasePointerCapture(pointerId.current);
+      } catch {}
+      pointerId.current = null;
+    }
   };
 
   const handleClick = () => {
@@ -373,11 +402,20 @@ const SwipeableNoteRow = ({
       </div>
 
       <div
-        className="relative bg-background transition-transform duration-200 ease-out"
+        ref={containerRef}
+        className="relative bg-background transition-transform duration-200 ease-out touch-pan-y select-none"
         style={{ transform: `translateX(${offset}px)` }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={finish}
+        onPointerCancel={finish}
+        onContextMenu={(e) => {
+          // On desktop right-click reveals the action set
+          if (offset === 0) {
+            e.preventDefault();
+            setOffset(LEFT_REVEAL);
+          }
+        }}
       >
         <button onClick={handleClick} className="w-full text-left py-3 px-1">
           <div className="flex items-baseline gap-2">
