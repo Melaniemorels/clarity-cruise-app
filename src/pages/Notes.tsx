@@ -9,7 +9,27 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Search, Pin, Trash2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  Plus,
+  Search,
+  Pin,
+  Trash2,
+  Share,
+  Bold,
+  Italic,
+  CheckSquare,
+  Paperclip,
+  MoreHorizontal,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -134,6 +154,7 @@ const Notes = () => {
           deleteNote.mutate(activeNote.id);
           setActiveId(null);
         }}
+        onTogglePin={() => updateNote.mutate({ id: activeNote.id, pinned: !activeNote.pinned })}
       />
     );
   }
