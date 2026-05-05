@@ -1059,6 +1059,14 @@
     "emptyCore": "Tu espacio está en calma.",
     "contentPlaceholder": "Escribe con libertad…",
     "emptyNote": "Sin título",
-    "pin": "Fijar"
+    "pin": "Fijar",
+    "newNote": "Nueva nota",
+    "titlePlaceholder": "Título",
+    "searchPlaceholder": "Buscar",
+    "noResults": "Sin resultados",
+    "summaryToday_one": "{{count}} nota hoy",
+    "summaryToday_other": "{{count}} notas hoy",
+    "summaryQuiet": "Nada hoy",
+    "summaryEmpty": "Captura tu primer pensamiento"
   }
 }
