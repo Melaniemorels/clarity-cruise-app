@@ -644,6 +644,15 @@ const NoteEditor = ({
           <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleShare}>
             <Share className="h-4 w-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={handleClose}
+            aria-label={t("notes.done", "Done") as string}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
