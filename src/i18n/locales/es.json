@@ -1052,20 +1052,13 @@
   },
   "notes": {
     "title": "Notas",
-    "quick": "Hoy",
-    "core": "Todas",
+    "today": "Hoy",
+    "all": "Todas",
     "quickPlaceholder": "Captura tu momento…",
     "emptyQuick": "Nada anotado hoy.",
     "emptyCore": "Tu espacio está en calma.",
-    "newNote": "Nueva nota",
-    "titlePlaceholder": "Título",
     "contentPlaceholder": "Escribe con libertad…",
-    "addItem": "Añadir",
-    "addChecklist": "Añadir lista",
     "emptyNote": "Sin título",
-    "convertToNote": "Guardar como nota",
-    "linkToDay": "Vincular a hoy",
-    "pin": "Fijar",
-    "converted": "Guardada"
+    "pin": "Fijar"
   }
 }
