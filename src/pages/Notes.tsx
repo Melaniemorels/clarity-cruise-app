@@ -191,7 +191,7 @@ const Notes = () => {
   return (
     <div className="min-h-dvh bg-background pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-b border-border/70">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-2">
           <Button
             variant="ghost"
@@ -201,13 +201,13 @@ const Notes = () => {
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-base font-semibold flex-1">
+          <h1 className="text-base font-semibold flex-1 text-foreground">
             {t("notes.title", "Notes")}
           </h1>
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 text-foreground/80 hover:text-foreground"
             onClick={() => {
               if (createNote.isPending) return;
               createNote.mutate();
@@ -220,12 +220,12 @@ const Notes = () => {
         </div>
         <div className="max-w-2xl mx-auto px-4 pb-3">
           <div className="relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/80" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("notes.searchPlaceholder", "Search") as string}
-              className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
+              className="pl-9 h-9 bg-muted/60 border border-border/60 focus-visible:ring-1"
             />
           </div>
         </div>
@@ -256,7 +256,7 @@ const Notes = () => {
             )}
           </div>
         ) : (
-          <ul className="divide-y divide-border/40">
+          <ul className="divide-y divide-border/70">
             {filtered.map((note) => {
               return (
                 <SwipeableNoteRow
