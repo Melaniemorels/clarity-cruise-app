@@ -40,6 +40,7 @@ const FindFriends = lazy(() => import("./pages/FindFriends"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Notes = lazy(() => import("./pages/Notes"));
 
 // Minimal loading fallback — appears briefly while route chunk loads
 const PageLoader = () => (
@@ -107,6 +108,7 @@ const App = () => (
                   <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
                   <Route path="/explore/section/:sectionKey" element={<ProtectedRoute><ExploreSection /></ProtectedRoute>} />
                   <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                 <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/profile/:userId" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
                   <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />

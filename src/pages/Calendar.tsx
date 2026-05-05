@@ -25,7 +25,7 @@ import { useTranslation } from "react-i18next";
 import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
 import { useFriendAvailability } from "@/hooks/use-friend-availability";
 import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
-import { NotesSection } from "@/components/NotesSection";
+import { NotesSummaryCard } from "@/components/NotesSummaryCard";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -495,8 +495,8 @@ const Calendar = () => {
               </CardContent>
             </Card>
 
-            {/* Notes — quick + core */}
-            <NotesSection date={currentDate} />
+            {/* Notes — opens dedicated screen */}
+            <NotesSummaryCard date={currentDate} />
           </TabsContent>
 
           {/* Week View */}

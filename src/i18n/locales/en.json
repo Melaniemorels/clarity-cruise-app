@@ -1059,6 +1059,14 @@
     "emptyCore": "Your space is quiet.",
     "contentPlaceholder": "Write freely…",
     "emptyNote": "Untitled",
-    "pin": "Pin"
+    "pin": "Pin",
+    "newNote": "New note",
+    "titlePlaceholder": "Title",
+    "searchPlaceholder": "Search",
+    "noResults": "Nothing found",
+    "summaryToday_one": "{{count}} note today",
+    "summaryToday_other": "{{count}} notes today",
+    "summaryQuiet": "Nothing today",
+    "summaryEmpty": "Capture your first thought"
   }
 }
