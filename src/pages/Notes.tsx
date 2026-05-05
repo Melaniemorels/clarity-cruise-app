@@ -470,6 +470,16 @@ const NoteEditor = ({
   const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
+
+  const rememberSelection = () => {
+    const el = editorRef.current;
+    if (!el) return;
+    selectionRef.current = {
+      start: el.selectionStart ?? 0,
+      end: el.selectionEnd ?? 0,
+    };
+  };
 
   useEffect(() => {
     setContent(note.content);
@@ -503,39 +513,66 @@ const NoteEditor = ({
     onClose();
   };
 
-  // Wrap or insert at selection
-  const applyAtSelection = (transform: (sel: string) => { text: string; cursorOffset?: number }) => {
-    const el = editorRef.current;
-    if (!el) return;
-    const start = el.selectionStart ?? content.length;
-    const end = el.selectionEnd ?? content.length;
-    const before = content.slice(0, start);
-    const sel = content.slice(start, end);
-    const after = content.slice(end);
-    const { text, cursorOffset } = transform(sel);
-    const next = before + text + after;
-    scheduleContent(next);
+  // Replace the current selection with new text and place the caret/selection.
+  const replaceRange = (
+    start: number,
+    end: number,
+    newText: string,
+    selectAfter?: { start: number; end: number }
+  ) => {
+    const next = content.slice(0, start) + newText + content.slice(end);
+    setContent(next);
+    if (contentTimer.current) clearTimeout(contentTimer.current);
+    contentTimer.current = setTimeout(() => {
+      if (next !== note.content) onPatch({ content: next });
+    }, 400);
+    const finalSel = selectAfter ?? { start: start + newText.length, end: start + newText.length };
+    selectionRef.current = finalSel;
     requestAnimationFrame(() => {
+      const el = editorRef.current;
+      if (!el) return;
       el.focus();
-      const pos = before.length + (cursorOffset ?? text.length);
-      el.setSelectionRange(pos, pos);
+      el.setSelectionRange(finalSel.start, finalSel.end);
     });
   };
 
-  const wrap = (token: string) =>
-    applyAtSelection((sel) =>
-      sel
-        ? { text: `${token}${sel}${token}`, cursorOffset: token.length + sel.length + token.length }
-        : { text: `${token}${token}`, cursorOffset: token.length }
-    );
+  // Wrap selection (or insert tokens at caret) with `token` on both sides.
+  const wrap = (token: string) => {
+    const { start, end } = selectionRef.current;
+    const sel = content.slice(start, end);
+    if (sel) {
+      const newText = `${token}${sel}${token}`;
+      // Keep the inner text selected so user sees formatting applied
+      replaceRange(start, end, newText, {
+        start: start + token.length,
+        end: start + token.length + sel.length,
+      });
+    } else {
+      const newText = `${token}${token}`;
+      replaceRange(start, end, newText, {
+        start: start + token.length,
+        end: start + token.length,
+      });
+    }
+  };
 
-  const insertChecklist = () =>
-    applyAtSelection((sel) => {
-      const lines = (sel || "").split("\n");
-      const text = lines.map((l) => `- [ ] ${l}`.trimEnd()).join("\n");
-      const out = (content && !content.endsWith("\n") && content.length ? "\n" : "") + text;
-      return { text: out };
+  // Convert each line touched by the selection into a checklist item.
+  const insertChecklist = () => {
+    const { start, end } = selectionRef.current;
+    // Expand to full lines containing the selection
+    const lineStart = content.lastIndexOf("\n", start - 1) + 1;
+    const nextNl = content.indexOf("\n", end);
+    const lineEnd = nextNl === -1 ? content.length : nextNl;
+    const block = content.slice(lineStart, lineEnd) || "";
+    const lines = block.split("\n");
+    const transformed = lines
+      .map((l) => (/^\s*-\s\[[ x]\]\s/.test(l) ? l : `- [ ] ${l}`))
+      .join("\n");
+    replaceRange(lineStart, lineEnd, transformed, {
+      start: lineStart,
+      end: lineStart + transformed.length,
     });
+  };
 
   const handleAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -550,8 +587,9 @@ const NoteEditor = ({
       if (error) throw error;
       const { data } = supabase.storage.from("images").getPublicUrl(path);
       const url = data.publicUrl;
-      const insert = `\n![](${url})\n`;
-      scheduleContent(content + insert);
+      const { start, end } = selectionRef.current;
+      const insert = `${start > 0 && content[start - 1] !== "\n" ? "\n" : ""}![](${url})\n`;
+      replaceRange(start, end, insert);
       toast({ title: t("notes.attached", "Attached") as string });
     } catch {
       toast({ title: t("notes.attachFailed", "Couldn't attach") as string, variant: "destructive" });
@@ -623,7 +661,14 @@ const NoteEditor = ({
           ref={editorRef}
           autoFocus
           value={content}
-          onChange={(e) => scheduleContent(e.target.value)}
+          onChange={(e) => {
+            scheduleContent(e.target.value);
+            rememberSelection();
+          }}
+          onSelect={rememberSelection}
+          onKeyUp={rememberSelection}
+          onMouseUp={rememberSelection}
+          onFocus={rememberSelection}
           onBlur={flush}
           placeholder={t("notes.contentPlaceholder", "Capture your moment…") as string}
           className="min-h-[60vh] text-[15px] leading-relaxed border-0 px-0 focus-visible:ring-0 bg-transparent resize-none placeholder:text-muted-foreground/60"
@@ -631,7 +676,15 @@ const NoteEditor = ({
       </div>
 
       {/* Floating toolbar */}
-      <div className="sticky bottom-0 z-10 bg-background/85 backdrop-blur-md border-t border-border/40 pb-safe">
+      <div
+        className="sticky bottom-0 z-10 bg-background/85 backdrop-blur-md border-t border-border/40 pb-safe"
+        // Prevent the toolbar from stealing focus / selection from the textarea
+        onMouseDown={(e) => e.preventDefault()}
+        onPointerDown={(e) => {
+          // Allow buttons to receive click but never blur the textarea
+          if ((e.target as HTMLElement).tagName !== "INPUT") e.preventDefault();
+        }}
+      >
         <div className="max-w-2xl mx-auto px-2 py-2 flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => wrap("**")} aria-label="Bold">
             <Bold className="h-4 w-4" />
