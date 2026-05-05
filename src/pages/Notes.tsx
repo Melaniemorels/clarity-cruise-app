@@ -191,7 +191,7 @@ const Notes = () => {
   return (
     <div className="min-h-dvh bg-background pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-b border-border/70">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-2">
           <Button
             variant="ghost"
@@ -201,13 +201,13 @@ const Notes = () => {
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-base font-semibold flex-1">
+          <h1 className="text-base font-semibold flex-1 text-foreground">
             {t("notes.title", "Notes")}
           </h1>
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 text-foreground/80 hover:text-foreground"
             onClick={() => {
               if (createNote.isPending) return;
               createNote.mutate();
@@ -220,12 +220,12 @@ const Notes = () => {
         </div>
         <div className="max-w-2xl mx-auto px-4 pb-3">
           <div className="relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/80" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("notes.searchPlaceholder", "Search") as string}
-              className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
+              className="pl-9 h-9 bg-muted/60 border border-border/60 focus-visible:ring-1"
             />
           </div>
         </div>
@@ -256,7 +256,7 @@ const Notes = () => {
             )}
           </div>
         ) : (
-          <ul className="divide-y divide-border/40">
+          <ul className="divide-y divide-border/70">
             {filtered.map((note) => {
               return (
                 <SwipeableNoteRow
@@ -438,19 +438,19 @@ const SwipeableNoteRow = ({
             {note.pinned && (
               <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0 fill-current self-center" />
             )}
-            <span className="text-[15px] font-medium truncate flex-1">
+            <span className="text-[15px] font-medium truncate flex-1 text-foreground">
               {titleLine || (
                 <span className="text-muted-foreground font-normal">
                   {t("notes.emptyNote", "New note")}
                 </span>
               )}
             </span>
-            <span className="text-[11px] text-muted-foreground flex-shrink-0 tabular-nums">
+            <span className="text-[11px] text-muted-foreground/90 flex-shrink-0 tabular-nums">
               {formatRelative(note.updated_at, dateLocale, lang)}
             </span>
           </div>
           {previewLine && (
-            <p className="text-[13px] text-muted-foreground truncate mt-0.5">
+            <p className="text-[13px] text-muted-foreground/90 truncate mt-0.5">
               {previewLine}
             </p>
           )}
@@ -633,20 +633,20 @@ const NoteEditor = ({
 
   return (
     <div className="min-h-dvh bg-background flex flex-col">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-b border-border/70">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9 -ml-2" onClick={handleClose}>
+          <Button variant="ghost" size="icon" className="h-9 w-9 -ml-2 text-foreground/80 hover:text-foreground" onClick={handleClose}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <span className="text-xs text-muted-foreground flex-1 text-center tabular-nums">
+          <span className="text-xs text-muted-foreground/90 flex-1 text-center tabular-nums">
             {formatRelative(note.updated_at, dateLocale, lang)}
           </span>
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleShare}>
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground/80 hover:text-foreground" onClick={handleShare}>
             <Share className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground/80 hover:text-foreground">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -674,7 +674,7 @@ const NoteEditor = ({
             size="icon"
             onClick={handleClose}
             aria-label={t("notes.done", "Done") as string}
-            className="ml-1 h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-95 transition-transform animate-scale-in"
+            className="ml-1 h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-[0_4px_14px_hsl(var(--primary)/0.35)] hover:bg-primary/90 active:scale-95 transition-transform animate-scale-in"
           >
             <Check className="h-5 w-5" strokeWidth={2.5} />
           </Button>
@@ -702,7 +702,7 @@ const NoteEditor = ({
 
       {/* Floating toolbar */}
       <div
-        className="sticky bottom-0 z-10 bg-background/85 backdrop-blur-md border-t border-border/40 pb-safe"
+        className="sticky bottom-0 z-10 bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-t border-border/70 pb-safe"
         // Prevent the toolbar from stealing focus / selection from the textarea
         onMouseDown={(e) => e.preventDefault()}
         onPointerDown={(e) => {
@@ -711,19 +711,19 @@ const NoteEditor = ({
         }}
       >
         <div className="max-w-2xl mx-auto px-2 py-2 flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => wrap("**")} aria-label="Bold">
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground/80 hover:text-foreground" onClick={() => wrap("**")} aria-label="Bold">
             <Bold className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => wrap("_")} aria-label="Italic">
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground/80 hover:text-foreground" onClick={() => wrap("_")} aria-label="Italic">
             <Italic className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={insertChecklist} aria-label="Checklist">
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground/80 hover:text-foreground" onClick={insertChecklist} aria-label="Checklist">
             <CheckSquare className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 text-foreground/80 hover:text-foreground"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Attach"
           >
