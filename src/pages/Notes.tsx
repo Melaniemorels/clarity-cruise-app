@@ -644,15 +644,6 @@ const NoteEditor = ({
           <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleShare}>
             <Share className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={handleClose}
-            aria-label={t("notes.done", "Done") as string}
-          >
-            <Check className="h-4 w-4" />
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -679,6 +670,14 @@ const NoteEditor = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            size="icon"
+            onClick={handleClose}
+            aria-label={t("notes.done", "Done") as string}
+            className="ml-1 h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-95 transition-transform animate-scale-in"
+          >
+            <Check className="h-5 w-5" strokeWidth={2.5} />
+          </Button>
         </div>
       </header>
 
