@@ -438,19 +438,19 @@ const SwipeableNoteRow = ({
             {note.pinned && (
               <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0 fill-current self-center" />
             )}
-            <span className="text-[15px] font-medium truncate flex-1">
+            <span className="text-[15px] font-medium truncate flex-1 text-foreground">
               {titleLine || (
                 <span className="text-muted-foreground font-normal">
                   {t("notes.emptyNote", "New note")}
                 </span>
               )}
             </span>
-            <span className="text-[11px] text-muted-foreground flex-shrink-0 tabular-nums">
+            <span className="text-[11px] text-muted-foreground/90 flex-shrink-0 tabular-nums">
               {formatRelative(note.updated_at, dateLocale, lang)}
             </span>
           </div>
           {previewLine && (
-            <p className="text-[13px] text-muted-foreground truncate mt-0.5">
+            <p className="text-[13px] text-muted-foreground/90 truncate mt-0.5">
               {previewLine}
             </p>
           )}
