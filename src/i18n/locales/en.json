@@ -1064,6 +1064,7 @@
     "delete": "Delete note",
     "share": "Share",
     "duplicate": "Duplicate",
+    "done": "Done",
     "move": "Move",
     "copied": "Copied to clipboard",
     "attached": "Image attached",

@@ -22,6 +22,7 @@ import {
   Paperclip,
   MoreHorizontal,
   Copy,
+  Check,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -169,7 +170,13 @@ const Notes = () => {
         note={activeNote}
         dateLocale={dateLocale}
         lang={lang}
-        onClose={() => setActiveId(null)}
+        onClose={(finalContent) => {
+          // If the note is empty on exit, drop it from the list
+          if (!finalContent || !finalContent.trim()) {
+            deleteNote.mutate(activeNote.id);
+          }
+          setActiveId(null);
+        }}
         onPatch={(patch) => updateNote.mutate({ id: activeNote.id, ...patch })}
         onDelete={() => {
           deleteNote.mutate(activeNote.id);
@@ -201,7 +208,12 @@ const Notes = () => {
             variant="ghost"
             size="icon"
             className="h-9 w-9"
-            onClick={() => createNote.mutate()}
+            onClick={() => {
+              if (createNote.isPending) return;
+              createNote.mutate();
+            }}
+            disabled={createNote.isPending}
+            aria-label={t("notes.newNote", "New note") as string}
           >
             <Plus className="h-5 w-5" />
           </Button>
@@ -231,7 +243,11 @@ const Notes = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => createNote.mutate()}
+                onClick={() => {
+                  if (createNote.isPending) return;
+                  createNote.mutate();
+                }}
+                disabled={createNote.isPending}
                 className="text-muted-foreground"
               >
                 <Plus className="h-4 w-4 mr-1.5" />
@@ -459,7 +475,7 @@ const NoteEditor = ({
   note: NoteRow;
   dateLocale: Locale;
   lang: string;
-  onClose: () => void;
+  onClose: (finalContent: string) => void;
   onPatch: (patch: Partial<NoteRow>) => void;
   onDelete: () => void;
   onTogglePin: () => void;
@@ -504,13 +520,14 @@ const NoteEditor = ({
   const flush = () => {
     if (contentTimer.current) {
       clearTimeout(contentTimer.current);
+      contentTimer.current = null;
       if (content !== note.content) onPatch({ content });
     }
   };
 
   const handleClose = () => {
     flush();
-    onClose();
+    onClose(content);
   };
 
   // Replace the current selection with new text and place the caret/selection.
@@ -626,6 +643,15 @@ const NoteEditor = ({
           </span>
           <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleShare}>
             <Share className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={handleClose}
+            aria-label={t("notes.done", "Done") as string}
+          >
+            <Check className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
