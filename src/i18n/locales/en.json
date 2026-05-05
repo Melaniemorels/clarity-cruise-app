@@ -1049,5 +1049,23 @@
   "postViewer": {
     "title": "Post viewer",
     "privateContent": "This content is private"
+  },
+  "notes": {
+    "title": "Notes",
+    "quick": "Today",
+    "core": "All",
+    "quickPlaceholder": "Capture your moment…",
+    "emptyQuick": "Nothing noted today.",
+    "emptyCore": "Your space is quiet.",
+    "newNote": "New note",
+    "titlePlaceholder": "Title",
+    "contentPlaceholder": "Write freely…",
+    "addItem": "Add item",
+    "addChecklist": "Add list",
+    "emptyNote": "Untitled",
+    "convertToNote": "Save as note",
+    "linkToDay": "Link to today",
+    "pin": "Pin",
+    "converted": "Saved"
   }
 }
