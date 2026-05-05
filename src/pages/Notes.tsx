@@ -475,7 +475,7 @@ const NoteEditor = ({
   note: NoteRow;
   dateLocale: Locale;
   lang: string;
-  onClose: () => void;
+  onClose: (finalContent: string) => void;
   onPatch: (patch: Partial<NoteRow>) => void;
   onDelete: () => void;
   onTogglePin: () => void;
@@ -520,13 +520,14 @@ const NoteEditor = ({
   const flush = () => {
     if (contentTimer.current) {
       clearTimeout(contentTimer.current);
+      contentTimer.current = null;
       if (content !== note.content) onPatch({ content });
     }
   };
 
   const handleClose = () => {
     flush();
-    onClose();
+    onClose(content);
   };
 
   // Replace the current selection with new text and place the caret/selection.
