@@ -186,7 +186,7 @@ export const NotesSection = ({ date }: NotesSectionProps) => {
           </p>
         ) : (
           visibleNotes.map((note) => (
-            <NoteRow
+            <NoteItemRow
               key={note.id}
               note={note}
               active={activeId === note.id}
@@ -218,7 +218,7 @@ const formatRelative = (iso: string, locale: Locale, lang: string) => {
   return format(d, "d MMM", { locale });
 };
 
-const NoteRow = ({
+const NoteItemRow = ({
   note,
   active,
   dateLocale,
