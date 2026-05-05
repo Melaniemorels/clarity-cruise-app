@@ -21,6 +21,7 @@ import {
   CheckSquare,
   Paperclip,
   MoreHorizontal,
+  Copy,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -122,6 +123,26 @@ const Notes = () => {
     onSuccess: invalidate,
   });
 
+  const duplicateNote = useMutation({
+    mutationFn: async (n: NoteRow) => {
+      if (!user) throw new Error("not auth");
+      const { data, error } = await (supabase as any)
+        .from("notes")
+        .insert({
+          user_id: user.id,
+          kind: n.kind,
+          content: n.content,
+          title: n.title,
+          linked_date: n.linked_date,
+        })
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data as NoteRow;
+    },
+    onSuccess: invalidate,
+  });
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = q
@@ -155,6 +176,7 @@ const Notes = () => {
           setActiveId(null);
         }}
         onTogglePin={() => updateNote.mutate({ id: activeNote.id, pinned: !activeNote.pinned })}
+        onDuplicate={() => duplicateNote.mutate(activeNote)}
       />
     );
   }
@@ -220,37 +242,28 @@ const Notes = () => {
         ) : (
           <ul className="divide-y divide-border/40">
             {filtered.map((note) => {
-              const lines = note.content.split("\n").filter(Boolean);
-              const titleLine = note.title || lines[0] || "";
-              const previewLine = (note.title ? lines[0] : lines[1]) ?? "";
               return (
-                <li key={note.id}>
-                  <button
-                    onClick={() => setActiveId(note.id)}
-                    className="w-full text-left py-3 group"
-                  >
-                    <div className="flex items-baseline gap-2">
-                      {note.pinned && (
-                        <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0 fill-current self-center" />
-                      )}
-                      <span className="text-[15px] font-medium truncate flex-1">
-                        {titleLine || (
-                          <span className="text-muted-foreground font-normal italic">
-                            {t("notes.emptyNote", "Untitled")}
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground flex-shrink-0 tabular-nums">
-                        {formatRelative(note.updated_at, dateLocale, lang)}
-                      </span>
-                    </div>
-                    {previewLine && (
-                      <p className="text-[13px] text-muted-foreground truncate mt-0.5">
-                        {previewLine}
-                      </p>
-                    )}
-                  </button>
-                </li>
+                <SwipeableNoteRow
+                  key={note.id}
+                  note={note}
+                  dateLocale={dateLocale}
+                  lang={lang}
+                  onOpen={() => setActiveId(note.id)}
+                  onTogglePin={() => updateNote.mutate({ id: note.id, pinned: !note.pinned })}
+                  onDelete={() => deleteNote.mutate(note.id)}
+                  onShare={async () => {
+                    const text = note.content;
+                    const firstLine = (text.split("\n").find((l) => l.trim()) || "").slice(0, 80);
+                    try {
+                      if (navigator.share) {
+                        await navigator.share({ title: firstLine || "Notes", text });
+                      } else {
+                        await navigator.clipboard.writeText(text);
+                        toast({ title: t("notes.copied", "Copied to clipboard") as string });
+                      }
+                    } catch {}
+                  }}
+                />
               );
             })}
           </ul>
@@ -259,6 +272,137 @@ const Notes = () => {
 
       <BottomNav />
     </div>
+  );
+};
+
+/* ---------------- Swipeable row ---------------- */
+
+const SwipeableNoteRow = ({
+  note,
+  dateLocale,
+  lang,
+  onOpen,
+  onTogglePin,
+  onDelete,
+  onShare,
+}: {
+  note: NoteRow;
+  dateLocale: Locale;
+  lang: string;
+  onOpen: () => void;
+  onTogglePin: () => void;
+  onDelete: () => void;
+  onShare: () => void;
+}) => {
+  const { t } = useTranslation();
+  const [offset, setOffset] = useState(0);
+  const startX = useRef<number | null>(null);
+  const startOffset = useRef(0);
+  const moved = useRef(false);
+
+  const LEFT_REVEAL = -160; // reveal share + delete
+  const RIGHT_REVEAL = 88; // reveal pin
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    startOffset.current = offset;
+    moved.current = false;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (startX.current == null) return;
+    const dx = e.touches[0].clientX - startX.current;
+    if (Math.abs(dx) > 6) moved.current = true;
+    let next = startOffset.current + dx;
+    next = Math.max(LEFT_REVEAL - 40, Math.min(RIGHT_REVEAL + 40, next));
+    setOffset(next);
+  };
+  const onTouchEnd = () => {
+    if (offset <= LEFT_REVEAL / 2) setOffset(LEFT_REVEAL);
+    else if (offset >= RIGHT_REVEAL / 2) {
+      // Trigger pin and snap back
+      onTogglePin();
+      setOffset(0);
+    } else setOffset(0);
+    startX.current = null;
+  };
+
+  const handleClick = () => {
+    if (moved.current || offset !== 0) {
+      setOffset(0);
+      return;
+    }
+    onOpen();
+  };
+
+  const lines = note.content.split("\n").filter(Boolean);
+  const titleLine = note.title || lines[0] || "";
+  const previewLine = (note.title ? lines[0] : lines[1]) ?? "";
+
+  return (
+    <li className="relative overflow-hidden">
+      {/* Right side actions (revealed on left swipe) */}
+      <div className="absolute inset-y-0 right-0 flex items-stretch">
+        <button
+          onClick={() => {
+            onShare();
+            setOffset(0);
+          }}
+          className="w-20 bg-muted text-foreground text-xs font-medium flex items-center justify-center"
+          aria-label={t("notes.share", "Share") as string}
+        >
+          <Share className="h-4 w-4" />
+        </button>
+        <button
+          onClick={() => {
+            onDelete();
+            setOffset(0);
+          }}
+          className="w-20 bg-destructive text-destructive-foreground text-xs font-medium flex items-center justify-center"
+          aria-label={t("notes.delete", "Delete note") as string}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+      {/* Left side action (revealed on right swipe) */}
+      <div className="absolute inset-y-0 left-0 flex items-stretch">
+        <div
+          className="w-[88px] bg-primary/10 text-primary text-xs font-medium flex items-center justify-center"
+        >
+          <Pin className={cn("h-4 w-4", note.pinned && "fill-current")} />
+        </div>
+      </div>
+
+      <div
+        className="relative bg-background transition-transform duration-200 ease-out"
+        style={{ transform: `translateX(${offset}px)` }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <button onClick={handleClick} className="w-full text-left py-3 px-1">
+          <div className="flex items-baseline gap-2">
+            {note.pinned && (
+              <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0 fill-current self-center" />
+            )}
+            <span className="text-[15px] font-medium truncate flex-1">
+              {titleLine || (
+                <span className="text-muted-foreground font-normal">
+                  {t("notes.emptyNote", "New note")}
+                </span>
+              )}
+            </span>
+            <span className="text-[11px] text-muted-foreground flex-shrink-0 tabular-nums">
+              {formatRelative(note.updated_at, dateLocale, lang)}
+            </span>
+          </div>
+          {previewLine && (
+            <p className="text-[13px] text-muted-foreground truncate mt-0.5">
+              {previewLine}
+            </p>
+          )}
+        </button>
+      </div>
+    </li>
   );
 };
 
@@ -272,6 +416,7 @@ const NoteEditor = ({
   onPatch,
   onDelete,
   onTogglePin,
+  onDuplicate,
 }: {
   note: NoteRow;
   dateLocale: Locale;
@@ -280,6 +425,7 @@ const NoteEditor = ({
   onPatch: (patch: Partial<NoteRow>) => void;
   onDelete: () => void;
   onTogglePin: () => void;
+  onDuplicate: () => void;
 }) => {
   const { t } = useTranslation();
   const [content, setContent] = useState(note.content);
@@ -416,10 +562,18 @@ const NoteEditor = ({
                 <Pin className={cn("h-4 w-4 mr-2", note.pinned && "fill-current")} />
                 {note.pinned ? t("notes.unpin", "Unpin") : t("notes.pin", "Pin")}
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShare}>
+                <Share className="h-4 w-4 mr-2" />
+                {t("notes.share", "Share")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDuplicate}>
+                <Copy className="h-4 w-4 mr-2" />
+                {t("notes.duplicate", "Duplicate")}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
                 <Trash2 className="h-4 w-4 mr-2" />
-                {t("notes.delete", "Delete")}
+                {t("notes.delete", "Delete note")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
