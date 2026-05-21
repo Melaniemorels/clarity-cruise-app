@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon } from "lucide-react";
+import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
@@ -81,6 +81,11 @@ const SECTION_GRADIENTS: Record<string, string[]> = {
     "from-amber-900/50 to-orange-900/40",
     "from-indigo-900/50 to-violet-900/40",
   ],
+  Motivacional: [
+    "from-zinc-900/70 to-stone-900/60",
+    "from-red-900/50 to-amber-900/40",
+    "from-slate-900/60 to-zinc-800/50",
+  ],
 };
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
@@ -96,6 +101,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   Nutrición: Salad,
   PlanesDeComida: ClipboardList,
   MealPreps: ClipboardList,
+  Motivacional: Megaphone,
 };
 
 export const EXPLORE_SECTIONS: SectionConfig[] = [
@@ -110,6 +116,7 @@ export const EXPLORE_SECTIONS: SectionConfig[] = [
   { key: "Ejercicios", titleKey: "exercises", icon: "dumbbell", emoji: "🏋️" },
   { key: "Nutrición", titleKey: "nutrition", icon: "salad", emoji: "🥗" },
   { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
+  { key: "Motivacional", titleKey: "motivational", icon: "megaphone", emoji: "🔥" },
 ];
 
 export function ExploreSectionCarousel({
