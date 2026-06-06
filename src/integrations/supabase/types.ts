@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_calendar_audit: {
+        Row: {
+          action: string
+          after: Json | null
+          before: Json | null
+          created_at: string
+          event_id: string | null
+          id: string
+          prompt: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          prompt?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          prompt?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           criteria: Json | null
@@ -1107,6 +1140,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_calendar_access_enabled: boolean
           allow_auto_timezone_shift: boolean
           bio: string | null
           created_at: string | null
@@ -1133,6 +1167,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_calendar_access_enabled?: boolean
           allow_auto_timezone_shift?: boolean
           bio?: string | null
           created_at?: string | null
@@ -1159,6 +1194,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_calendar_access_enabled?: boolean
           allow_auto_timezone_shift?: boolean
           bio?: string | null
           created_at?: string | null
