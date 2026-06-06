@@ -387,6 +387,9 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                       />
                     }
                   />
+                  {!!(profile as any)?.ai_calendar_access_enabled && (
+                    <AICalendarAuditList />
+                  )}
                 </div>
               </div>
 
