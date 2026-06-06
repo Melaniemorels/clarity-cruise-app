@@ -141,8 +141,8 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
       if (!text.trim() || isLoading) return;
       setShowSavePrompt(false);
 
-      // If calendar-intent and not yet granted, surface consent inline
-      const calendarIntent = /\b(calendar|schedule|agenda|gym|workout|meeting|event|tomorrow|today|move|reschedule|plan my day|overwhelm|organi[sz]e my day)\b/i.test(
+      // If calendar-intent and not yet granted, surface consent inline (EN + ES)
+      const calendarIntent = /\b(calendar|schedule|agenda|gym|workout|meeting|event|tomorrow|today|move|reschedule|plan my day|overwhelm|organi[sz]e my day|calendario|agenda|horario|mañana|hoy|reunión|reunion|cita|evento|entreno|entrenar|gimnasio|mover|reagendar|reprogramar|organizar mi día|organizar mi dia|planear mi día|planear mi dia|mi día|mi dia|libre|hueco)\b/i.test(
         text
       );
       if (calendarIntent && !calendarAccess) {
