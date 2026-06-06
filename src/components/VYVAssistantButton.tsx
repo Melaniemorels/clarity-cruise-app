@@ -10,6 +10,7 @@ export function VYVAssistantButton() {
     <>
       <button
         onClick={() => setOpen(true)}
+        id="guide-assistant-button"
         aria-label="VYV Guide"
         className={cn(
           "fixed z-40 flex items-center justify-center",

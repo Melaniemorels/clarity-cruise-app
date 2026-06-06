@@ -70,11 +70,32 @@ const getTourSteps = (t: (key: string) => string) => [
     placement: "top" as const,
   },
   {
+    id: "guide",
+    title: t('guide.tour.guideTitle'),
+    body: t('guide.tour.guideBody'),
+    selector: "#guide-assistant-button",
+    placement: "left" as const,
+  },
+  {
+    id: "guideCalendar",
+    title: t('guide.tour.guideCalendarTitle'),
+    body: t('guide.tour.guideCalendarBody'),
+    selector: "#guide-assistant-button",
+    placement: "left" as const,
+  },
+  {
     id: "profile",
     title: t('guide.tour.profileTitle'),
     body: t('guide.tour.profileBody'),
     selector: "#tab-profile",
     placement: "top" as const,
+  },
+  {
+    id: "ready",
+    title: t('guide.tour.readyTitle'),
+    body: t('guide.tour.readyBody'),
+    selector: "body",
+    placement: "bottom" as const,
   },
 ];
 
