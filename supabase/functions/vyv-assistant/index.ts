@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are VYV Guide — a calm, grounded wellness and life-guidance presence inside the VYV app.
+const BASE_SYSTEM_PROMPT = `You are VYV Guide — a calm, grounded wellness and life-guidance presence inside the VYV app.
 
 PERSONALITY:
 - Calm, encouraging, slightly aspirational, never overwhelming or judgmental.
@@ -51,13 +52,40 @@ EXAMPLE RESPONSES:
 - Practical: "Try box breathing: inhale 4 seconds, hold 4, exhale 4, hold 4. Repeat 4 rounds. It activates your parasympathetic nervous system and brings your heart rate down quickly."
 - Recipe: "A simple high-protein breakfast: two eggs scrambled with spinach and half an avocado on whole grain toast. Takes 5 minutes, keeps you full for hours."`;
 
+const CALENDAR_ADDENDUM = `
+
+CALENDAR ACCESS (the user has explicitly granted permission):
+You can see the user's upcoming calendar events below as JSON. Use them to:
+- Summarize their day briefly.
+- Suggest better time blocks for focus, rest, gym, errands, social, wellness.
+- Detect overloaded days and suggest what to shorten or move.
+- Help them create, move, or delete events from natural language.
+
+STRICT CALENDAR RULES:
+1. NEVER claim you changed, added, moved, or deleted anything. You can only PROPOSE changes — the user confirms inside the app.
+2. When the user asks to add, move, or delete an event, reply with a SHORT confirmation question AND a single fenced proposal block on its own lines:
+
+\`\`\`vyv-proposal
+{"action":"create","title":"Gym","starts_at":"2026-06-07T19:00:00-05:00","ends_at":"2026-06-07T20:00:00-05:00","category":"sport"}
+\`\`\`
+
+Allowed actions: "create", "update", "delete".
+- create: requires title, starts_at, ends_at, category. category ∈ work|sport|nutrition|rest|social|wellness|personal.
+- update: requires event_id, plus any of starts_at, ends_at, title, category.
+- delete: requires event_id.
+Use ISO 8601 with the user's timezone offset. Keep titles to 1-3 words.
+3. Only ONE proposal block per reply. Multiple changes → ask which one first.
+4. If something is ambiguous (no date, no time), ask one clarifying question instead of guessing.
+5. Be brief — one sentence above the block.
+`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, calendarAccess } = await req.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "Messages required" }), {
@@ -74,6 +102,59 @@ serve(async (req) => {
       });
     }
 
+    let systemPrompt = BASE_SYSTEM_PROMPT;
+    let calendarSnapshot: any = null;
+
+    // If client says calendar access is enabled, verify the JWT and re-check server-side
+    if (calendarAccess) {
+      const authHeader = req.headers.get("Authorization");
+      const jwt = authHeader?.replace(/^Bearer\s+/i, "");
+      if (jwt) {
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+          const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+          const admin = createClient(supabaseUrl, serviceKey);
+          const { data: userData } = await admin.auth.getUser(jwt);
+          const userId = userData?.user?.id;
+          if (userId) {
+            const { data: profile } = await admin
+              .from("profiles")
+              .select("ai_calendar_access_enabled, current_timezone, home_timezone")
+              .eq("user_id", userId)
+              .maybeSingle();
+            if (profile && (profile as any).ai_calendar_access_enabled) {
+              const now = new Date();
+              const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+              const { data: events } = await admin
+                .from("calendar_events")
+                .select("id, title, category, starts_at, ends_at")
+                .eq("user_id", userId)
+                .gte("starts_at", now.toISOString())
+                .lte("starts_at", horizon.toISOString())
+                .order("starts_at", { ascending: true })
+                .limit(60);
+              calendarSnapshot = {
+                now: now.toISOString(),
+                timezone:
+                  (profile as any).current_timezone ||
+                  (profile as any).home_timezone ||
+                  "UTC",
+                events: events || [],
+              };
+              systemPrompt =
+                BASE_SYSTEM_PROMPT +
+                CALENDAR_ADDENDUM +
+                `\n\nUser calendar snapshot (next 7 days):\n${JSON.stringify(
+                  calendarSnapshot
+                )}`;
+            }
+          }
+        } catch (e) {
+          console.error("calendar context error", e);
+        }
+      }
+    }
+
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -85,7 +166,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             ...messages.slice(-6), // keep context small — last 6 messages only
           ],
           stream: true,

@@ -367,6 +367,26 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <div className="mt-4">
                   <SectionVisibilitySettings />
                 </div>
+                <div className="mt-4">
+                  <SettingRow
+                    icon={Sparkles}
+                    label="VYV Guide calendar access"
+                    description={
+                      (profile as any)?.ai_calendar_access_enabled
+                        ? "Assistant can read your calendar and propose changes. You confirm every change."
+                        : "Off. Assistant cannot see or change your calendar."
+                    }
+                    action={
+                      <Switch
+                        checked={!!(profile as any)?.ai_calendar_access_enabled}
+                        onCheckedChange={(v) =>
+                          updateProfileMutation.mutate({ ai_calendar_access_enabled: v } as any)
+                        }
+                        disabled={updateProfileMutation.isPending}
+                      />
+                    }
+                  />
+                </div>
               </div>
 
               <Separator />
