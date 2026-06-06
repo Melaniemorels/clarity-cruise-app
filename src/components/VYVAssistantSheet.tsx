@@ -1,9 +1,24 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUp, RotateCcw } from "lucide-react";
+import { X, ArrowUp, RotateCcw, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
+import { CalendarProposalCard, type CalendarProposal } from "./CalendarProposalCard";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+function extractProposal(content: string): { text: string; proposal: CalendarProposal | null } {
+  const match = content.match(/```vyv-proposal\s*([\s\S]*?)```/i);
+  if (!match) return { text: content, proposal: null };
+  try {
+    const proposal = JSON.parse(match[1].trim()) as CalendarProposal;
+    const text = content.replace(match[0], "").trim();
+    return { text, proposal };
+  } catch {
+    return { text: content, proposal: null };
+  }
+}
 
 function AssistantMessage({ content }: { content: string }) {
   // Parse numbered steps and render with visual hierarchy
@@ -65,8 +80,12 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [showCalendarConsent, setShowCalendarConsent] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { data: profile } = useProfile();
+  const updateProfile = useUpdateProfile();
+  const calendarAccess = !!(profile as any)?.ai_calendar_access_enabled;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -121,6 +140,15 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
     async (text: string) => {
       if (!text.trim() || isLoading) return;
       setShowSavePrompt(false);
+
+      // If calendar-intent and not yet granted, surface consent inline
+      const calendarIntent = /\b(calendar|schedule|agenda|gym|workout|meeting|event|tomorrow|today|move|reschedule|plan my day|overwhelm|organi[sz]e my day)\b/i.test(
+        text
+      );
+      if (calendarIntent && !calendarAccess) {
+        setShowCalendarConsent(true);
+      }
+
       const userMsg: Msg = { role: "user", content: text.trim() };
       const updatedMessages = [...messages, userMsg];
       setMessages(updatedMessages);
@@ -129,13 +157,15 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
 
       let assistantSoFar = "";
       try {
+        const { data: sess } = await supabase.auth.getSession();
+        const accessToken = sess.session?.access_token;
         const resp = await fetch(CHAT_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ messages: updatedMessages }),
+          body: JSON.stringify({ messages: updatedMessages, calendarAccess }),
         });
 
         if (!resp.ok) {
@@ -195,8 +225,18 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
         setIsLoading(false);
       }
     },
-    [messages, isLoading]
+    [messages, isLoading, calendarAccess]
   );
+
+  const grantCalendarAccess = useCallback(async () => {
+    try {
+      await updateProfile.mutateAsync({ ai_calendar_access_enabled: true } as any);
+      setShowCalendarConsent(false);
+      toast({ title: "Calendar connected" });
+    } catch {
+      toast({ title: "Could not enable", variant: "destructive" });
+    }
+  }, [updateProfile]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -298,25 +338,64 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
             </div>
           )}
 
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={cn(
-                "max-w-[85%]",
-                m.role === "user"
-                  ? "ml-auto text-right"
-                  : "mr-auto"
-              )}
-            >
-              {m.role === "user" ? (
-                <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2.5 text-left text-[13px] leading-[1.6] text-foreground tracking-[-0.01em]">
-                  {m.content}
-                </span>
-              ) : (
-                <AssistantMessage content={m.content} />
-              )}
+          {messages.map((m, i) => {
+            if (m.role === "user") {
+              return (
+                <div key={i} className="max-w-[85%] ml-auto text-right">
+                  <span className="inline-block bg-primary/10 rounded-2xl px-3.5 py-2.5 text-left text-[13px] leading-[1.6] text-foreground tracking-[-0.01em]">
+                    {m.content}
+                  </span>
+                </div>
+              );
+            }
+            const { text, proposal } = extractProposal(m.content);
+            const lastUser = [...messages].slice(0, i).reverse().find((x) => x.role === "user")?.content;
+            return (
+              <div key={i} className="max-w-[85%] mr-auto">
+                {text && <AssistantMessage content={text} />}
+                {proposal && calendarAccess && (
+                  <CalendarProposalCard proposal={proposal} prompt={lastUser} />
+                )}
+                {proposal && !calendarAccess && (
+                  <div className="mt-2 text-[12px] text-muted-foreground italic">
+                    Enable calendar access to apply this.
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {showCalendarConsent && !calendarAccess && (
+            <div className="rounded-2xl border border-border/60 bg-card/80 p-3.5 max-w-[85%] mr-auto animate-in fade-in-0">
+              <div className="flex items-start gap-2.5">
+                <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <CalendarIcon className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] text-foreground leading-[1.5]">
+                    Let VYV Guide see your calendar?
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-0.5">
+                    Read-only at first. Any change is asked before it happens.
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={grantCalendarAccess}
+                      className="h-8 px-3 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium"
+                    >
+                      Allow
+                    </button>
+                    <button
+                      onClick={() => setShowCalendarConsent(false)}
+                      className="h-8 px-3 rounded-lg border border-border/60 text-[12px] text-muted-foreground"
+                    >
+                      Not now
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+          )}
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-1 items-center text-muted-foreground/50">
