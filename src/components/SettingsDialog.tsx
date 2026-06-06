@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
+import { AICalendarAuditList } from "@/components/AICalendarAuditList";
 import { toast } from "sonner";
 import {
   Sun,
