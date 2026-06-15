@@ -80,11 +80,12 @@ export const CreatePlanSheet = ({
           end_minute: endMinute,
         })
         .select("id")
-        .single();
+        .maybeSingle();
 
       if (planError) throw planError;
 
       const planId = (plan as any)?.id;
+      if (!planId) throw new Error("Plan creation failed");
 
       // 2. Create invites and notifications for friends with real IDs
       const invitedFriends = friends.filter(
