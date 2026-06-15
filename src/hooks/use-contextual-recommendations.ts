@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ContextualRec {
   title: string;
@@ -26,11 +27,15 @@ export interface ContextualRecommendationsResponse {
 }
 
 async function fetchContextualRecs(
-  accessToken: string,
   target: "home" | "explorer" | "both",
   language: string,
   forceRefresh = false
 ): Promise<ContextualRecommendationsResponse> {
+  // Always fetch a fresh session so an expired access_token is auto-refreshed
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) throw new Error("Not authenticated");
+
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/contextual-recommendations`,
     {
@@ -64,7 +69,7 @@ export function useExplorerContextualRecs() {
 
   return useQuery({
     queryKey: ["contextual-recs", "explorer", lang],
-    queryFn: () => fetchContextualRecs(session!.access_token, "explorer", lang),
+    queryFn: () => fetchContextualRecs("explorer", lang),
     enabled: !!session,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -81,7 +86,7 @@ export function useHomeContextualRecs() {
 
   return useQuery({
     queryKey: ["contextual-recs", "home", lang],
-    queryFn: () => fetchContextualRecs(session!.access_token, "home", lang),
+    queryFn: () => fetchContextualRecs("home", lang),
     enabled: !!session,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -100,7 +105,7 @@ export function useRefreshContextualRecs() {
     mutationFn: async (target: "home" | "explorer" | "both") => {
       if (!session?.access_token) throw new Error("Not authenticated");
       const lang = i18n.language?.split("-")[0] || "es";
-      return fetchContextualRecs(session.access_token, target, lang, true);
+      return fetchContextualRecs(target, lang, true);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
