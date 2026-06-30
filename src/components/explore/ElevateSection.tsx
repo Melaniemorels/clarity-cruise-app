@@ -40,7 +40,7 @@ export function ElevateSection() {
   };
 
   return (
-    <div className={cn("space-y-3", device.isTablet && "space-y-4")}>
+    <div id="explore-elevate-section" className={cn("space-y-3", device.isTablet && "space-y-4")}>
       <div className="flex items-center justify-between">
         <h2 className={cn("font-semibold flex items-center gap-2 text-theme-textPrimary", fonts.heading3)}>
           <Hexagon className={device.isMobile ? "h-5 w-5" : "h-6 w-6"} strokeWidth={1.5} />
