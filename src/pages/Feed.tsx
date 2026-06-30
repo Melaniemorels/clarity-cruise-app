@@ -56,6 +56,13 @@ const getTourSteps = (t: (key: string) => string) => [
     placement: "top" as const,
   },
   {
+    id: "elevate",
+    title: t('guide.tour.elevateTitle'),
+    body: t('guide.tour.elevateBody'),
+    selector: "#explore-elevate-section",
+    placement: "top" as const,
+  },
+  {
     id: "focus",
     title: t('guide.tour.focusTitle'),
     body: t('guide.tour.focusBody'),

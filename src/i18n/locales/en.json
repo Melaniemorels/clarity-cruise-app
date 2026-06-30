@@ -918,6 +918,8 @@
       "homeBody": "Your day at a glance: energy, habits, and direction. Pull down to refresh. Tap the camera to capture a moment.",
       "exploreTitle": "Explore",
       "exploreBody": "Curated music, audios, reads and motivation aligned to your rhythm. Swipe through, save what serves you.",
+      "elevateTitle": "Elevate",
+      "elevateBody": "Short, hand-picked pieces to elevate your knowledge — focus, energy, habits, mindset. Bite-sized lessons you can apply the same day.",
       "focusTitle": "Focus",
       "focusBody": "Your private space. Take notes, capture moments, and review entries. Notes auto-save as you write.",
       "calendarTitle": "Calendar",
@@ -1017,8 +1019,8 @@
     "profileStatsBody": "Steps, workout, sleep and screen time. Tap each card to see the breakdown."
   },
   "contextualRecs": {
-    "explorerTitle": "For you now",
-    "explorerSubtitle": "Based on your browsing and schedule",
+    "explorerTitle": "Right now",
+    "explorerSubtitle": "Picked from what you've been exploring and what's next on your calendar",
     "homeTitle": "Suggested for you",
     "calendarBased": "Calendar"
   },
