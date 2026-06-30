@@ -364,7 +364,6 @@ serve(async (req) => {
                 calendarSnapshot
               )}`;
           }
-          }
         }
       } catch (e) {
         console.error("context error", e);
