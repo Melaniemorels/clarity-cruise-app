@@ -154,6 +154,8 @@ export function useFollowMutation() {
       queryClient.invalidateQueries({ queryKey: ["profile-stats"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile", variables.targetUserId] });
       queryClient.invalidateQueries({ queryKey: ["follow-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-count"] });
     },
   });
 }
