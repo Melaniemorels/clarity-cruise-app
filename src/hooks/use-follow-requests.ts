@@ -113,9 +113,10 @@ export function useAcceptRequest() {
         .from("follows")
         .select("id, follower_id, following_id, status")
         .eq("id", requestId)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
+      if (!followData) throw new Error("Request no longer exists");
 
       const follow = followData as FollowRow;
 
@@ -124,11 +125,15 @@ export function useAcceptRequest() {
         throw new Error("Not authorized");
       }
 
-      // Update to accepted
+      // If already accepted, just return — idempotent
+      if (follow.status === "accepted") return follow;
+
+      // Update to accepted (extra guard: only if still pending)
       const { error: updateError } = await (supabase as any)
         .from("follows")
         .update({ status: "accepted" })
-        .eq("id", requestId);
+        .eq("id", requestId)
+        .eq("following_id", user.id);
 
       if (updateError) throw updateError;
 
@@ -147,6 +152,8 @@ export function useAcceptRequest() {
       queryClient.invalidateQueries({ queryKey: ["follow-status"] });
       queryClient.invalidateQueries({ queryKey: ["profile-stats"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-count"] });
     },
   });
 }
@@ -165,9 +172,13 @@ export function useRejectRequest() {
         .from("follows")
         .select("id, follower_id, following_id, status")
         .eq("id", requestId)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
+      if (!followData) {
+        // Already gone — nothing to do
+        return { id: requestId, follower_id: "", following_id: user.id, status: "pending" } as FollowRow;
+      }
 
       const follow = followData as FollowRow;
 
@@ -176,27 +187,24 @@ export function useRejectRequest() {
         throw new Error("Not authorized");
       }
 
-      // Delete the pending follow
+      // Delete only if we are still the target (RLS will also guard)
       const { error } = await supabase
         .from("follows")
         .delete()
-        .eq("id", requestId);
+        .eq("id", requestId)
+        .eq("following_id", user.id);
 
       if (error) throw error;
 
-      // Optionally create notification for the requester
-      await (supabase as any).from("notifications").insert({
-        user_id: follow.follower_id,
-        actor_id: user.id,
-        type: "request_rejected",
-        message: "declined your follow request",
-      });
+      // Silent decline — do not notify the requester (matches Instagram/Apple-like UX)
 
       return follow;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["follow-requests"] });
       queryClient.invalidateQueries({ queryKey: ["follow-status"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-count"] });
     },
   });
 }
