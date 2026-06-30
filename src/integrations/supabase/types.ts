@@ -77,6 +77,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_memories: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          importance_score: number
+          last_accessed_at: string
+          memory_type: Database["public"]["Enums"]["ai_memory_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          importance_score?: number
+          last_accessed_at?: string
+          memory_type?: Database["public"]["Enums"]["ai_memory_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          importance_score?: number
+          last_accessed_at?: string
+          memory_type?: Database["public"]["Enums"]["ai_memory_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           criteria: Json | null
@@ -1141,6 +1174,7 @@ export type Database = {
       profiles: {
         Row: {
           ai_calendar_access_enabled: boolean
+          ai_memory_enabled: boolean
           allow_auto_timezone_shift: boolean
           bio: string | null
           created_at: string | null
@@ -1168,6 +1202,7 @@ export type Database = {
         }
         Insert: {
           ai_calendar_access_enabled?: boolean
+          ai_memory_enabled?: boolean
           allow_auto_timezone_shift?: boolean
           bio?: string | null
           created_at?: string | null
@@ -1195,6 +1230,7 @@ export type Database = {
         }
         Update: {
           ai_calendar_access_enabled?: boolean
+          ai_memory_enabled?: boolean
           allow_auto_timezone_shift?: boolean
           bio?: string | null
           created_at?: string | null
@@ -1865,6 +1901,16 @@ export type Database = {
       }
     }
     Enums: {
+      ai_memory_type:
+        | "preference"
+        | "goal"
+        | "routine"
+        | "relationship"
+        | "health"
+        | "work"
+        | "calendar"
+        | "interest"
+        | "other"
       app_role: "admin" | "moderator" | "user"
       content_type:
         | "MUSIC"
@@ -2017,6 +2063,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ai_memory_type: [
+        "preference",
+        "goal",
+        "routine",
+        "relationship",
+        "health",
+        "work",
+        "calendar",
+        "interest",
+        "other",
+      ],
       app_role: ["admin", "moderator", "user"],
       content_type: [
         "MUSIC",
