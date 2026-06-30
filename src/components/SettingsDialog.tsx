@@ -393,6 +393,27 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     <AICalendarAuditList />
                   )}
                 </div>
+                <div className="mt-4">
+                  <SettingRow
+                    icon={Brain}
+                    label="My Memory"
+                    description={
+                      (profile as any)?.ai_memory_enabled === false
+                        ? "Off. VYV Guide will not remember anything between chats."
+                        : "VYV Guide quietly remembers what you share so future chats feel personal."
+                    }
+                    action={
+                      <Switch
+                        checked={(profile as any)?.ai_memory_enabled !== false}
+                        onCheckedChange={(v) =>
+                          updateProfileMutation.mutate({ ai_memory_enabled: v } as any)
+                        }
+                        disabled={updateProfileMutation.isPending}
+                      />
+                    }
+                  />
+                  {(profile as any)?.ai_memory_enabled !== false && <AIMemoryManager />}
+                </div>
               </div>
 
               <Separator />
