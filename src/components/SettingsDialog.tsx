@@ -32,6 +32,7 @@ import { Switch } from "@/components/ui/switch";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
 import { AICalendarAuditList } from "@/components/AICalendarAuditList";
+import { AIMemoryManager } from "@/components/AIMemoryManager";
 import { toast } from "sonner";
 import {
   Sun,
@@ -64,6 +65,7 @@ import {
   Download,
   Plane,
   RotateCcw,
+  Brain,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
 import { useGuide } from "@/contexts/GuideContext";
