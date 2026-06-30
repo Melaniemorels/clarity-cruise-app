@@ -94,11 +94,21 @@ Rules:
 const CALENDAR_ADDENDUM = `
 
 CALENDAR ACCESS (the user has explicitly granted permission):
-You can see the user's upcoming calendar events below as JSON. Use them to:
-- Summarize their day briefly.
-- Suggest better time blocks for focus, rest, gym, errands, social, wellness.
-- Detect overloaded days and suggest what to shorten or move.
-- Help them create, move, or delete events from natural language.
+You can see two live data blocks below as JSON:
+1. TODAY SNAPSHOT — what the user has actually done so far today (steps, workout minutes, sleep, screen time per module, captures/photos posted, habits completed) PLUS every event scheduled for today. This mirrors the "Activity Calendar" on the user's profile.
+2. UPCOMING CALENDAR — events for the next 7 days.
+
+Use these to:
+- Give an honest read of the day so far ("you've already moved 32 minutes and walked 4,200 steps, the afternoon is clear until 5pm").
+- Notice imbalances (no movement, poor sleep, heavy screen time, no rest blocks).
+- Suggest realistic next steps based on what's already on the calendar AND what's already been done — never duplicate what's done.
+- Summarize the day, suggest focus/rest/gym/social/wellness blocks, and detect overloaded days.
+- Help the user create, move, or delete events from natural language.
+
+Rules for using the snapshot:
+- Reference real numbers from the snapshot when the user asks how their day is going. Never invent values.
+- If a field is 0 or missing, say so honestly ("no workout logged yet today") instead of guessing.
+- Keep the wording short and grounded; do not list every field — pull only what matters to the question.
 
 STRICT CALENDAR RULES:
 1. NEVER claim you changed, added, moved, or deleted anything. You can only PROPOSE changes — the user confirms inside the app.
@@ -199,25 +209,158 @@ serve(async (req) => {
           if (calendarAccess && (profile as any)?.ai_calendar_access_enabled) {
             const now = new Date();
             const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-            const { data: events } = await admin
-              .from("calendar_events")
-              .select("id, title, category, starts_at, ends_at")
-              .eq("user_id", userId)
-              .gte("starts_at", now.toISOString())
-              .lte("starts_at", horizon.toISOString())
-              .order("starts_at", { ascending: true })
-              .limit(60);
+            const tz =
+              (profile as any).current_timezone ||
+              (profile as any).home_timezone ||
+              "UTC";
+
+            // Compute "today" in user's timezone (YYYY-MM-DD)
+            const todayKey = new Intl.DateTimeFormat("en-CA", {
+              timeZone: tz,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).format(now);
+            const startOfTodayUtc = new Date(
+              new Date(`${todayKey}T00:00:00`).toLocaleString("en-US", {
+                timeZone: tz,
+              })
+            );
+            // Fallback: just use start-of-day UTC if conversion fails
+            const todayStartIso = isNaN(startOfTodayUtc.getTime())
+              ? new Date(now.toISOString().slice(0, 10) + "T00:00:00Z").toISOString()
+              : startOfTodayUtc.toISOString();
+            const tomorrowStartIso = new Date(
+              new Date(todayStartIso).getTime() + 24 * 60 * 60 * 1000
+            ).toISOString();
+
+            // Run all reads in parallel
+            const [
+              eventsRes,
+              todayEventsRes,
+              healthRes,
+              workoutsRes,
+              timeUsageRes,
+              entriesRes,
+              habitLogsRes,
+              habitsRes,
+            ] = await Promise.all([
+              admin
+                .from("calendar_events")
+                .select("id, title, category, starts_at, ends_at")
+                .eq("user_id", userId)
+                .gte("starts_at", now.toISOString())
+                .lte("starts_at", horizon.toISOString())
+                .order("starts_at", { ascending: true })
+                .limit(60),
+              admin
+                .from("calendar_events")
+                .select("id, title, category, starts_at, ends_at")
+                .eq("user_id", userId)
+                .gte("starts_at", todayStartIso)
+                .lt("starts_at", tomorrowStartIso)
+                .order("starts_at", { ascending: true })
+                .limit(50),
+              admin
+                .from("health_daily")
+                .select(
+                  "date, steps, workout_minutes, sleep_minutes, active_calories, distance_km, resistance_volume"
+                )
+                .eq("user_id", userId)
+                .eq("date", todayKey)
+                .maybeSingle(),
+              admin
+                .from("workout_sessions")
+                .select("type, started_at, minutes, rpe, notes")
+                .eq("user_id", userId)
+                .gte("started_at", todayStartIso)
+                .lt("started_at", tomorrowStartIso)
+                .order("started_at", { ascending: true }),
+              admin
+                .from("time_usage")
+                .select("module, seconds_used")
+                .eq("user_id", userId)
+                .eq("date", todayKey),
+              admin
+                .from("entries")
+                .select("id, mood, caption, occurred_at")
+                .eq("user_id", userId)
+                .gte("occurred_at", todayStartIso)
+                .lt("occurred_at", tomorrowStartIso)
+                .order("occurred_at", { ascending: false })
+                .limit(20),
+              admin
+                .from("habit_logs")
+                .select("habit_id, completed_at")
+                .eq("user_id", userId)
+                .gte("completed_at", todayStartIso)
+                .lt("completed_at", tomorrowStartIso),
+              admin.from("habits").select("id, title").eq("user_id", userId),
+            ]);
+
+            const habitsMap = new Map(
+              ((habitsRes.data as any[]) || []).map((h) => [h.id, h.title])
+            );
+            const habitsDone = ((habitLogsRes.data as any[]) || []).map((l) => ({
+              title: habitsMap.get(l.habit_id) || "habit",
+              at: l.completed_at,
+            }));
+
+            const screenTimeByModule: Record<string, number> = {};
+            for (const u of ((timeUsageRes.data as any[]) || [])) {
+              screenTimeByModule[u.module] = Math.round((u.seconds_used || 0) / 60);
+            }
+            const totalScreenMin = Object.values(screenTimeByModule).reduce(
+              (a, b) => a + b,
+              0
+            );
+
+            const workoutMinFromSessions = ((workoutsRes.data as any[]) || []).reduce(
+              (a, s) => a + (s.minutes || 0),
+              0
+            );
+
+            const todaySnapshot = {
+              date: todayKey,
+              timezone: tz,
+              now: now.toISOString(),
+              events_today: todayEventsRes.data || [],
+              health: {
+                steps: (healthRes.data as any)?.steps || 0,
+                workout_minutes:
+                  workoutMinFromSessions ||
+                  (healthRes.data as any)?.workout_minutes ||
+                  0,
+                sleep_minutes: (healthRes.data as any)?.sleep_minutes || 0,
+                active_calories: (healthRes.data as any)?.active_calories || 0,
+                distance_km: (healthRes.data as any)?.distance_km || 0,
+              },
+              workout_sessions: workoutsRes.data || [],
+              screen_time: {
+                total_minutes: totalScreenMin,
+                by_module: screenTimeByModule,
+              },
+              captures_today: ((entriesRes.data as any[]) || []).map((e) => ({
+                id: e.id,
+                mood: e.mood,
+                caption: e.caption,
+                at: e.occurred_at,
+              })),
+              habits_completed: habitsDone,
+            };
+
             calendarSnapshot = {
               now: now.toISOString(),
-              timezone:
-                (profile as any).current_timezone ||
-                (profile as any).home_timezone ||
-                "UTC",
-              events: events || [],
+              timezone: tz,
+              events: eventsRes.data || [],
             };
+
             systemPrompt +=
               CALENDAR_ADDENDUM +
-              `\n\nUser calendar snapshot (next 7 days):\n${JSON.stringify(
+              `\n\nTODAY SNAPSHOT (live from the user's profile / activity calendar — refer to it when answering "how was my day", "what did I do today", "should I work out", or any time-aware question):\n${JSON.stringify(
+                todaySnapshot
+              )}` +
+              `\n\nUPCOMING CALENDAR (next 7 days):\n${JSON.stringify(
                 calendarSnapshot
               )}`;
           }
