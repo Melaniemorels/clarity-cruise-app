@@ -32,6 +32,7 @@ import { Switch } from "@/components/ui/switch";
 import { SectionVisibilitySettings } from "@/components/SectionVisibilitySettings";
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
 import { AICalendarAuditList } from "@/components/AICalendarAuditList";
+import { AIMemoryManager } from "@/components/AIMemoryManager";
 import { toast } from "sonner";
 import {
   Sun,
@@ -64,6 +65,7 @@ import {
   Download,
   Plane,
   RotateCcw,
+  Brain,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
 import { useGuide } from "@/contexts/GuideContext";
@@ -390,6 +392,27 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                   {!!(profile as any)?.ai_calendar_access_enabled && (
                     <AICalendarAuditList />
                   )}
+                </div>
+                <div className="mt-4">
+                  <SettingRow
+                    icon={Brain}
+                    label="My Memory"
+                    description={
+                      (profile as any)?.ai_memory_enabled === false
+                        ? "Off. VYV Guide will not remember anything between chats."
+                        : "VYV Guide quietly remembers what you share so future chats feel personal."
+                    }
+                    action={
+                      <Switch
+                        checked={(profile as any)?.ai_memory_enabled !== false}
+                        onCheckedChange={(v) =>
+                          updateProfileMutation.mutate({ ai_memory_enabled: v } as any)
+                        }
+                        disabled={updateProfileMutation.isPending}
+                      />
+                    }
+                  />
+                  {(profile as any)?.ai_memory_enabled !== false && <AIMemoryManager />}
                 </div>
               </div>
 

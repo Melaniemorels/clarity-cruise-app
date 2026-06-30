@@ -24,6 +24,7 @@ export interface Profile {
   travel_detected_reason: TravelDetectedReason | null;
   allow_auto_timezone_shift: boolean;
   ai_calendar_access_enabled?: boolean;
+  ai_memory_enabled?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -106,7 +107,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private" | "is_traveling" | "home_timezone" | "current_timezone" | "travel_intensity" | "travel_mode_status" | "travel_detected_reason" | "allow_auto_timezone_shift" | "ai_calendar_access_enabled">>) => {
+    mutationFn: async (updates: Partial<Pick<Profile, "handle" | "name" | "bio" | "photo_url" | "is_private" | "is_traveling" | "home_timezone" | "current_timezone" | "travel_intensity" | "travel_mode_status" | "travel_detected_reason" | "allow_auto_timezone_shift" | "ai_calendar_access_enabled" | "ai_memory_enabled">>) => {
       if (!user) throw new Error("Usuario no autenticado");
 
       const { data, error } = await supabase

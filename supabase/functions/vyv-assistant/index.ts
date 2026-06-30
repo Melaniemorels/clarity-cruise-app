@@ -71,6 +71,26 @@ EXAMPLE RESPONSES:
 - Practical: "Try box breathing: inhale 4 seconds, hold 4, exhale 4, hold 4. Repeat 4 rounds. It activates your parasympathetic nervous system and brings your heart rate down quickly."
 - Recipe: "A simple high-protein breakfast: two eggs scrambled with spinach and half an avocado on whole grain toast. Takes 5 minutes, keeps you full for hours."`;
 
+const MEMORY_ADDENDUM = `
+
+PERSISTENT MEMORY (across conversations):
+You can quietly remember long-term facts the user shares — preferences, goals, routines, relationships, health context, work, calendar habits, interests. Use these memories ONLY when relevant. Never list them back unprompted. Never invent memories.
+
+EXTRACTING NEW MEMORIES:
+If — and only if — the user's latest message contains information that is clearly worth remembering long-term (not a passing mood, not a one-off question, not small talk), include AT THE VERY END of your reply a single fenced block:
+
+\`\`\`vyv-memory
+[{"content":"Likes surfing at sunrise","memory_type":"interest","importance_score":7}]
+\`\`\`
+
+Rules:
+- Array of 1-3 short memory objects. Skip the block entirely if nothing is worth saving.
+- memory_type ∈ preference|goal|routine|relationship|health|work|calendar|interest|other.
+- importance_score is 1-10 (10 = core identity, 5 = useful, 1 = trivial).
+- content is one short factual sentence in English, written about the user in third person ("User wants to lower body fat"). Do NOT store raw quotes, emotions of the moment, or anything sensitive the user did not explicitly share.
+- Never mention the block, never explain it, never reference "memory" in the human-facing part of your reply.
+`;
+
 const CALENDAR_ADDENDUM = `
 
 CALENDAR ACCESS (the user has explicitly granted permission):
@@ -123,54 +143,87 @@ serve(async (req) => {
 
     let systemPrompt = BASE_SYSTEM_PROMPT;
     let calendarSnapshot: any = null;
+    let userId: string | null = null;
+    let memoryEnabled = true;
+    let admin: ReturnType<typeof createClient> | null = null;
 
-    // If client says calendar access is enabled, verify the JWT and re-check server-side
-    if (calendarAccess) {
-      const authHeader = req.headers.get("Authorization");
-      const jwt = authHeader?.replace(/^Bearer\s+/i, "");
-      if (jwt) {
-        try {
-          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-          const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-          const admin = createClient(supabaseUrl, serviceKey);
-          const { data: userData } = await admin.auth.getUser(jwt);
-          const userId = userData?.user?.id;
-          if (userId) {
-            const { data: profile } = await admin
-              .from("profiles")
-              .select("ai_calendar_access_enabled, current_timezone, home_timezone")
+    const authHeader = req.headers.get("Authorization");
+    const jwt = authHeader?.replace(/^Bearer\s+/i, "");
+    if (jwt) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        admin = createClient(supabaseUrl, serviceKey);
+        const { data: userData } = await admin.auth.getUser(jwt);
+        userId = userData?.user?.id ?? null;
+
+        if (userId) {
+          const { data: profile } = await admin
+            .from("profiles")
+            .select(
+              "ai_calendar_access_enabled, ai_memory_enabled, current_timezone, home_timezone"
+            )
+            .eq("user_id", userId)
+            .maybeSingle();
+          memoryEnabled = (profile as any)?.ai_memory_enabled !== false;
+
+          // Memory injection
+          if (memoryEnabled) {
+            systemPrompt = systemPrompt + MEMORY_ADDENDUM;
+            const { data: memories } = await admin
+              .from("ai_memories")
+              .select("content, memory_type, importance_score")
               .eq("user_id", userId)
-              .maybeSingle();
-            if (profile && (profile as any).ai_calendar_access_enabled) {
-              const now = new Date();
-              const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-              const { data: events } = await admin
-                .from("calendar_events")
-                .select("id, title, category, starts_at, ends_at")
+              .order("importance_score", { ascending: false })
+              .order("last_accessed_at", { ascending: false })
+              .limit(40);
+            if (memories && memories.length) {
+              const lines = (memories as any[])
+                .map(
+                  (m) =>
+                    `- [${m.memory_type}, ${m.importance_score}/10] ${m.content}`
+                )
+                .join("\n");
+              systemPrompt += `\n\nUSER MEMORIES (use only when relevant, never recite):\n${lines}`;
+              // touch last_accessed_at (fire & forget)
+              admin
+                .from("ai_memories")
+                .update({ last_accessed_at: new Date().toISOString() })
                 .eq("user_id", userId)
-                .gte("starts_at", now.toISOString())
-                .lte("starts_at", horizon.toISOString())
-                .order("starts_at", { ascending: true })
-                .limit(60);
-              calendarSnapshot = {
-                now: now.toISOString(),
-                timezone:
-                  (profile as any).current_timezone ||
-                  (profile as any).home_timezone ||
-                  "UTC",
-                events: events || [],
-              };
-              systemPrompt =
-                BASE_SYSTEM_PROMPT +
-                CALENDAR_ADDENDUM +
-                `\n\nUser calendar snapshot (next 7 days):\n${JSON.stringify(
-                  calendarSnapshot
-                )}`;
+                .then(() => {})
+                .catch(() => {});
             }
           }
-        } catch (e) {
-          console.error("calendar context error", e);
+
+          // Calendar injection
+          if (calendarAccess && (profile as any)?.ai_calendar_access_enabled) {
+            const now = new Date();
+            const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const { data: events } = await admin
+              .from("calendar_events")
+              .select("id, title, category, starts_at, ends_at")
+              .eq("user_id", userId)
+              .gte("starts_at", now.toISOString())
+              .lte("starts_at", horizon.toISOString())
+              .order("starts_at", { ascending: true })
+              .limit(60);
+            calendarSnapshot = {
+              now: now.toISOString(),
+              timezone:
+                (profile as any).current_timezone ||
+                (profile as any).home_timezone ||
+                "UTC",
+              events: events || [],
+            };
+            systemPrompt +=
+              CALENDAR_ADDENDUM +
+              `\n\nUser calendar snapshot (next 7 days):\n${JSON.stringify(
+                calendarSnapshot
+              )}`;
+          }
         }
+      } catch (e) {
+        console.error("context error", e);
       }
     }
 
@@ -214,7 +267,79 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
+    // Tee stream: pass chunks through, accumulate full assistant text, then on flush
+    // parse ```vyv-memory blocks and persist via service role.
+    let assembled = "";
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+
+    const persistMemories = async (full: string) => {
+      if (!admin || !userId || !memoryEnabled) return;
+      const match = full.match(/```vyv-memory\s*([\s\S]*?)```/i);
+      if (!match) return;
+      try {
+        const parsed = JSON.parse(match[1].trim());
+        if (!Array.isArray(parsed)) return;
+        const rows = parsed
+          .filter((m) => m && typeof m.content === "string" && m.content.trim())
+          .slice(0, 3)
+          .map((m) => ({
+            user_id: userId!,
+            content: String(m.content).trim().slice(0, 500),
+            memory_type: [
+              "preference",
+              "goal",
+              "routine",
+              "relationship",
+              "health",
+              "work",
+              "calendar",
+              "interest",
+              "other",
+            ].includes(m.memory_type)
+              ? m.memory_type
+              : "other",
+            importance_score: Math.max(
+              1,
+              Math.min(10, parseInt(m.importance_score, 10) || 5)
+            ),
+          }));
+        if (!rows.length) return;
+        await admin.from("ai_memories").insert(rows);
+      } catch (e) {
+        console.error("memory parse error", e);
+      }
+    };
+
+    const transform = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+        try {
+          const text = decoder.decode(chunk, { stream: true });
+          // Extract delta.content out of SSE lines
+          for (const line of text.split("\n")) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const json = trimmed.slice(5).trim();
+            if (!json || json === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(json);
+              const c = parsed.choices?.[0]?.delta?.content;
+              if (typeof c === "string") assembled += c;
+            } catch {
+              // partial JSON; ignore
+            }
+          }
+        } catch {
+          // ignore
+        }
+      },
+      async flush() {
+        await persistMemories(assembled);
+      },
+    });
+
+    return new Response(response.body!.pipeThrough(transform), {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
