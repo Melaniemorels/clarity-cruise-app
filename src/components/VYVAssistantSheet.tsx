@@ -9,14 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 type Msg = { role: "user" | "assistant"; content: string };
 
 function extractProposal(content: string): { text: string; proposal: CalendarProposal | null } {
-  const match = content.match(/```vyv-proposal\s*([\s\S]*?)```/i);
-  if (!match) return { text: content, proposal: null };
+  // Strip any memory block first — never shown to the user.
+  const cleaned = content.replace(/```vyv-memory\s*[\s\S]*?```/gi, "").trim();
+  const match = cleaned.match(/```vyv-proposal\s*([\s\S]*?)```/i);
+  if (!match) return { text: cleaned, proposal: null };
   try {
     const proposal = JSON.parse(match[1].trim()) as CalendarProposal;
-    const text = content.replace(match[0], "").trim();
+    const text = cleaned.replace(match[0], "").trim();
     return { text, proposal };
   } catch {
-    return { text: content, proposal: null };
+    return { text: cleaned, proposal: null };
   }
 }
 
