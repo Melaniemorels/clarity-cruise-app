@@ -1017,8 +1017,8 @@
     "profileStatsBody": "Pasos, ejercicio, sueño y tiempo de pantalla. Tocá cada tarjeta para ver el desglose."
   },
   "contextualRecs": {
-    "explorerTitle": "Para ti ahora",
-    "explorerSubtitle": "Basado en lo que explorás y tu agenda",
+    "explorerTitle": "Ahora mismo",
+    "explorerSubtitle": "Elegido por lo que exploraste y lo que viene en tu agenda",
     "homeTitle": "Sugerido para vos",
     "calendarBased": "Calendario"
   },

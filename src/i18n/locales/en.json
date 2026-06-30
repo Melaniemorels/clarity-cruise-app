@@ -1017,8 +1017,8 @@
     "profileStatsBody": "Steps, workout, sleep and screen time. Tap each card to see the breakdown."
   },
   "contextualRecs": {
-    "explorerTitle": "For you now",
-    "explorerSubtitle": "Based on your browsing and schedule",
+    "explorerTitle": "Right now",
+    "explorerSubtitle": "Picked from what you've been exploring and what's next on your calendar",
     "homeTitle": "Suggested for you",
     "calendarBased": "Calendar"
   },

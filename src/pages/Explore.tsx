@@ -65,11 +65,11 @@ const Explore = () => {
           </p>
         </div>
 
-        {/* AI Recommendations */}
-        <AIRecommendationsSection />
-
-        {/* Contextual AI — based on scroll + calendar */}
-        <ExplorerContextualRecs />
+        {/* For You — main AI block + contextual sub-row, grouped under one heading */}
+        <section className="space-y-6">
+          <AIRecommendationsSection />
+          <ExplorerContextualRecs />
+        </section>
 
         {/* Media Connection */}
         <MediaConnectionBanner />
