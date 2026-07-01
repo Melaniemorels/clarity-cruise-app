@@ -1,0 +1,12 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VYV">
+  <defs>
+    <linearGradient id="vyvGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5FC7B4"/>
+      <stop offset="1" stop-color="#4A8B7C"/>
+    </linearGradient>
+  </defs>
+  <path d="M60 8 L104 33 V83 L60 108 L16 83 V33 Z"
+        fill="none" stroke="url(#vyvGrad)" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M40 45 L54 78 L60 78 L54 45" fill="none" stroke="url(#vyvGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M60 45 L66 62 L72 45 M66 62 L66 78 L80 78" fill="none" stroke="url(#vyvGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

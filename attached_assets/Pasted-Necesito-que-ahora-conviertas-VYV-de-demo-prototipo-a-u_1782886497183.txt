@@ -1,0 +1,124 @@
+Necesito que ahora conviertas VYV de demo/prototipo a una app real y funcional.
+
+Objetivo:
+Eliminar todas las partes que siguen funcionando como demo, datos falsos, mock data, botones sin acción, pantallas simuladas o flujos incompletos. La app debe comportarse como una beta real lista para probar en TestFlight.
+
+Revisa toda la app y haz una auditoría completa de:
+
+1. Funciones demo
+
+* Detecta cualquier dato falso, placeholder, mock user, fake events, fake friends, fake likes, fake captures o fake explorer content.
+* Elimina lo que sea solo demostrativo.
+* Reemplázalo por datos reales del usuario autenticado.
+* Si una función todavía no puede ser real, debe quedar claramente desactivada o marcada como “coming soon”, no simulada.
+
+2. Base de datos y backend
+
+* Conecta cada pantalla con Supabase o el backend real.
+* Calendario: eventos reales por usuario.
+* Captures: fotos reales guardadas por usuario.
+* Perfil: información real del usuario.
+* Likes/feed: datos reales.
+* Disponibilidad: datos reales y privados por usuario.
+* Configuración: preferencias reales guardadas.
+
+3. Autenticación
+
+* Asegúrate de que todo esté conectado al usuario logueado.
+* Ningún usuario debe ver datos de otro usuario.
+* Todas las queries deben estar filtradas por user_id.
+* Revisar RLS en Supabase.
+
+4. Botones y acciones
+
+* Cada botón visible debe hacer algo real.
+* Crear, editar, guardar, eliminar, conectar, compartir, ocultar, subir foto, actualizar perfil, cambiar idioma y configurar privacidad deben funcionar.
+* Si un botón no está listo para MVP, ocultarlo o mostrarlo como “coming soon”.
+
+5. Onboarding / recorrido inicial
+   Quiero que el recorrido del principio de la app funcione de verdad y guíe bien al usuario.
+
+Debe incluir:
+
+* Bienvenida clara a VYV.
+* Explicación simple de qué es VYV.
+* Explicación del calendario inteligente.
+* Explicación de disponibilidad con amigos.
+* Explicación de Captures.
+* Explicación de Explorer.
+* Explicación de privacidad.
+* Preguntas iniciales para personalizar la experiencia.
+
+El onboarding debe:
+
+* Aparecer solo la primera vez que el usuario entra.
+* Guardar en la base de datos que el usuario ya lo completó.
+* Permitir saltar o continuar.
+* Tener textos claros, cortos y premium.
+* Estar disponible en inglés y español.
+* No mezclar idiomas.
+* Llevar al usuario al dashboard principal al finalizar.
+
+6. Preguntas iniciales del onboarding
+   Agregar preguntas como:
+
+* ¿Qué quieres organizar mejor en tu vida?
+* ¿Quieres conectar tu calendario?
+* ¿Quieres compartir disponibilidad con amigos?
+* ¿Qué áreas te interesan? Fitness, wellness, social, productivity, creativity.
+* ¿Prefieres recibir sugerencias de AI suaves o más directas?
+* ¿Quieres mantener tu perfil privado al inicio?
+
+Guardar todas las respuestas en el perfil del usuario.
+
+7. Experiencia real de app
+   La app no debe sentirse como una presentación.
+   Debe sentirse como una herramienta real:
+
+* Estados vacíos reales.
+* Mensajes cuando no hay datos.
+* Loading states.
+* Error states.
+* Confirmaciones al guardar.
+* Confirmaciones al eliminar.
+* Feedback visual cuando una acción funciona.
+
+8. AI Assistant
+   Si la AI todavía no está conectada a un modelo real, no simules respuestas falsas.
+   Crea una estructura real lista para conectar:
+
+* endpoint / función para AI insights.
+* usa datos reales del calendario, perfil y disponibilidad.
+* si no hay API key configurada, mostrar un mensaje claro: “AI insights will be available soon.”
+
+9. Calendario
+
+* Crear evento real.
+* Editar evento real.
+* Eliminar evento real.
+* Ver eventos reales del usuario.
+* Mostrar estados vacíos si no hay eventos.
+* Preparar integración con Google Calendar / Apple Calendar, pero no simular conexión si todavía no está conectada.
+
+10. Privacy
+
+* El usuario debe poder controlar qué comparte.
+* Disponibilidad no debe mostrar detalles privados del calendario.
+* Solo mostrar bloques libres si el usuario lo permite.
+
+11. Quality check final
+    Antes de terminar:
+
+* Recorre la app como usuario nuevo.
+* Recorre la app como usuario existente.
+* Verifica que el onboarding no vuelva a aparecer después de completarlo.
+* Verifica que no existan datos fake.
+* Verifica que todos los botones visibles funcionen o estén ocultos.
+* Verifica que la app no mezcle inglés y español.
+* Verifica que todo funcione con usuario autenticado.
+
+Resultado esperado:
+Una beta real de VYV, más simple que la visión completa, pero funcional, conectada a datos reales, lista para testear con usuarios reales y eventualmente subir a TestFlight.
+
+Regla principal:
+No quiero una demo bonita. Quiero una app real, aunque sea simple.

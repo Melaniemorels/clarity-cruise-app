@@ -27,7 +27,7 @@ A social wellness app for planning your day intentionally: a calendar, an AI "pe
 - `artifacts/vyv/` — the React frontend (the imported Lovable app)
 - `artifacts/vyv/src/integrations/supabase/client.ts` — **Supabase compatibility shim**: exposes the Supabase client API (`.from`, `.auth`, `.storage`, `.functions`, realtime no-op) but routes everything to the Express API. This is why the ~40 files that call `supabase.*` did not need rewriting.
 - `artifacts/api-server/src/routes/` — backend routes:
-  - `auth.ts` — email/password auth (scrypt + JWT), Supabase-shaped session responses
+  - `auth.ts` — Clerk-backed auth: `attachUser` resolves the Clerk session (`getAuth`) into the app's UUID via JIT `resolveAppUser` (maps `clerk_id`→`app_users.id`); `/api/auth/me` JIT-provisions the profile. Legacy scrypt/JWT helpers remain but are unused by the live flow.
   - `db.ts` — generic query executor backing `.from(table)` (table allowlist, parameterized SQL)
   - `functions.ts` — edge-function equivalents (`generate-perfect-day`, `explore-feed`, stubs)
   - `storage.ts` — object-storage upload/serve/remove
@@ -36,7 +36,7 @@ A social wellness app for planning your day intentionally: a calendar, an AI "pe
 ## Architecture decisions
 
 - **Supabase compatibility shim over rewrite.** Rather than porting every `supabase.*` call, the client module was replaced with a shim mapping to the Express API. Keeps the imported app's screens/markup/features intact. Unknown tables fail soft (return `[]`) so secondary pages don't crash.
-- **Auth is email/password (deviation).** The original used Supabase auth; the migration kept the app's existing custom auth screens and implemented email/password (scrypt + JWT) rather than swapping to Clerk. The "Sign in with Google" button in the UI is not wired (no OAuth in the shim) — out of Phase-1 scope.
+- **Auth is Clerk.** The original used Supabase auth; the migration first shipped a custom email/password stub (scrypt + JWT), then replaced it with real Clerk auth (Google + email/password + password reset). Clerk is wired via `clerkMiddleware` (server) and `ClerkProvider` (client, adapted to react-router); the Supabase shim's `.auth` now bridges `window.Clerk` and attaches the Clerk bearer token to API calls. Clerk ids are mapped to the app's UUID via JIT `app_users` provisioning (`clerk_id` column). Apple sign-in is a separate follow-up.
 - **Write-side authorization instead of full RLS.** The original relied on Postgres row-level security. `/api/db/query` enforces ownership on writes (inserts forced to the caller's `user_id`; updates/deletes auto-scoped to the caller's rows; unscoped mutations on join tables rejected). Reads remain open across allowlisted tables because Phase-1 features legitimately read other users' rows — this read-side openness is an accepted beta limitation.
 - **AI via Replit Gemini proxy.** The Lovable AI gateway calls were replaced with the Replit Gemini integration (no external key).
 

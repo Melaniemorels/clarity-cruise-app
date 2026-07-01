@@ -24,7 +24,12 @@ const updatedAt = () =>
 export const appUsers = pgTable("app_users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  // Nullable: Clerk-provisioned users authenticate via Clerk, not a local
+  // password. Legacy email/password rows still carry a scrypt hash here.
+  passwordHash: text("password_hash"),
+  // Stable Clerk user id (e.g. "user_..."). Maps a Clerk identity to this
+  // app's UUID so all per-user tables keep keying off a UUID.
+  clerkId: text("clerk_id").unique(),
   createdAt: createdAt(),
 });
 

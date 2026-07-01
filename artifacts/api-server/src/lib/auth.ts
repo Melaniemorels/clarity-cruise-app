@@ -6,6 +6,9 @@ import {
   createHash,
 } from "crypto";
 import type { Request, Response, NextFunction } from "express";
+import { getAuth, clerkClient } from "@clerk/express";
+import { db, appUsers } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 // The JWT signing key is derived deterministically from DATABASE_URL so it is
 // stable across restarts without requiring an extra managed secret. Override by
@@ -118,15 +121,99 @@ export function getBearer(req: Request): string | null {
   return header.slice("Bearer ".length).trim();
 }
 
-export function attachUser(
+// Maps a Clerk identity to this app's stable UUID. All per-user tables key off
+// a UUID, but Clerk ids are opaque strings ("user_..."), so we provision (JIT)
+// an `app_users` row per Clerk user and use its UUID as the app user id.
+const clerkUserCache = new Map<string, AuthedUser>();
+
+export async function resolveAppUser(clerkUserId: string): Promise<AuthedUser> {
+  const cached = clerkUserCache.get(clerkUserId);
+  if (cached) return cached;
+
+  const [existing] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.clerkId, clerkUserId))
+    .limit(1);
+  if (existing) {
+    const v = { id: existing.id, email: existing.email };
+    clerkUserCache.set(clerkUserId, v);
+    return v;
+  }
+
+  // First time we see this Clerk user — fetch their email and provision a row.
+  let email = "";
+  try {
+    const cu = await clerkClient.users.getUser(clerkUserId);
+    email =
+      cu.primaryEmailAddress?.emailAddress ||
+      cu.emailAddresses?.[0]?.emailAddress ||
+      "";
+  } catch {
+    /* fall through to synthetic email */
+  }
+  const normEmail = (email || `${clerkUserId}@clerk.vyv.local`).toLowerCase().trim();
+
+  // Link to a legacy row with the same email ONLY if it has not already been
+  // claimed by another Clerk identity. Rebinding a row that already carries a
+  // different clerk_id would hand one user's data to another, so in that case
+  // we provision a fresh row instead of overwriting the link.
+  const [byEmail] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.email, normEmail))
+    .limit(1);
+
+  let row;
+  if (byEmail && byEmail.clerkId === clerkUserId) {
+    row = byEmail;
+  } else if (byEmail && !byEmail.clerkId) {
+    [row] = await db
+      .update(appUsers)
+      .set({ clerkId: clerkUserId })
+      .where(eq(appUsers.id, byEmail.id))
+      .returning();
+  } else if (byEmail) {
+    // Email already linked to a different Clerk identity — do NOT rebind.
+    // Provision a distinct row keyed on a synthetic, collision-free email so
+    // this Clerk user gets an isolated account.
+    console.warn(
+      `[auth] email ${normEmail} already linked to a different Clerk id; ` +
+        `provisioning an isolated account for ${clerkUserId}`,
+    );
+    [row] = await db
+      .insert(appUsers)
+      .values({
+        email: `${clerkUserId}@clerk.vyv.local`,
+        clerkId: clerkUserId,
+      })
+      .returning();
+  } else {
+    [row] = await db
+      .insert(appUsers)
+      .values({ email: normEmail, clerkId: clerkUserId })
+      .returning();
+  }
+
+  const v = { id: row.id, email: row.email };
+  clerkUserCache.set(clerkUserId, v);
+  return v;
+}
+
+// Resolves the authenticated Clerk session (cookie for web, bearer for mobile)
+// into `req.authUser` with this app's UUID. clerkMiddleware must run first.
+export async function attachUser(
   req: Request,
   _res: Response,
   next: NextFunction,
-): void {
-  const token = getBearer(req);
-  if (token) {
-    const payload = verifyToken(token);
-    if (payload) req.authUser = { id: payload.sub, email: payload.email };
+): Promise<void> {
+  try {
+    const { userId } = getAuth(req);
+    if (userId) {
+      req.authUser = await resolveAppUser(userId);
+    }
+  } catch {
+    /* unauthenticated — leave req.authUser undefined */
   }
   next();
 }

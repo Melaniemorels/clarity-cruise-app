@@ -102,7 +102,7 @@ router.post("/auth/signin", async (req: Request, res: Response): Promise<void> =
     .where(eq(appUsers.email, normEmail))
     .limit(1);
 
-  if (!user || !verifyPassword(String(password), user.passwordHash)) {
+  if (!user || !user.passwordHash || !verifyPassword(String(password), user.passwordHash)) {
     res
       .status(400)
       .json({ error: { message: "Invalid login credentials", code: "invalid_credentials" } });
@@ -129,6 +129,49 @@ router.get(
       },
       error: null,
     });
+  },
+);
+
+// GET /api/auth/me  (Clerk session) -> this app's stable UUID + email.
+// Ensures a profile row exists (JIT). Email is already verified by Clerk, so we
+// mark the security-onboarding step complete to avoid trapping new users.
+router.get(
+  "/auth/me",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id: userId, email } = req.authUser!;
+
+    const [prof] = await db
+      .select()
+      .from(vyvTables.profiles)
+      .where(eq(vyvTables.profiles.user_id, userId))
+      .limit(1);
+
+    if (!prof) {
+      const base = (email.split("@")[0] || "user")
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "")
+        .slice(0, 30);
+      const handle = base || `user_${userId.slice(0, 8)}`;
+      const values = {
+        user_id: userId,
+        handle,
+        security_onboarding_completed: true,
+        onboarding_completed: true,
+        onboarding_step: "done",
+      };
+      try {
+        await db.insert(vyvTables.profiles).values(values);
+      } catch {
+        // Handle collision -> suffix with a fragment of the user id.
+        await db.insert(vyvTables.profiles).values({
+          ...values,
+          handle: `${handle}_${userId.slice(0, 4)}`,
+        });
+      }
+    }
+
+    res.json({ id: userId, email });
   },
 );
 

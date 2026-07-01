@@ -1,0 +1,1 @@
+- [Clerk account linking](clerk-account-linking.md) — JIT Clerk→app-UUID linking must never rebind an already-claimed row; only link email-matched rows whose clerk_id is NULL.

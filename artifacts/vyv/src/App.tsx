@@ -3,7 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
+import { publishableKeyFromHost } from "@clerk/react/internal";
+import { dark } from "@clerk/themes";
+import { enUS, esES } from "@clerk/localizations";
 import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
@@ -83,6 +87,151 @@ const queryClient = new QueryClient({
   },
 });
 
+// --- Clerk auth wiring (adapted for react-router) --------------------------
+// REQUIRED — copy verbatim. Resolves the key from window.location.hostname so
+// the same build serves multiple Clerk custom domains.
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+
+// REQUIRED — copy verbatim. Empty in dev (Clerk hits dev FAPI directly),
+// auto-set in prod. Do NOT gate on PROD/NODE_ENV.
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Clerk passes full paths to routerPush/routerReplace; react-router's navigate
+// re-applies the basename, so strip it here to avoid doubling.
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
+}
+
+if (!clerkPubKey) {
+  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
+}
+
+// Keep Clerk's UI in the same language the app is set to (no EN/ES mixing) and
+// brand the titles as VYV rather than the raw Clerk instance name.
+function clerkLocalization() {
+  let lang = "en";
+  try {
+    lang = localStorage.getItem("vyv-language") || navigator.language || "en";
+  } catch {
+    /* ignore */
+  }
+  const es = lang.toLowerCase().startsWith("es");
+  const base = es ? esES : enUS;
+  return {
+    ...base,
+    signIn: {
+      ...base.signIn,
+      start: {
+        ...base.signIn?.start,
+        title: es ? "Inicia sesión en VYV" : "Sign in to VYV",
+        subtitle: es
+          ? "Bienvenido de nuevo. Continúa para acceder a tu cuenta."
+          : "Welcome back. Continue to access your account.",
+      },
+    },
+    signUp: {
+      ...base.signUp,
+      start: {
+        ...base.signUp?.start,
+        title: es ? "Crea tu cuenta VYV" : "Create your VYV account",
+        subtitle: es ? "Empecemos" : "Let's get started",
+      },
+    },
+  };
+}
+
+// VYV dark brand (teal on near-black). Tailwind v3 project -> no cssLayerName;
+// element overrides use inline style objects.
+const clerkAppearance = {
+  theme: dark,
+  variables: {
+    colorPrimary: "#4FB3A2",
+    colorForeground: "#E8EBED",
+    colorMutedForeground: "#9AA4AE",
+    colorDanger: "#F87171",
+    colorBackground: "#12171E",
+    colorInput: "#1A2029",
+    colorInputForeground: "#E8EBED",
+    colorNeutral: "#2A323C",
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    borderRadius: "0.75rem",
+  },
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  elements: {
+    rootBox: { width: "100%", display: "flex", justifyContent: "center" },
+    cardBox: {
+      backgroundColor: "#12171E",
+      width: "440px",
+      maxWidth: "100%",
+      borderRadius: "1rem",
+      overflow: "hidden",
+      border: "1px solid #222A33",
+    },
+    card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+    footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+    formButtonPrimary: { backgroundColor: "#4FB3A2", color: "#08110F" },
+    socialButtonsBlockButton: { borderColor: "#2A323C" },
+    socialButtonsBlockButtonText: { color: "#E8EBED" },
+    footerActionLink: { color: "#4FB3A2" },
+  },
+};
+
+const SignInPage = () => (
+  <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
+    <SignIn
+      routing="path"
+      path={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      fallbackRedirectUrl={`${basePath}/`}
+    />
+  </div>
+);
+
+const SignUpPage = () => (
+  <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
+    <SignUp
+      routing="path"
+      path={`${basePath}/sign-up`}
+      signInUrl={`${basePath}/sign-in`}
+      fallbackRedirectUrl={`${basePath}/`}
+    />
+  </div>
+);
+
+// ClerkProvider must live inside BrowserRouter (uses useNavigate) and wrap
+// AuthProvider (which reads Clerk hooks).
+const ClerkWithRouter = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      localization={clerkLocalization()}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      signInFallbackRedirectUrl={`${basePath}/`}
+      signUpFallbackRedirectUrl={`${basePath}/`}
+      routerPush={(to) => navigate(stripBase(to))}
+      routerReplace={(to) => navigate(stripBase(to), { replace: true })}
+    >
+      {children}
+    </ClerkProvider>
+  );
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -91,6 +240,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <ClerkWithRouter>
             <AuthProvider>
               <VYVProvider>
               <GuideProvider>
@@ -100,9 +250,11 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/welcome" element={<Welcome />} />
+                  <Route path="/sign-in/*" element={<SignInPage />} />
+                  <Route path="/sign-up/*" element={<SignUpPage />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
                   <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
                   <Route path="/entries" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                   <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
@@ -133,6 +285,7 @@ const App = () => (
               </GuideProvider>
               </VYVProvider>
             </AuthProvider>
+            </ClerkWithRouter>
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
