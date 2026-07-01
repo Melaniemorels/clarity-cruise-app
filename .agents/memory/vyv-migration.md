@@ -21,6 +21,10 @@ Large Lovable app (social wellness "VYV"): ~33 Supabase tables, 9 AI edge functi
 - Edge functions: `generate-perfect-day` and `explore-feed` reimplemented as Express routes (frontend calls them via `${VITE_SUPABASE_URL}/functions/v1/<name>`, so shim rewrites base URL). Others (moderate-content etc.) graceful stub.
 - **Why:** compat shim = minimal edits, preserves styles/markup/features, focuses backend effort on priority tables only.
 
+## Capacitor deps break web dev (gotcha)
+- `artifacts/vyv` is the WEB app but contains native Capacitor code (e.g. `src/lib/haptics.ts` dynamic-imports `@capacitor/haptics`). `rollupOptions.external` only silences the *production* build — Vite **dev** (import-analysis) still tries to resolve the specifier and hard-fails the whole app (white screen, ProtectedRoute error boundary, "can't log in") if the package isn't installed.
+- **Fix:** keep every referenced `@capacitor/*` package installed as a direct dep of `@workspace/vyv` (browser, core, haptics, …); the `Capacitor.isNativePlatform()` guard prevents them running on web. When a mobile-app merge adds new native imports, install the matching dep or dev breaks.
+
 ## AI
 - Edge functions originally used Lovable AI gateway (`LOVABLE_API_KEY`, model google/gemini-3-flash-preview). Replaced with Replit Gemini integration (ai-integrations-gemini skill, proxy, no external key).
 
