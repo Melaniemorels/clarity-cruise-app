@@ -57,6 +57,33 @@ function getTable(name: string) {
     | undefined;
 }
 
+// Tables whose rows are strictly personal and are NEVER read cross-user by any
+// Phase-1 feature. Reads on these are force-scoped to the authenticated user so
+// an authenticated caller cannot pull another user's private data by omitting a
+// user_id filter. Tables deliberately left OUT (open reads) are the ones Phase-1
+// legitimately reads across users: profiles/follows/handle_changes/section
+// visibility (public/social graph), calendar_events + schedule_blocks (friend
+// availability overlap), posts/post_likes/reactions (feed), explore_items +
+// categories + activity_types (public content/reference), social_plans +
+// social_plan_invites (shared planning).
+const PRIVATE_READ_TABLES = new Set<string>([
+  "media_consent",
+  "notes",
+  "entries",
+  "notifications",
+  "feed_settings",
+  "ai_memories",
+  "ai_calendar_audit",
+  "user_explore_preferences",
+  "user_item_events",
+  "time_usage",
+  "time_goals",
+  "health_daily",
+  "goals_health",
+  "workout_sessions",
+  "device_connections",
+]);
+
 function buildCondition(
   cols: Record<string, AnyColumn>,
   f: Filter,
@@ -198,20 +225,26 @@ router.post(
 
       switch (payload.action) {
         case "select": {
+          // Force owner-scope on reads of strictly-personal tables so an
+          // authenticated caller cannot read another user's private rows.
+          const readWhere = PRIVATE_READ_TABLES.has(payload.table)
+            ? ownershipScope(cols, where, userId)
+            : where;
+
           // Count-only (head) request.
           if (payload.head && payload.count === "exact") {
             let cq = db
               .select({ count: sql<number>`count(*)::int` })
               .from(table)
               .$dynamic();
-            if (where) cq = cq.where(where);
+            if (readWhere) cq = cq.where(readWhere);
             const [{ count }] = await cq;
             res.json({ data: null, error: null, count });
             return;
           }
 
           let q = db.select().from(table).$dynamic();
-          if (where) q = q.where(where);
+          if (readWhere) q = q.where(readWhere);
           if (payload.order && payload.order.length > 0) {
             const orderExprs = payload.order
               .filter((o) => cols[o.col])
@@ -231,7 +264,7 @@ router.post(
               .select({ count: sql<number>`count(*)::int` })
               .from(table)
               .$dynamic();
-            if (where) cq = cq.where(where);
+            if (readWhere) cq = cq.where(readWhere);
             const [c] = await cq;
             count = c.count;
           }
