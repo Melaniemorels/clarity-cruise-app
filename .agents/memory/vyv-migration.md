@@ -25,6 +25,16 @@ Large Lovable app (social wellness "VYV"): ~33 Supabase tables, 9 AI edge functi
 - `artifacts/vyv` is the WEB app but contains native Capacitor code (e.g. `src/lib/haptics.ts` dynamic-imports `@capacitor/haptics`). `rollupOptions.external` only silences the *production* build — Vite **dev** (import-analysis) still tries to resolve the specifier and hard-fails the whole app (white screen, ProtectedRoute error boundary, "can't log in") if the package isn't installed.
 - **Fix:** keep every referenced `@capacitor/*` package installed as a direct dep of `@workspace/vyv` (browser, core, haptics, …); the `Capacitor.isNativePlatform()` guard prevents them running on web. When a mobile-app merge adds new native imports, install the matching dep or dev breaks.
 
+## Edge-function parity (functions.ts)
+- Frontend `supabase.functions.invoke(name)` → `POST /api/functions/v1/<name>`. All active names MUST have a route or the surface errors. Implemented: generate-perfect-day, explore-feed, moderate-content(stub), generate-recommendations (Home audio recs), contextual-recommendations (Home+Explorer discovery), vyv-calendar-action (AI calendar create/update/delete, user-scoped). Recs are generated fresh via Gemini (`cached:false`); no cache table.
+- When adding a new `functions.invoke` call in the frontend, add the matching Express route.
+
+## Storage ownership (IDOR fix)
+- Convention: every client storage upload path is prefixed `${user.id}/...`. The storage routes enforce that prefix on upload+remove (403 on cross-user paths); serve is intentionally public (feed images render for everyone). **Why:** the generic executor can't do per-row RLS, so path-prefix ownership is the write/delete authz. Do NOT change the `${user.id}/` prefix or you break both the authz check and existing object URLs.
+
+## media_consent
+- Not part of the original imported schema; added as a Drizzle table + `vyvTables` allowlist entry so the media-consent hooks route through the `.from()` shim (`/db/query`, write-side ownership authz) instead of dead `/rest/v1/*` calls. The shim has NO `/rest/v1/*` support — any remaining PostgREST-style `fetch` must be rewritten to `supabase.from(...)`.
+
 ## AI
 - Edge functions originally used Lovable AI gateway (`LOVABLE_API_KEY`, model google/gemini-3-flash-preview). Replaced with Replit Gemini integration (ai-integrations-gemini skill, proxy, no external key).
 

@@ -410,8 +410,25 @@ export const socialPlanInvites = pgTable("social_plan_invites", {
 // Registry: maps the PostgREST table name -> Drizzle table for the DB shim.
 // ---------------------------------------------------------------------------
 
+export const mediaConsent = pgTable("media_consent", {
+  id: id(),
+  user_id: uuid("user_id").notNull().unique(),
+  share_media_preferences: boolean("share_media_preferences")
+    .notNull()
+    .default(false),
+  share_health_data: boolean("share_health_data").notNull().default(false),
+  share_calendar_patterns: boolean("share_calendar_patterns")
+    .notNull()
+    .default(false),
+  consent_given_at: timestamp("consent_given_at", { withTimezone: true }),
+  consent_version: text("consent_version").notNull().default("1"),
+  created_at: createdAt(),
+  updated_at: updatedAt(),
+});
+
 export const vyvTables = {
   profiles,
+  media_consent: mediaConsent,
   follows,
   follow_requests: followRequests,
   handle_changes: handleChanges,

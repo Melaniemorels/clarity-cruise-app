@@ -506,4 +506,339 @@ router.post(
   },
 );
 
+// ---------------------------------------------------------------------------
+// Shared: build a lightweight wellness context for the recommendation routes
+// ---------------------------------------------------------------------------
+
+async function loadRecContext(userId: string): Promise<{
+  timeOfDay: string;
+  sleepHours: number;
+  workoutMinutes: number;
+  steps: number;
+  upcomingEvents: { title: string; category: string; startsAt: string }[];
+  isTraveling: boolean;
+}> {
+  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+
+  const [healthRows, events, profileRows] = await Promise.all([
+    db
+      .select()
+      .from(vyvTables.health_daily)
+      .where(
+        and(
+          eq(vyvTables.health_daily.user_id, userId),
+          eq(vyvTables.health_daily.date, today),
+        ),
+      )
+      .limit(1),
+    db
+      .select()
+      .from(vyvTables.calendar_events)
+      .where(
+        and(
+          eq(vyvTables.calendar_events.user_id, userId),
+          gte(vyvTables.calendar_events.starts_at, new Date(`${today}T00:00:00`)),
+          lte(vyvTables.calendar_events.starts_at, new Date(`${today}T23:59:59`)),
+        ),
+      )
+      .orderBy(vyvTables.calendar_events.starts_at),
+    db
+      .select()
+      .from(vyvTables.profiles)
+      .where(eq(vyvTables.profiles.user_id, userId))
+      .limit(1),
+  ]);
+
+  const health = healthRows[0];
+  const profile = profileRows[0];
+
+  const hour = now.getUTCHours();
+  let timeOfDay = "morning";
+  if (hour >= 12 && hour < 14) timeOfDay = "midday";
+  else if (hour >= 14 && hour < 18) timeOfDay = "afternoon";
+  else if (hour >= 18) timeOfDay = "evening";
+
+  const sleepHours = health?.sleep_minutes
+    ? Math.round((health.sleep_minutes / 60) * 10) / 10
+    : 7;
+
+  return {
+    timeOfDay,
+    sleepHours,
+    workoutMinutes: health?.workout_minutes || 0,
+    steps: health?.steps || 0,
+    upcomingEvents: events.map((e) => ({
+      title: e.title,
+      category: e.category,
+      startsAt: new Date(e.starts_at).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    })),
+    isTraveling: profile?.is_traveling || false,
+  };
+}
+
+function parseJson<T>(raw: string, fallback: T): T {
+  try {
+    let s = raw ?? "";
+    if (s.includes("```")) {
+      s = s.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+    }
+    return JSON.parse(s.trim()) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// generate-recommendations — media/audio recs for the Home surface
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/generate-recommendations",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const language: string = req.body?.language || "en";
+    const goal: string | null = req.body?.goal ?? null;
+
+    try {
+      const ctx = await loadRecContext(userId);
+      const langInstruction =
+        language === "es"
+          ? "IDIOMA OBLIGATORIO: Responde EXCLUSIVAMENTE en español."
+          : "MANDATORY LANGUAGE: Respond EXCLUSIVELY in English.";
+
+      const prompt = `You are the media curator inside VYV, a premium wellness app.
+${langInstruction}
+Recommend 4-6 audio experiences (music playlists, podcasts, ambient soundscapes, guided sessions) tuned to the user's current context.
+
+CONTEXT:
+- Time of day: ${ctx.timeOfDay}
+- Sleep last night: ${ctx.sleepHours} hours
+- Workout today: ${ctx.workoutMinutes} minutes
+- Steps today: ${ctx.steps}
+- Calendar: ${ctx.upcomingEvents.length ? ctx.upcomingEvents.map((e) => e.title + " (" + e.category + ")").join("; ") : "nothing scheduled"}
+- Traveling: ${ctx.isTraveling ? "yes" : "no"}
+- Requested goal: ${goal ?? "auto (infer from context)"}
+
+Do NOT invent metrics. NO emojis. Keep titles short.
+OUTPUT strict JSON only:
+{
+  "recommendations": [
+    { "type": "playlist|podcast|ambient|guided", "title": "...", "description": "one sentence", "duration": "e.g. 25 min", "mood": "calm|energizing|focused|uplifting|relaxing", "externalUrl": "optional", "tags": ["tag1","tag2"] }
+  ],
+  "context": "one short sentence explaining why these fit right now"
+}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { responseMimeType: "application/json", maxOutputTokens: 4096 },
+      });
+
+      const parsed = parseJson<{
+        recommendations?: unknown[];
+        context?: string;
+      }>(response.text ?? "{}", { recommendations: [], context: "" });
+
+      res.json({
+        recommendations: parsed.recommendations ?? [],
+        context: parsed.context ?? "",
+        signals: {
+          timeOfDay: ctx.timeOfDay,
+          sleepHours: ctx.sleepHours,
+          isTraveling: ctx.isTraveling,
+        },
+        cached: false,
+      });
+    } catch (err) {
+      req.log?.error({ err }, "generate-recommendations failed");
+      res
+        .status(500)
+        .json({ error: err instanceof Error ? err.message : "Unknown error" });
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// contextual-recommendations — Home + Explorer contextual discovery
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/contextual-recommendations",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const language: string = req.body?.language || "en";
+    const target: "home" | "explorer" | "both" = req.body?.target || "both";
+
+    try {
+      const ctx = await loadRecContext(userId);
+      const langInstruction =
+        language === "es"
+          ? "IDIOMA OBLIGATORIO: Responde EXCLUSIVAMENTE en español."
+          : "MANDATORY LANGUAGE: Respond EXCLUSIVELY in English.";
+
+      const wantHome = target === "home" || target === "both";
+      const wantExplorer = target === "explorer" || target === "both";
+
+      const prompt = `You are the discovery engine inside VYV, a premium wellness app.
+${langInstruction}
+Generate contextual content recommendations tuned to the user's current moment.
+${wantHome ? "- HOME: 3-4 quick, conceptual recommendations (things to do or consume now)." : ""}
+${wantExplorer ? "- EXPLORER: 4-6 deeper discovery recommendations for exploration." : ""}
+
+CONTEXT:
+- Time of day: ${ctx.timeOfDay}
+- Sleep last night: ${ctx.sleepHours} hours
+- Workout today: ${ctx.workoutMinutes} minutes
+- Calendar: ${ctx.upcomingEvents.length ? ctx.upcomingEvents.map((e) => e.title + " (" + e.category + ")").join("; ") : "nothing scheduled"}
+- Traveling: ${ctx.isTraveling ? "yes" : "no"}
+
+Do NOT invent metrics. NO emojis. Keep titles short.
+OUTPUT strict JSON only:
+{
+  "home": [ { "title": "...", "category": "...", "reason": "why now, one sentence", "duration_min": 15, "mood": "calm|energizing|focused|uplifting|relaxing", "tags": ["t1"] } ],
+  "explorer": [ { "title": "...", "category": "...", "reason": "why now, one sentence", "duration_min": 30, "mood": "calm|energizing|focused|uplifting|relaxing", "tags": ["t1"] } ]
+}
+${wantHome ? "" : 'Return "home": [].'}
+${wantExplorer ? "" : 'Return "explorer": [].'}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { responseMimeType: "application/json", maxOutputTokens: 4096 },
+      });
+
+      const parsed = parseJson<{ home?: unknown[]; explorer?: unknown[] }>(
+        response.text ?? "{}",
+        { home: [], explorer: [] },
+      );
+
+      res.json({
+        recommendations: {
+          home: wantHome ? parsed.home ?? [] : [],
+          explorer: wantExplorer ? parsed.explorer ?? [] : [],
+        },
+        signals: {
+          timeOfDay: ctx.timeOfDay,
+          sleepHours: ctx.sleepHours,
+          isTraveling: ctx.isTraveling,
+        },
+        cached: false,
+        target,
+      });
+    } catch (err) {
+      req.log?.error({ err }, "contextual-recommendations failed");
+      res
+        .status(500)
+        .json({ error: err instanceof Error ? err.message : "Unknown error" });
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// vyv-calendar-action — apply an AI-proposed calendar create/update/delete
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/vyv-calendar-action",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const action: string = req.body?.action;
+    const payload = req.body?.payload ?? {};
+
+    try {
+      if (action === "create") {
+        if (!payload.title || !payload.starts_at) {
+          res.status(400).json({ error: "Missing title or starts_at" });
+          return;
+        }
+        const startsAt = new Date(payload.starts_at);
+        const endsAt = payload.ends_at
+          ? new Date(payload.ends_at)
+          : new Date(startsAt.getTime() + 60 * 60 * 1000);
+        const [row] = await db
+          .insert(vyvTables.calendar_events)
+          .values({
+            user_id: userId,
+            title: payload.title,
+            category: payload.category || "general",
+            starts_at: startsAt,
+            ends_at: endsAt,
+            notes: payload.notes ?? null,
+            source: "ai",
+          })
+          .returning();
+        res.json({ ok: true, event: row });
+        return;
+      }
+
+      if (action === "update") {
+        if (!payload.event_id) {
+          res.status(400).json({ error: "Missing event_id" });
+          return;
+        }
+        const updates: Record<string, unknown> = { updated_at: new Date() };
+        if (payload.title !== undefined) updates.title = payload.title;
+        if (payload.category !== undefined) updates.category = payload.category;
+        if (payload.starts_at !== undefined)
+          updates.starts_at = new Date(payload.starts_at);
+        if (payload.ends_at !== undefined)
+          updates.ends_at = new Date(payload.ends_at);
+        if (payload.notes !== undefined) updates.notes = payload.notes;
+        const rows = await db
+          .update(vyvTables.calendar_events)
+          .set(updates)
+          .where(
+            and(
+              eq(vyvTables.calendar_events.id, payload.event_id),
+              eq(vyvTables.calendar_events.user_id, userId),
+            ),
+          )
+          .returning();
+        if (!rows.length) {
+          res.status(404).json({ error: "Event not found" });
+          return;
+        }
+        res.json({ ok: true, event: rows[0] });
+        return;
+      }
+
+      if (action === "delete") {
+        if (!payload.event_id) {
+          res.status(400).json({ error: "Missing event_id" });
+          return;
+        }
+        const rows = await db
+          .delete(vyvTables.calendar_events)
+          .where(
+            and(
+              eq(vyvTables.calendar_events.id, payload.event_id),
+              eq(vyvTables.calendar_events.user_id, userId),
+            ),
+          )
+          .returning();
+        if (!rows.length) {
+          res.status(404).json({ error: "Event not found" });
+          return;
+        }
+        res.json({ ok: true });
+        return;
+      }
+
+      res.status(400).json({ error: "Unknown action" });
+    } catch (err) {
+      req.log?.error({ err }, "vyv-calendar-action failed");
+      res
+        .status(500)
+        .json({ error: err instanceof Error ? err.message : "Unknown error" });
+    }
+  },
+);
+
 export default router;

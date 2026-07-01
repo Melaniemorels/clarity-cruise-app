@@ -29,6 +29,14 @@ function objectName(bucket: string, path: string): string {
   return `${prefix ? prefix + "/" : ""}vyv/${bucket}/${clean}`;
 }
 
+// All client upload paths are prefixed with the caller's user id
+// (`${user.id}/...`). Enforce that on writes/deletes so an authenticated user
+// can only ever touch their own objects (prevents cross-user IDOR delete/overwrite).
+function ownsPath(userId: string, path: string): boolean {
+  const clean = path.replace(/^\/+/, "");
+  return clean === userId || clean.startsWith(`${userId}/`);
+}
+
 // POST /api/storage/:bucket/upload?path=<path>  (raw file bytes in body)
 router.post(
   "/storage/:bucket/upload",
@@ -39,6 +47,10 @@ router.post(
     const path = String(req.query.path ?? "");
     if (!ALLOWED_BUCKETS.has(bucket) || !path) {
       res.status(400).json({ error: { message: "Invalid bucket or path" } });
+      return;
+    }
+    if (!ownsPath(req.authUser!.id, path)) {
+      res.status(403).json({ error: { message: "Forbidden: path not owned" } });
       return;
     }
     try {
@@ -108,6 +120,10 @@ router.post(
     const paths: string[] = req.body?.paths ?? [];
     if (!ALLOWED_BUCKETS.has(bucket)) {
       res.status(400).json({ error: { message: "Invalid bucket" } });
+      return;
+    }
+    if (!paths.every((p) => ownsPath(req.authUser!.id, p))) {
+      res.status(403).json({ error: { message: "Forbidden: path not owned" } });
       return;
     }
     try {

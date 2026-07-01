@@ -122,24 +122,14 @@ export function useMediaConsent() {
   return useQuery({
     queryKey: ["media-consent", user?.id],
     queryFn: async (): Promise<MediaConsent | null> => {
-      // Use fetch directly since types aren't synced yet
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=*`,
-        {
-          headers: {
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-        }
-      );
+      const { data, error } = await supabase
+        .from("media_consent")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
 
-      if (!response.ok) {
-        if (response.status === 406) return null;
-        throw new Error("Failed to fetch consent");
-      }
-
-      const data = await response.json();
-      return data?.[0] as MediaConsent | null;
+      if (error) throw new Error(error.message || "Failed to fetch consent");
+      return (data as MediaConsent | null) ?? null;
     },
     enabled: !!user,
   });
@@ -158,59 +148,33 @@ export function useUpdateMediaConsent() {
       const session = (await supabase.auth.getSession()).data.session;
       if (!session) throw new Error("Not authenticated");
 
-      // Check if consent record exists
-      const checkResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=id`,
-        {
-          headers: {
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Authorization": `Bearer ${session.access_token}`,
-          },
-        }
-      );
+      const { data: existing } = await supabase
+        .from("media_consent")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
 
-      const existing = await checkResponse.json();
+      const nowIso = new Date().toISOString();
 
-      if (existing && existing.length > 0) {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              "Authorization": `Bearer ${session.access_token}`,
-              "Content-Type": "application/json",
-              "Prefer": "return=minimal",
-            },
-            body: JSON.stringify({
-              ...consent,
-              consent_given_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }),
-          }
-        );
+      if (existing) {
+        const { error } = await supabase
+          .from("media_consent")
+          .update({
+            ...consent,
+            consent_given_at: nowIso,
+            updated_at: nowIso,
+          })
+          .eq("user_id", user!.id);
 
-        if (!response.ok) throw new Error("Failed to update consent");
+        if (error) throw new Error("Failed to update consent");
       } else {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent`,
-          {
-            method: "POST",
-            headers: {
-              "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              "Authorization": `Bearer ${session.access_token}`,
-              "Content-Type": "application/json",
-              "Prefer": "return=minimal",
-            },
-            body: JSON.stringify({
-              user_id: user!.id,
-              ...consent,
-              consent_given_at: new Date().toISOString(),
-            }),
-          }
-        );
+        const { error } = await supabase.from("media_consent").insert({
+          user_id: user!.id,
+          ...consent,
+          consent_given_at: nowIso,
+        });
 
-        if (!response.ok) throw new Error("Failed to create consent");
+        if (error) throw new Error("Failed to create consent");
       }
     },
     onSuccess: () => {
