@@ -24,5 +24,7 @@ Large Lovable app (social wellness "VYV"): ~33 Supabase tables, 9 AI edge functi
 ## AI
 - Edge functions originally used Lovable AI gateway (`LOVABLE_API_KEY`, model google/gemini-3-flash-preview). Replaced with Replit Gemini integration (ai-integrations-gemini skill, proxy, no external key).
 
-## RLS note
-- Original relied on Postgres RLS. Shim requires auth on db queries but does NOT reproduce per-row RLS — acceptable known limitation for beta.
+## RLS note / write authorization
+- Original relied on Postgres RLS. The generic `/api/db/query` executor can't reproduce full per-row RLS, but it enforces **write-side ownership**: any table with a `user_id` column has inserts/upserts forced to `user_id = authUser.id` and update/delete auto-scoped to the caller's own rows; update/delete on tables lacking a scope (no `user_id` col and no filter) are rejected 400 to prevent table-wide wipes.
+- **Reads remain open** (any authed user can read allowlisted tables) because Phase-1 features — friend availability/overlap, public profiles, explorer — legitimately read other users' rows. This read-side gap is the accepted beta limitation, NOT a per-row-secured production posture.
+- **Why:** reproducing exact RLS per-table would break the cross-user reads the user asked to make WORK; write scoping closes the severe IDOR/mass-wipe risk cheaply without breaking features.
