@@ -31,7 +31,12 @@ function clientSecret(): string {
   return process.env.YOUTUBE_CLIENT_SECRET ?? "";
 }
 function redirectUri(): string {
-  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
+  // In production REPLIT_DOMAINS holds the deployed domain(s); in the dev
+  // container it is the .replit.dev preview, same as REPLIT_DEV_DOMAIN.
+  const domain =
+    process.env.NODE_ENV === "production"
+      ? ((process.env.REPLIT_DOMAINS ?? "").split(",")[0] ?? "")
+      : (process.env.REPLIT_DEV_DOMAIN ?? "");
   return `https://${domain}/api/media/youtube/callback`;
 }
 
