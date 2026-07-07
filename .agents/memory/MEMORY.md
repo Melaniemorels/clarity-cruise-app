@@ -2,3 +2,4 @@
 - [Gemini via Replit proxy quirks](gemini-replit-proxy.md) — gemini-2.5-flash needs thinkingBudget 0 or thinking tokens eat maxOutputTokens and text comes back empty.
 - [VYV frontend auth-token pattern](vyv-auth-tokens.md) — never use AuthContext session.access_token (empty by design); fetch fresh Clerk token via the shim per request.
 - [VYV server-only secret columns](vyv-token-redaction.md) — OAuth tokens must be owner-scoped AND redacted on every generic query surface (two routes, two maps in sync).
+- [YouTube Data API ingestion](youtube-data-api.md) — search.list costs 100 units/call: rotate categories, throttle via last_sync_at (only set after real syncs), dedupe with unique constraint.

@@ -3,6 +3,12 @@ import { db, vyvTables } from "@workspace/db";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { requireUser } from "../lib/auth";
+import {
+  HEALTHY_CATEGORY_SET,
+  TIME_OF_DAY_CATEGORIES,
+  type HealthyCategory,
+} from "../lib/healthy";
+import { maybeSyncYouTubeHealthy } from "./media";
 
 const router: IRouter = Router();
 
@@ -413,8 +419,18 @@ router.post(
         blocked_creators: prefsRow?.blocked_creators ?? [],
       };
 
+      // Keep the catalogue stocked with real wellness content: if the user
+      // has YouTube connected and the last sync is stale, refresh in the
+      // background (never blocks the feed response).
+      maybeSyncYouTubeHealthy(userId).catch((err) =>
+        req.log?.error({ err }, "background youtube healthy sync failed"),
+      );
+
       const events = eventRows;
-      const allItems = itemRows as unknown as ExploreItemRow[];
+      // Healthy-only engine: the Explorer only ever serves wellness content.
+      const allItems = (itemRows as unknown as ExploreItemRow[]).filter((i) =>
+        HEALTHY_CATEGORY_SET.has(i.category),
+      );
 
       const pool = category
         ? allItems.filter((i) => i.category === category)
@@ -516,6 +532,7 @@ async function loadRecContext(userId: string): Promise<{
   workoutMinutes: number;
   steps: number;
   upcomingEvents: { title: string; category: string; startsAt: string }[];
+  rawEvents: { startsAt: Date; endsAt: Date | null }[];
   isTraveling: boolean;
 }> {
   const today = new Date().toISOString().split("T")[0];
@@ -576,8 +593,39 @@ async function loadRecContext(userId: string): Promise<{
         minute: "2-digit",
       }),
     })),
+    rawEvents: events.map((e) => ({
+      startsAt: new Date(e.starts_at),
+      endsAt: e.ends_at ? new Date(e.ends_at) : null,
+    })),
     isTraveling: profile?.is_traveling || false,
   };
+}
+
+/**
+ * Minutes of free time from now until the next calendar commitment today
+ * (or until a soft end-of-day cutoff when nothing else is scheduled).
+ */
+function nextFreeGapMinutes(
+  rawEvents: { startsAt: Date; endsAt: Date | null }[],
+  now = new Date(),
+): number {
+  const endOfDay = new Date(now);
+  endOfDay.setHours(22, 30, 0, 0);
+  if (endOfDay <= now) return 30; // late night — assume a short slot
+
+  // If an event is happening right now, the free gap starts when it ends.
+  let from = now;
+  for (const e of rawEvents) {
+    const end = e.endsAt ?? new Date(e.startsAt.getTime() + 60 * 60 * 1000);
+    if (e.startsAt <= from && end > from) from = end;
+  }
+
+  const next = rawEvents
+    .filter((e) => e.startsAt > from)
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[0];
+
+  const until = next && next.startsAt < endOfDay ? next.startsAt : endOfDay;
+  return Math.max(5, Math.round((until.getTime() - from.getTime()) / 60000));
 }
 
 function parseJson<T>(raw: string, fallback: T): T {
@@ -665,7 +713,50 @@ OUTPUT strict JSON only:
 
 // ---------------------------------------------------------------------------
 // contextual-recommendations — Home + Explorer contextual discovery
+//
+// Healthy-only engine: recommendations are REAL catalogue items (deep links),
+// never AI-invented content. Selection is grounded in the user's calendar
+// (free-time gap until the next commitment) and the time of day.
 // ---------------------------------------------------------------------------
+
+const CATEGORY_MOOD: Record<string, string> = {
+  Yoga: "calm",
+  Pilates: "energizing",
+  Ejercicios: "energizing",
+  Meditación: "calm",
+  Calma: "relaxing",
+  Energía: "energizing",
+  Nutrición: "uplifting",
+  PlanesDeComida: "focused",
+  Motivacional: "uplifting",
+  Podcasts: "focused",
+};
+
+function recReason(
+  language: string,
+  category: string,
+  gapMinutes: number,
+  timeOfDay: string,
+): string {
+  const gapTxt =
+    gapMinutes >= 180
+      ? language === "es"
+        ? "tienes la agenda despejada"
+        : "your schedule is clear"
+      : language === "es"
+        ? `tienes ${gapMinutes} min libres antes de tu próximo compromiso`
+        : `you have ${gapMinutes} free min before your next commitment`;
+  const tod: Record<string, [string, string]> = {
+    morning: ["para empezar el día", "to start your day"],
+    midday: ["ideal a mitad del día", "great for midday"],
+    afternoon: ["perfecto para la tarde", "perfect for the afternoon"],
+    evening: ["para cerrar el día", "to wind down the day"],
+  };
+  const [es, en] = tod[timeOfDay] ?? tod.morning;
+  return language === "es"
+    ? `${category} ${es}: ${gapTxt}.`
+    : `${category} ${en}: ${gapTxt}.`;
+}
 
 router.post(
   "/functions/v1/contextual-recommendations",
@@ -676,57 +767,87 @@ router.post(
     const target: "home" | "explorer" | "both" = req.body?.target || "both";
 
     try {
-      const ctx = await loadRecContext(userId);
-      const langInstruction =
-        language === "es"
-          ? "IDIOMA OBLIGATORIO: Responde EXCLUSIVAMENTE en español."
-          : "MANDATORY LANGUAGE: Respond EXCLUSIVELY in English.";
+      // Refresh the catalogue in the background if YouTube is connected.
+      maybeSyncYouTubeHealthy(userId).catch((err) =>
+        req.log?.error({ err }, "background youtube healthy sync failed"),
+      );
 
+      const ctx = await loadRecContext(userId);
       const wantHome = target === "home" || target === "both";
       const wantExplorer = target === "explorer" || target === "both";
 
-      const prompt = `You are the discovery engine inside VYV, a premium wellness app.
-${langInstruction}
-Generate contextual content recommendations tuned to the user's current moment.
-${wantHome ? "- HOME: 3-4 quick, conceptual recommendations (things to do or consume now)." : ""}
-${wantExplorer ? "- EXPLORER: 4-6 deeper discovery recommendations for exploration." : ""}
+      const gapMinutes = nextFreeGapMinutes(ctx.rawEvents);
+      const preferredCats: HealthyCategory[] =
+        TIME_OF_DAY_CATEGORIES[ctx.timeOfDay] ??
+        TIME_OF_DAY_CATEGORIES.morning;
 
-CONTEXT:
-- Time of day: ${ctx.timeOfDay}
-- Sleep last night: ${ctx.sleepHours} hours
-- Workout today: ${ctx.workoutMinutes} minutes
-- Calendar: ${ctx.upcomingEvents.length ? ctx.upcomingEvents.map((e) => e.title + " (" + e.category + ")").join("; ") : "nothing scheduled"}
-- Traveling: ${ctx.isTraveling ? "yes" : "no"}
+      const itemRows = await db
+        .select()
+        .from(vyvTables.explore_items)
+        .orderBy(desc(vyvTables.explore_items.created_at))
+        .limit(300);
+      const healthy = (itemRows as unknown as ExploreItemRow[]).filter((i) =>
+        HEALTHY_CATEGORY_SET.has(i.category),
+      );
 
-Do NOT invent metrics. NO emojis. Keep titles short.
-OUTPUT strict JSON only:
-{
-  "home": [ { "title": "...", "category": "...", "reason": "why now, one sentence", "duration_min": 15, "mood": "calm|energizing|focused|uplifting|relaxing", "tags": ["t1"] } ],
-  "explorer": [ { "title": "...", "category": "...", "reason": "why now, one sentence", "duration_min": 30, "mood": "calm|energizing|focused|uplifting|relaxing", "tags": ["t1"] } ]
-}
-${wantHome ? "" : 'Return "home": [].'}
-${wantExplorer ? "" : 'Return "explorer": [].'}`;
+      // Fits the free gap (unknown duration → assume a short 20-min session).
+      const fitting = healthy.filter(
+        (i) => (i.duration_min ?? 20) <= Math.max(gapMinutes, 10),
+      );
+      const pool = fitting.length >= 4 ? fitting : healthy;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: { responseMimeType: "application/json", maxOutputTokens: 4096 },
+      // Rank: time-of-day category match first, then language, then variety.
+      const catRank = (c: string) => {
+        const idx = preferredCats.indexOf(c as HealthyCategory);
+        return idx === -1 ? preferredCats.length : idx;
+      };
+      const ranked = [...pool].sort(
+        (a, b) =>
+          catRank(a.category) - catRank(b.category) ||
+          (b.language === language ? 1 : 0) - (a.language === language ? 1 : 0) ||
+          Math.random() - 0.5,
+      );
+
+      // One item per creator, max 2 per category, for variety.
+      const usedCreators = new Set<string>();
+      const perCategory = new Map<string, number>();
+      const picked: ExploreItemRow[] = [];
+      for (const it of ranked) {
+        const creator = it.creator ?? it.id;
+        const catCount = perCategory.get(it.category) ?? 0;
+        if (usedCreators.has(creator) || catCount >= 2) continue;
+        picked.push(it);
+        usedCreators.add(creator);
+        perCategory.set(it.category, catCount + 1);
+        if (picked.length >= 10) break;
+      }
+
+      const toRec = (i: ExploreItemRow) => ({
+        title: i.title,
+        category: i.category,
+        reason: recReason(language, i.category, gapMinutes, ctx.timeOfDay),
+        duration_min: i.duration_min ?? 20,
+        mood: CATEGORY_MOOD[i.category] ?? "calm",
+        tags: i.tags ?? [],
+        url: i.url,
+        item_id: i.id,
       });
 
-      const parsed = parseJson<{ home?: unknown[]; explorer?: unknown[] }>(
-        response.text ?? "{}",
-        { home: [], explorer: [] },
-      );
+      const homeRecs = wantHome ? picked.slice(0, 4).map(toRec) : [];
+      const explorerRecs = wantExplorer
+        ? picked.slice(wantHome ? 4 : 0, wantHome ? 10 : 6).map(toRec)
+        : [];
 
       res.json({
         recommendations: {
-          home: wantHome ? parsed.home ?? [] : [],
-          explorer: wantExplorer ? parsed.explorer ?? [] : [],
+          home: homeRecs,
+          explorer: explorerRecs,
         },
         signals: {
           timeOfDay: ctx.timeOfDay,
           sleepHours: ctx.sleepHours,
           isTraveling: ctx.isTraveling,
+          freeGapMinutes: gapMinutes,
         },
         cached: false,
         target,

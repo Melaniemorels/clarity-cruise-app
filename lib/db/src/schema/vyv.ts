@@ -234,7 +234,7 @@ export const exploreItems = pgTable("explore_items", {
   id: id(),
   title: text("title").notNull(),
   source: text("source").notNull().default("web"),
-  url: text("url").notNull(),
+  url: text("url").notNull().unique(),
   duration_min: integer("duration_min"),
   category: text("category").notNull(),
   tags: text("tags").array().notNull().default([]),

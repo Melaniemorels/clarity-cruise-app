@@ -8,9 +8,15 @@
 // back to /media-connections.
 import crypto from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, mediaIntegrations } from "@workspace/db";
-import { and, eq } from "drizzle-orm";
+import { db, mediaIntegrations, exploreItems } from "@workspace/db";
+import { and, eq, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
+import {
+  classifyHealthy,
+  isoDurationToMinutes,
+  CATEGORY_SEARCH_QUERIES,
+  type HealthyCategory,
+} from "../lib/healthy";
 
 const router: IRouter = Router();
 
@@ -157,6 +163,12 @@ router.get(
           },
         });
 
+      // Kick off the healthy-content sync in the background so the Explorer
+      // fills up with real wellness content right after connecting.
+      syncYouTubeHealthy(userId).catch((err) =>
+        req.log?.error({ err }, "post-connect youtube sync failed"),
+      );
+
       back("connected=youtube");
     } catch (err) {
       req.log?.error({ err }, "youtube oauth callback failed");
@@ -212,7 +224,6 @@ export async function getYouTubeAccessToken(
       token_expires_at: new Date(
         Date.now() + (tokens.expires_in ?? 3600) * 1000,
       ),
-      last_sync_at: new Date(),
       updated_at: new Date(),
     })
     .where(eq(mediaIntegrations.id, row.id));
@@ -294,6 +305,207 @@ router.get(
     } catch (err) {
       req.log?.error({ err }, "youtube library fetch failed");
       res.status(502).json({ error: "Failed to fetch YouTube library" });
+    }
+  },
+);
+
+// -- Healthy-content sync: real YouTube videos → explore_items ---------------
+//
+// Pulls the user's liked videos plus per-category wellness searches, runs the
+// healthy classifier over everything, and inserts only wellness content into
+// explore_items (deduped by url). Non-healthy content never enters the feed.
+
+const SYNC_STALE_MS = 12 * 60 * 60 * 1000; // re-sync at most every 12h
+
+interface CandidateItem {
+  title: string;
+  url: string;
+  category: HealthyCategory;
+  duration_min: number | null;
+  creator: string | null;
+  thumbnail: string | null;
+  tags: string[];
+  language: string | null;
+}
+
+function videoToCandidate(
+  v: any,
+  fallbackCategory?: HealthyCategory,
+): CandidateItem | null {
+  const id = typeof v.id === "string" ? v.id : v.id?.videoId;
+  const sn = v.snippet;
+  if (!id || !sn?.title) return null;
+  const category =
+    classifyHealthy(sn.title, [sn.channelTitle ?? "", sn.description ?? ""]) ??
+    fallbackCategory ??
+    null;
+  if (!category) return null;
+  return {
+    title: sn.title,
+    url: `https://www.youtube.com/watch?v=${id}`,
+    category,
+    duration_min: isoDurationToMinutes(v.contentDetails?.duration),
+    creator: sn.channelTitle ?? null,
+    thumbnail:
+      sn.thumbnails?.medium?.url ?? sn.thumbnails?.default?.url ?? null,
+    tags: [category.toLowerCase(), "youtube", "bienestar"],
+    language:
+      sn.defaultAudioLanguage?.startsWith("es") ||
+      sn.defaultLanguage?.startsWith("es")
+        ? "es"
+        : null,
+  };
+}
+
+export async function syncYouTubeHealthy(userId: string): Promise<{
+  scanned: number;
+  inserted: number;
+}> {
+  const token = await getYouTubeAccessToken(userId);
+  if (!token) return { scanned: 0, inserted: 0 };
+
+  const candidates: CandidateItem[] = [];
+
+  // 1) The user's liked videos → keep only the healthy ones.
+  try {
+    const likes = await ytGet(token, "videos", {
+      part: "snippet,contentDetails",
+      myRating: "like",
+      maxResults: "50",
+    });
+    for (const v of likes.items ?? []) {
+      const c = videoToCandidate(v);
+      if (c) candidates.push(c);
+    }
+  } catch {
+    // Likes are optional — keep going with searches.
+  }
+
+  // 2) Curated wellness searches per category (real, current videos).
+  // Quota control: search.list costs 100 units/call, so rotate a subset of
+  // 4 categories per sync instead of hitting all 10 every time. The rotation
+  // window advances every 12h, so successive syncs cover the whole taxonomy.
+  const allEntries = Object.entries(CATEGORY_SEARCH_QUERIES) as [
+    HealthyCategory,
+    string,
+  ][];
+  const CATEGORIES_PER_SYNC = 4;
+  const offset =
+    (Math.floor(Date.now() / SYNC_STALE_MS) * CATEGORIES_PER_SYNC) %
+    allEntries.length;
+  const searchEntries = Array.from(
+    { length: CATEGORIES_PER_SYNC },
+    (_, i) => allEntries[(offset + i) % allEntries.length],
+  );
+  for (const [category, query] of searchEntries) {
+    try {
+      const found = await ytGet(token, "search", {
+        part: "snippet",
+        q: query,
+        type: "video",
+        maxResults: "8",
+        safeSearch: "strict",
+        relevanceLanguage: "es",
+      });
+      const ids = (found.items ?? [])
+        .map((it: any) => it.id?.videoId)
+        .filter(Boolean);
+      if (ids.length === 0) continue;
+      // Fetch durations + full snippets for the found ids.
+      const details = await ytGet(token, "videos", {
+        part: "snippet,contentDetails",
+        id: ids.join(","),
+      });
+      for (const v of details.items ?? []) {
+        const c = videoToCandidate(v, category);
+        if (c) candidates.push(c);
+      }
+    } catch {
+      // One category failing must not abort the whole sync.
+    }
+  }
+
+  // 3) Dedupe against what is already in the catalogue and insert the rest.
+  const byUrl = new Map<string, CandidateItem>();
+  for (const c of candidates) if (!byUrl.has(c.url)) byUrl.set(c.url, c);
+  const urls = [...byUrl.keys()];
+  if (urls.length === 0) return { scanned: candidates.length, inserted: 0 };
+
+  const existing = await db
+    .select({ url: exploreItems.url })
+    .from(exploreItems)
+    .where(inArray(exploreItems.url, urls));
+  const existingUrls = new Set(existing.map((r) => r.url));
+
+  const fresh = urls
+    .filter((u) => !existingUrls.has(u))
+    .map((u) => byUrl.get(u)!)
+    .map((c) => ({
+      title: c.title,
+      source: "youtube",
+      url: c.url,
+      duration_min: c.duration_min,
+      category: c.category,
+      tags: c.tags,
+      language: c.language,
+      creator: c.creator,
+      thumbnail: c.thumbnail,
+      is_verified: true,
+      popularity_score: 0.6,
+    }));
+
+  // Idempotent under concurrent syncs: explore_items.url is unique.
+  if (fresh.length > 0)
+    await db
+      .insert(exploreItems)
+      .values(fresh)
+      .onConflictDoNothing({ target: exploreItems.url });
+
+  await db
+    .update(mediaIntegrations)
+    .set({ last_sync_at: new Date(), updated_at: new Date() })
+    .where(
+      and(
+        eq(mediaIntegrations.user_id, userId),
+        eq(mediaIntegrations.provider, "youtube"),
+      ),
+    );
+
+  return { scanned: candidates.length, inserted: fresh.length };
+}
+
+/** Fire-and-forget sync when the connection exists and data is stale. */
+export async function maybeSyncYouTubeHealthy(userId: string): Promise<void> {
+  const rows = await db
+    .select({
+      last_sync_at: mediaIntegrations.last_sync_at,
+      is_active: mediaIntegrations.is_active,
+    })
+    .from(mediaIntegrations)
+    .where(
+      and(
+        eq(mediaIntegrations.user_id, userId),
+        eq(mediaIntegrations.provider, "youtube"),
+        eq(mediaIntegrations.is_active, true),
+      ),
+    );
+  const row = rows[0];
+  if (!row) return;
+  const last = row.last_sync_at ? new Date(row.last_sync_at).getTime() : 0;
+  if (Date.now() - last < SYNC_STALE_MS) return;
+  await syncYouTubeHealthy(userId);
+}
+
+router.post(
+  "/media/youtube/sync",
+  requireUser,
+  async (req: Request, res: Response) => {
+    try {
+      const result = await syncYouTubeHealthy(req.authUser!.id);
+      res.json(result);
+    } catch (err) {
+      req.log?.error({ err }, "youtube healthy sync failed");
+      res.status(502).json({ error: "Sync failed" });
     }
   },
 );
