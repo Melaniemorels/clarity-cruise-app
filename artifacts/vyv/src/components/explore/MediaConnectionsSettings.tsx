@@ -216,11 +216,12 @@ function ConnectionRow({
   // identify the user, sign the OAuth state and bounce through the provider.
   const CONNECT_PATHS: Record<string, string> = {
     youtube: `${import.meta.env.VITE_SUPABASE_URL}/media/youtube/connect`,
+    spotify: `${import.meta.env.VITE_SUPABASE_URL}/media/spotify/connect`,
   };
 
   const handleConnect = () => {
     const path = CONNECT_PATHS[provider];
-    if (!path) return; // provider not yet available (e.g. Spotify — Fase B)
+    if (!path) return; // provider not yet available
     window.location.href = path;
   };
 

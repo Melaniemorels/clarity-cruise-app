@@ -9,6 +9,7 @@ import {
   type HealthyCategory,
 } from "../lib/healthy";
 import { maybeSyncYouTubeHealthy } from "./media";
+import { maybeSyncSpotifyHealthy } from "./spotify";
 
 const router: IRouter = Router();
 
@@ -420,10 +421,13 @@ router.post(
       };
 
       // Keep the catalogue stocked with real wellness content: if the user
-      // has YouTube connected and the last sync is stale, refresh in the
-      // background (never blocks the feed response).
+      // has YouTube/Spotify connected and the last sync is stale, refresh in
+      // the background (never blocks the feed response).
       maybeSyncYouTubeHealthy(userId).catch((err) =>
         req.log?.error({ err }, "background youtube healthy sync failed"),
+      );
+      maybeSyncSpotifyHealthy(userId).catch((err) =>
+        req.log?.error({ err }, "background spotify healthy sync failed"),
       );
 
       const events = eventRows;
@@ -767,9 +771,12 @@ router.post(
     const target: "home" | "explorer" | "both" = req.body?.target || "both";
 
     try {
-      // Refresh the catalogue in the background if YouTube is connected.
+      // Refresh the catalogue in the background if YouTube/Spotify connected.
       maybeSyncYouTubeHealthy(userId).catch((err) =>
         req.log?.error({ err }, "background youtube healthy sync failed"),
+      );
+      maybeSyncSpotifyHealthy(userId).catch((err) =>
+        req.log?.error({ err }, "background spotify healthy sync failed"),
       );
 
       const ctx = await loadRecContext(userId);
