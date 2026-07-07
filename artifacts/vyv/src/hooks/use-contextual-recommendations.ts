@@ -103,7 +103,7 @@ export function useRefreshContextualRecs() {
 
   return useMutation({
     mutationFn: async (target: "home" | "explorer" | "both") => {
-      if (!session?.access_token) throw new Error("Not authenticated");
+      if (!session) throw new Error("Not authenticated");
       const lang = i18n.language?.split("-")[0] || "es";
       return fetchContextualRecs(target, lang, true);
     },

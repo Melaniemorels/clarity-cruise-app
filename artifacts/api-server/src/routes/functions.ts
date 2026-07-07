@@ -841,4 +841,234 @@ router.post(
   },
 );
 
+// ---------------------------------------------------------------------------
+// vyv-assistant — the VYV Guide chat (SSE stream, OpenAI-chunk format the
+// imported frontend already parses)
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/vyv-assistant",
+  requireUser,
+  async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const { messages, calendarAccess } = (req.body ?? {}) as {
+      messages?: { role: "user" | "assistant"; content: string }[];
+      calendarAccess?: boolean;
+    };
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      res.status(400).json({ error: "Missing messages" });
+      return;
+    }
+
+    try {
+      let calendarBlock = "";
+      if (calendarAccess) {
+        const context = await loadRecContext(userId);
+        const events = context.upcomingEvents
+          .map((e) => `- ${e.startsAt} ${e.title} (${e.category})`)
+          .join("\n");
+        calendarBlock = `
+The user granted you calendar access. Today is ${new Date().toISOString()}.
+Today's events:
+${events || "(no events today)"}
+
+If — and only if — the user asks you to add, move or remove something on their
+calendar, end your reply with EXACTLY ONE fenced block in this format (ISO 8601
+timestamps with timezone offset):
+\`\`\`vyv-proposal
+{"action":"create","title":"...","starts_at":"...","ends_at":"...","category":"wellness","notes":"..."}
+\`\`\`
+For updates/deletes include "event_id" if known. Never mention the block itself.`;
+      }
+
+      const systemPrompt = `You are the VYV Guide — a warm, concise wellness companion inside the VYV app (calendar, perfect-day planner, healthy content).
+Rules:
+- ALWAYS reply in the same language the user writes in (Spanish or English).
+- Be brief and supportive: 2-5 sentences, or a short numbered list (1. 2. 3.) when suggesting concrete steps.
+- Focus on intentional living: movement, rest, meals, focus, small wins. No medical advice.
+${calendarBlock}`;
+
+      const contents = messages.slice(-20).map((m) => ({
+        role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+        parts: [{ text: String(m.content ?? "") }],
+      }));
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders?.();
+
+      const emit = (content: string) => {
+        res.write(
+          `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`,
+        );
+      };
+
+      try {
+        const stream = await ai.models.generateContentStream({
+          model: "gemini-2.5-flash",
+          contents,
+          config: { systemInstruction: systemPrompt, maxOutputTokens: 2048 },
+        });
+        for await (const chunk of stream) {
+          const text = chunk.text;
+          if (text) emit(text);
+        }
+      } catch (streamErr) {
+        req.log?.error({ err: streamErr }, "vyv-assistant stream failed");
+        emit("Sorry, I couldn't respond right now. Please try again.");
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch (err) {
+      req.log?.error({ err }, "vyv-assistant failed");
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Assistant unavailable" });
+      } else {
+        res.end();
+      }
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// analyze-image — quick capture labeling (emoji + short label + category).
+// Requires an authenticated user (AI-cost endpoint); the frontend has a
+// graceful local fallback if this fails.
+// ---------------------------------------------------------------------------
+
+// ~8MB of base64 ≈ 6MB image; captures are small JPEG data-URLs.
+const MAX_IMAGE_DATA_URL_LENGTH = 8 * 1024 * 1024;
+
+router.post(
+  "/functions/v1/analyze-image",
+  requireUser,
+  async (req: Request, res: Response) => {
+    const { imageUrl, language } = (req.body ?? {}) as {
+      imageUrl?: string;
+      language?: string;
+    };
+    const lang = language === "en" ? "English" : "Spanish";
+    const fallback = {
+      emoji: "📸",
+      label: language === "en" ? "Quick capture" : "Captura rápida",
+      category: "otro",
+    };
+
+    if ((imageUrl?.length ?? 0) > MAX_IMAGE_DATA_URL_LENGTH) {
+      res.status(413).json({ error: "Image too large" });
+      return;
+    }
+
+    const match = /^data:(image\/[a-z+.-]+);base64,(.+)$/i.exec(
+      imageUrl ?? "",
+    );
+    if (!match) {
+      res.json(fallback);
+      return;
+    }
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { inlineData: { mimeType: match[1], data: match[2] } },
+              {
+                text: `Describe this photo for a wellness journal. Reply ONLY with JSON:
+{"emoji":"<one emoji>","label":"<2-4 words in ${lang}>","category":"<one of: comida, ejercicio, naturaleza, social, trabajo, descanso, otro>"}`,
+              },
+            ],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 1024,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      });
+      const parsed = parseJson<{
+        emoji?: string;
+        label?: string;
+        category?: string;
+      }>(response.text ?? "{}", {});
+      res.json({
+        emoji: parsed.emoji || fallback.emoji,
+        label: parsed.label || fallback.label,
+        category: parsed.category || fallback.category,
+      });
+    } catch (err) {
+      req.log?.error({ err }, "analyze-image failed");
+      res.json(fallback);
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// generate-watch-notifications — lightweight preview of watch nudges based on
+// today's calendar + health signals. (Watch hardware sync is out of scope.)
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/generate-watch-notifications",
+  requireUser,
+  async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const { language } = (req.body ?? {}) as { language?: string };
+    const lang = String(language ?? "es").startsWith("en")
+      ? "English"
+      : "Spanish";
+
+    try {
+      const context = await loadRecContext(userId);
+      const eventCount = context.upcomingEvents.length;
+      const load =
+        eventCount >= 5 ? "heavy" : eventCount >= 2 ? "moderate" : "light";
+
+      const prompt = `You generate short smartwatch wellness nudges for the VYV app.
+User context: time of day ${context.timeOfDay}; slept ${context.sleepHours}h; ${context.workoutMinutes} workout minutes today; ${context.steps} steps; ${eventCount} calendar events today (${load} load).
+Reply ONLY with JSON:
+{"notifications":[{"notification_type":"<focus|recovery|transition|calendar>","title":"<max 6 words in ${lang}>","body":"<max 15 words in ${lang}>","context_signals":{"stress_level":"<low|moderate|high>","energy_level":"<low|moderate|high>","calendar_load":"${load}","reasoning":"<short sentence in ${lang}>"}}]}
+Generate exactly 3 varied notifications.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 4096,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      });
+
+      const parsed = parseJson<{ notifications?: unknown[] }>(
+        response.text ?? "{}",
+        { notifications: [] },
+      );
+      const notifications = Array.isArray(parsed.notifications)
+        ? parsed.notifications
+        : [];
+
+      res.json({
+        notifications,
+        todayCount: notifications.length,
+        signals: {
+          health: {
+            sleepHours: context.sleepHours,
+            hasActivityData: context.workoutMinutes > 0 || context.steps > 0,
+          },
+          calendar: { eventCount, load },
+        },
+      });
+    } catch (err) {
+      req.log?.error({ err }, "generate-watch-notifications failed");
+      res.status(500).json({ error: "Could not generate notifications" });
+    }
+  },
+);
+
 export default router;

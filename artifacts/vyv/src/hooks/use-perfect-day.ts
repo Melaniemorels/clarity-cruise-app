@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 
 export type ActivityType = "work" | "movement" | "nutrition" | "rest" | "mindfulness";
@@ -36,7 +37,8 @@ export function usePerfectDay() {
   return useQuery({
     queryKey: ["perfect-day", user?.id, i18n.language],
     queryFn: async (): Promise<PerfectDayResponse> => {
-      if (!session?.access_token) {
+      const fresh = (await supabase.auth.getSession()).data.session;
+      if (!fresh?.access_token) {
         throw new Error("Not authenticated");
       }
 
@@ -46,7 +48,7 @@ export function usePerfectDay() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({
             userLanguage: i18n.language,

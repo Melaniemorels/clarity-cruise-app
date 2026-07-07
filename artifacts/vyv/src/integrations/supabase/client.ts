@@ -358,17 +358,61 @@ interface AuthResponse {
   error: { message: string; code?: string } | null;
 }
 
+// Deduped in-flight fetch of /api/auth/me: when the localStorage cache is not
+// yet warm (first load after sign-in), resolve the app UUID directly instead
+// of ever exposing the raw Clerk id (which is NOT a UUID and would poison
+// `.eq("user_id", ...)` filters).
+let appUserPromise: Promise<AppUser | null> | null = null;
+
+async function resolveAppUserRemote(token: string): Promise<AppUser | null> {
+  if (!appUserPromise) {
+    appUserPromise = (async () => {
+      try {
+        const resp = await fetch(`${BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+        });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        const id = data?.user?.id ?? data?.id;
+        const email = data?.user?.email ?? data?.email ?? "";
+        if (!id) return null;
+        const appUser: AppUser = { id, email };
+        try {
+          localStorage.setItem(APP_USER_KEY, JSON.stringify(appUser));
+        } catch {
+          /* ignore */
+        }
+        return appUser;
+      } catch {
+        return null;
+      } finally {
+        // Allow a retry on the next call if this attempt failed.
+        setTimeout(() => {
+          if (!loadAppUser()) appUserPromise = null;
+        }, 0);
+      }
+    })();
+  }
+  return appUserPromise;
+}
+
 // Build a supabase-shaped session from the live Clerk session. The user id is
-// this app's stable UUID (from the /api/auth/me cache) so downstream
-// `.eq("user_id", user.id)` calls resolve correctly.
+// this app's stable UUID (from the /api/auth/me cache, fetched on demand) so
+// downstream `.eq("user_id", user.id)` calls resolve correctly. Never falls
+// back to the raw Clerk id.
 async function buildClerkSession(): Promise<Session | null> {
   const clerk = getClerk();
   if (!clerk?.session) return null;
-  const appUser = loadAppUser();
   const token = (await clerkToken()) ?? "";
+  let appUser = loadAppUser();
+  if (!appUser?.id && token) {
+    appUser = await resolveAppUserRemote(token);
+  }
+  if (!appUser?.id) return null;
   const email =
-    appUser?.email || clerk.user?.primaryEmailAddress?.emailAddress || "";
-  const id = appUser?.id || clerk.user?.id || "";
+    appUser.email || clerk.user?.primaryEmailAddress?.emailAddress || "";
+  const id = appUser.id;
   const user = {
     id,
     email,

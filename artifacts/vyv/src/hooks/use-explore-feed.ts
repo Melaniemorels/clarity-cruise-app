@@ -24,22 +24,24 @@ interface ExploreFeedResponse {
   total: number;
 }
 
-async function fetchExploreFeed(
-  accessToken: string,
-  params: {
-    mode: "for_you" | "see_all";
-    category?: string;
-    page?: number;
-    pageSize?: number;
-  }
-): Promise<ExploreFeedResponse> {
+async function fetchExploreFeed(params: {
+  mode: "for_you" | "see_all";
+  category?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ExploreFeedResponse> {
+  // Always fetch a fresh session: Clerk tokens are short-lived, and the
+  // AuthContext session intentionally carries no token.
+  const fresh = (await supabase.auth.getSession()).data.session;
+  if (!fresh?.access_token) throw new Error("Not authenticated");
+
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/explore-feed`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${fresh.access_token}`,
       },
       body: JSON.stringify(params),
     }
@@ -60,7 +62,7 @@ export function useForYouFeed(category?: string) {
   return useQuery({
     queryKey: ["explore-feed", "for_you", category],
     queryFn: () =>
-      fetchExploreFeed(session!.access_token, {
+      fetchExploreFeed({
         mode: "for_you",
         category: category || undefined,
         pageSize: 8,
@@ -78,7 +80,7 @@ export function useSeeAllFeed(category?: string) {
   return useInfiniteQuery({
     queryKey: ["explore-feed", "see_all", category],
     queryFn: ({ pageParam = 0 }) =>
-      fetchExploreFeed(session!.access_token, {
+      fetchExploreFeed({
         mode: "see_all",
         category: category || undefined,
         page: pageParam,
@@ -108,13 +110,16 @@ export function useLogItemEvent() {
     }) => {
       if (!session) throw new Error("Not authenticated");
 
+      const fresh = (await supabase.auth.getSession()).data.session;
+      if (!fresh?.access_token) throw new Error("Not authenticated");
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/explore-feed`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({
             mode: "log_event",

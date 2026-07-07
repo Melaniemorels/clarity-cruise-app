@@ -164,11 +164,14 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
   const analyzeImage = async (imageUrl: string): Promise<{ emoji: string; label: string; category: string }> => {
     try {
+      const session = (await supabase.auth.getSession()).data.session;
+      if (!session?.access_token) throw new Error("Not authenticated");
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "Authorization": `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ imageUrl, language: i18n.language?.split("-")[0] || "es" }),
       });

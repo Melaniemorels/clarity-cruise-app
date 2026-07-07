@@ -45,7 +45,8 @@ export function useRecommendations(goal: RecommendationGoal = "auto") {
   return useQuery({
     queryKey: ["recommendations", goal, user?.id, language],
     queryFn: async (): Promise<RecommendationResponse> => {
-      if (!session?.access_token) {
+      const fresh = (await supabase.auth.getSession()).data.session;
+      if (!fresh?.access_token) {
         throw new Error("Not authenticated");
       }
 
@@ -55,7 +56,7 @@ export function useRecommendations(goal: RecommendationGoal = "auto") {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({ goal: goal === "auto" ? null : goal, language }),
         }
@@ -81,7 +82,8 @@ export function useRefreshRecommendations() {
 
   return useMutation({
     mutationFn: async (goal: RecommendationGoal) => {
-      if (!session?.access_token) {
+      const fresh = (await supabase.auth.getSession()).data.session;
+      if (!fresh?.access_token) {
         throw new Error("Not authenticated");
       }
 
@@ -93,7 +95,7 @@ export function useRefreshRecommendations() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({ 
             goal: goal === "auto" ? null : goal,

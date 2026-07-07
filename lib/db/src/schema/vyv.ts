@@ -427,9 +427,62 @@ export const mediaConsent = pgTable("media_consent", {
     .default(false),
   consent_given_at: timestamp("consent_given_at", { withTimezone: true }),
   consent_version: text("consent_version").notNull().default("1"),
+  healthy_verified_mode: boolean("healthy_verified_mode")
+    .notNull()
+    .default(true),
   created_at: createdAt(),
   updated_at: updatedAt(),
 });
+
+export const mediaIntegrations = pgTable(
+  "media_integrations",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    provider: text("provider").notNull(),
+    access_token: text("access_token").notNull().default(""),
+    refresh_token: text("refresh_token"),
+    is_active: boolean("is_active").notNull().default(true),
+    scopes: jsonb("scopes").notNull().default([]),
+    connected_at: timestamp("connected_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    last_sync_at: timestamp("last_sync_at", { withTimezone: true }),
+    token_expires_at: timestamp("token_expires_at", { withTimezone: true }),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [unique().on(t.user_id, t.provider)],
+);
+
+export const recommendationFeedback = pgTable(
+  "recommendation_feedback",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    item_id: text("item_id").notNull(),
+    provider: text("provider").notNull().default("vyv"),
+    action: text("action").notNull(),
+    context_tag: text("context_tag"),
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [unique().on(t.user_id, t.item_id, t.provider)],
+);
+
+export const seenItems = pgTable(
+  "seen_items",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    item_id: text("item_id").notNull(),
+    provider: text("provider").notNull().default("vyv"),
+    seen_at: timestamp("seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique().on(t.user_id, t.item_id, t.provider)],
+);
 
 export const vyvTables = {
   profiles,
@@ -462,6 +515,9 @@ export const vyvTables = {
   ai_calendar_audit: aiCalendarAudit,
   social_plans: socialPlans,
   social_plan_invites: socialPlanInvites,
+  media_integrations: mediaIntegrations,
+  recommendation_feedback: recommendationFeedback,
+  seen_items: seenItems,
 } as const;
 
 export type VyvTableName = keyof typeof vyvTables;

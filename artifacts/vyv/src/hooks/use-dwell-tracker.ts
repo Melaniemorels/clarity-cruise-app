@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const DWELL_THRESHOLD_MS = 1500; // Only track if user pauses > 1.5s
 const BATCH_INTERVAL_MS = 10_000; // Flush batch every 10s
@@ -22,12 +23,15 @@ export function useDwellTracker(source: string = "explore") {
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const flush = useCallback(async () => {
-    if (!session?.access_token || batchRef.current.length === 0) return;
+    if (!session || batchRef.current.length === 0) return;
 
     const events = [...batchRef.current];
     batchRef.current = [];
 
     try {
+      const fresh = (await supabase.auth.getSession()).data.session;
+      if (!fresh?.access_token) return;
+
       await Promise.all(
         events.map((ev) =>
           fetch(
@@ -36,7 +40,7 @@ export function useDwellTracker(source: string = "explore") {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${session.access_token}`,
+                Authorization: `Bearer ${fresh.access_token}`,
               },
               body: JSON.stringify({ mode: "log_dwell", ...ev }),
             }

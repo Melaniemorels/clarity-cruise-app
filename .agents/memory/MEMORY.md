@@ -1,1 +1,3 @@
 - [Clerk account linking](clerk-account-linking.md) — JIT Clerk→app-UUID linking must never rebind an already-claimed row; only link email-matched rows whose clerk_id is NULL.
+- [Gemini via Replit proxy quirks](gemini-replit-proxy.md) — gemini-2.5-flash needs thinkingBudget 0 or thinking tokens eat maxOutputTokens and text comes back empty.
+- [VYV frontend auth-token pattern](vyv-auth-tokens.md) — never use AuthContext session.access_token (empty by design); fetch fresh Clerk token via the shim per request.
