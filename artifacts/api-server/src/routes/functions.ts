@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, vyvTables } from "@workspace/db";
-import { and, eq, gte, lte, desc } from "drizzle-orm";
+import { and, eq, gte, lte, desc, inArray, lt, gt } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { requireUser } from "../lib/auth";
 import {
@@ -1195,6 +1195,108 @@ Generate exactly 3 varied notifications.`;
     } catch (err) {
       req.log?.error({ err }, "generate-watch-notifications failed");
       res.status(500).json({ error: "Could not generate notifications" });
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// friend-availability — real busy intervals of mutual friends for one day
+// ---------------------------------------------------------------------------
+
+router.post(
+  "/functions/v1/friend-availability",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const { dayStartIso, dayEndIso } = req.body ?? {};
+
+    const dayStart = new Date(dayStartIso);
+    const dayEnd = new Date(dayEndIso);
+    if (
+      Number.isNaN(dayStart.getTime()) ||
+      Number.isNaN(dayEnd.getTime()) ||
+      dayEnd <= dayStart ||
+      dayEnd.getTime() - dayStart.getTime() > 48 * 60 * 60 * 1000
+    ) {
+      res.status(400).json({ error: "Invalid day range" });
+      return;
+    }
+
+    try {
+      // Mutual friends = accepted follows in both directions
+      const [following, followers] = await Promise.all([
+        db
+          .select({ id: vyvTables.follows.following_id })
+          .from(vyvTables.follows)
+          .where(
+            and(
+              eq(vyvTables.follows.follower_id, userId),
+              eq(vyvTables.follows.status, "accepted"),
+            ),
+          ),
+        db
+          .select({ id: vyvTables.follows.follower_id })
+          .from(vyvTables.follows)
+          .where(
+            and(
+              eq(vyvTables.follows.following_id, userId),
+              eq(vyvTables.follows.status, "accepted"),
+            ),
+          ),
+      ]);
+
+      const followerSet = new Set(followers.map((f) => f.id));
+      const friendIds = [
+        ...new Set(following.map((f) => f.id).filter((id) => followerSet.has(id))),
+      ].slice(0, 50);
+
+      if (friendIds.length === 0) {
+        res.json({ friends: [], busy: [] });
+        return;
+      }
+
+      const [profileRows, busyRows] = await Promise.all([
+        db
+          .select({
+            user_id: vyvTables.profiles.user_id,
+            handle: vyvTables.profiles.handle,
+            name: vyvTables.profiles.name,
+            photo_url: vyvTables.profiles.photo_url,
+          })
+          .from(vyvTables.profiles)
+          .where(inArray(vyvTables.profiles.user_id, friendIds)),
+        db
+          .select({
+            friend_id: vyvTables.calendar_events.user_id,
+            starts_at: vyvTables.calendar_events.starts_at,
+            ends_at: vyvTables.calendar_events.ends_at,
+          })
+          .from(vyvTables.calendar_events)
+          .where(
+            and(
+              inArray(vyvTables.calendar_events.user_id, friendIds),
+              lt(vyvTables.calendar_events.starts_at, dayEnd),
+              gt(vyvTables.calendar_events.ends_at, dayStart),
+            ),
+          ),
+      ]);
+
+      res.json({
+        friends: profileRows.map((p) => ({
+          id: p.user_id,
+          name: p.name || p.handle,
+          avatar: p.photo_url ?? undefined,
+        })),
+        // Only busy intervals are shared — no titles, notes or categories.
+        busy: busyRows.map((b) => ({
+          friendId: b.friend_id,
+          starts_at: b.starts_at.toISOString(),
+          ends_at: b.ends_at.toISOString(),
+        })),
+      });
+    } catch (err) {
+      req.log?.error({ err }, "friend-availability failed");
+      res.status(500).json({ error: "Could not load friend availability" });
     }
   },
 );
