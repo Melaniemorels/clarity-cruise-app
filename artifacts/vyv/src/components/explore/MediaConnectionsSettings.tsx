@@ -211,21 +211,17 @@ function ConnectionRow({
   if (!meta) return null;
   const Icon = meta.icon;
 
-  const OAUTH_URLS: Record<string, string> = {
-    spotify:
-      "https://accounts.spotify.com/authorize?client_id=&response_type=code&redirect_uri=&scope=user-top-read%20user-read-recently-played%20user-library-read",
-    youtube:
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=&response_type=code&redirect_uri=&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly&access_type=offline",
+  // OAuth is driven server-side (client_id/secret never reach the browser).
+  // Top-level navigation carries the Clerk session cookie, so the API can
+  // identify the user, sign the OAuth state and bounce through the provider.
+  const CONNECT_PATHS: Record<string, string> = {
+    youtube: `${import.meta.env.VITE_SUPABASE_URL}/media/youtube/connect`,
   };
 
   const handleConnect = () => {
-    // OAuth requires client_id configured server-side — redirect to auth page
-    const url = OAUTH_URLS[provider];
-    if (url && url.includes("client_id=&")) {
-      // client_id not yet configured — show informative state
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
+    const path = CONNECT_PATHS[provider];
+    if (!path) return; // provider not yet available (e.g. Spotify — Fase B)
+    window.location.href = path;
   };
 
   return (

@@ -82,7 +82,25 @@ const PRIVATE_READ_TABLES = new Set<string>([
   "goals_health",
   "workout_sessions",
   "device_connections",
+  "media_integrations",
 ]);
+
+// Columns that must NEVER be returned to the browser (server-only secrets).
+// Mirrors rest.ts SENSITIVE_COLUMNS.
+const SENSITIVE_COLUMNS: Record<string, string[]> = {
+  media_integrations: ["access_token", "refresh_token"],
+};
+
+function redactRows(tableName: string, rows: unknown[]): unknown[] {
+  const secret = SENSITIVE_COLUMNS[tableName];
+  if (!secret || secret.length === 0) return rows;
+  return rows.map((row) => {
+    if (!row || typeof row !== "object") return row;
+    const copy: Record<string, unknown> = { ...(row as Record<string, unknown>) };
+    for (const col of secret) delete copy[col];
+    return copy;
+  });
+}
 
 function buildCondition(
   cols: Record<string, AnyColumn>,
@@ -256,7 +274,10 @@ router.post(
           if (typeof payload.limit === "number") q = q.limit(payload.limit);
           if (typeof payload.offset === "number") q = q.offset(payload.offset);
 
-          const rows = await q;
+          const rows = redactRows(payload.table, await q) as Record<
+            string,
+            unknown
+          >[];
 
           let count: number | null = null;
           if (payload.count === "exact") {
@@ -418,12 +439,13 @@ router.post(
 function finishWrite(
   res: Response,
   payload: QueryPayload,
-  rows: unknown[],
+  rawRows: unknown[],
 ): void {
   if (payload.returning === false) {
     res.json({ data: null, error: null });
     return;
   }
+  const rows = redactRows(payload.table, rawRows);
   if (payload.single) {
     res.json({ data: rows[0] ?? null, error: null });
     return;
