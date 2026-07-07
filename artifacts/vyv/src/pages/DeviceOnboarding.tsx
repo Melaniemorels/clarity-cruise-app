@@ -10,11 +10,11 @@ const DeviceOnboarding = () => {
   const { completeDevicesStep } = useOnboardingStep();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleConnectNow = () => {
+  const handleViewDevices = () => {
     window.location.href = "/device-settings";
   };
 
-  const handleDoItLater = async () => {
+  const handleContinue = async () => {
     setIsSubmitting(true);
     const success = await completeDevicesStep();
     if (success) window.location.href = "/";
@@ -49,6 +49,9 @@ const DeviceOnboarding = () => {
             <h1 className="text-lg font-semibold tracking-tight text-foreground">
               {t("onboarding.devices.title")}
             </h1>
+            <span className="inline-block text-[11px] text-muted-foreground px-2.5 py-0.5 rounded-full bg-muted">
+              {t("onboarding.devices.comingSoonBadge")}
+            </span>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {t("onboarding.devices.description")}
             </p>
@@ -74,19 +77,19 @@ const DeviceOnboarding = () => {
             <Button
               className="w-full rounded-[14px]"
               size="lg"
-              onClick={handleConnectNow}
+              onClick={handleContinue}
               disabled={isSubmitting}
             >
-              {t("onboarding.devices.connectNow")}
+              {t("onboarding.devices.continue")}
             </Button>
             <Button
               variant="ghost"
               className="w-full rounded-[14px]"
               size="lg"
-              onClick={handleDoItLater}
+              onClick={handleViewDevices}
               disabled={isSubmitting}
             >
-              {t("onboarding.devices.doItLater")}
+              {t("onboarding.devices.viewDevices")}
             </Button>
           </div>
         </div>

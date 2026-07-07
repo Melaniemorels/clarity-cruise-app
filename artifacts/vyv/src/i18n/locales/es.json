@@ -594,12 +594,15 @@
   },
   "onboarding": {
     "devices": {
-      "title": "Conecta tus dispositivos de salud y actividad",
-      "description": "Sincroniza tus datos de wearables y apps de fitness para obtener insights personalizados y seguir tu progreso.",
+      "title": "Dispositivos de salud y actividad",
+      "description": "Muy pronto podrás sincronizar tus wearables y apps de fitness con la app móvil de VYV. Mientras tanto, ¡todo lo demás ya está listo para ti!",
+      "comingSoonBadge": "Próximamente",
       "appleHealth": "Apple Health / Apple Watch",
       "smartwatch": "Cualquier smartwatch o rastreador de actividad",
       "fitnessApps": "Tus apps favoritas de fitness o actividad",
       "connectNow": "Conectar ahora",
+      "continue": "Continuar",
+      "viewDevices": "Ver dispositivos de salud",
       "doItLater": "Hacerlo después",
       "privacyNote": "Tus datos permanecen privados. Puedes gestionar conexiones en Configuración."
     }
@@ -925,7 +928,7 @@
       "focusTitle": "Enfoque",
       "focusBody": "Tu espacio privado. Toma notas, captura momentos y revisa entradas. Las notas se guardan solas mientras escribes.",
       "calendarTitle": "Calendario",
-      "calendarBody": "Planifica visualmente. Toca un día para crear un evento, arrastra para reprogramar. Sincroniza Google o Apple desde Ajustes.",
+      "calendarBody": "Planifica visualmente. Toca un día para crear un evento, arrastra para reprogramar. Y descubre cuándo tus amigos están libres para coincidir.",
       "guideTitle": "VYV Guide",
       "guideBody": "Toca el destello cuando quieras. Pide claridad, energía o un pequeño paso. Escucha y responde con calma — nunca insiste.",
       "guideCalendarTitle": "Guide + Calendario",
