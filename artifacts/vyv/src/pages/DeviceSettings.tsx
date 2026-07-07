@@ -196,6 +196,7 @@ const DeviceSettings = () => {
                 connected={!!connection}
                 lastSyncAt={connection?.last_sync_at ?? null}
                 scopes={connection?.scopes ?? null}
+                comingSoon
                 onConnect={() => handleConnect(platform.id, t(platform.nameKey))}
                 onDisconnect={() => handleDisconnect(platform.id, t(platform.nameKey))}
               />

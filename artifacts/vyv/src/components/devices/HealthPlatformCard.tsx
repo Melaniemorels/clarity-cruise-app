@@ -22,6 +22,7 @@ interface HealthPlatformCardProps {
   connected: boolean;
   lastSyncAt: string | null;
   scopes: string[] | null;
+  comingSoon?: boolean;
   onConnect: () => void;
   onDisconnect: () => void;
 }
@@ -41,6 +42,7 @@ const HealthPlatformCard = ({
   connected,
   lastSyncAt,
   scopes,
+  comingSoon,
   onConnect,
   onDisconnect,
 }: HealthPlatformCardProps) => {
@@ -64,6 +66,9 @@ const HealthPlatformCard = ({
                     <CheckCircle2 className="h-3 w-3" />
                     {t("devices.connected")}
                   </Badge>
+                )}
+                {!connected && comingSoon && (
+                  <Badge variant="secondary">{t("devices.comingSoon")}</Badge>
                 )}
               </div>
               <CardDescription className="text-sm mt-1">
@@ -115,6 +120,10 @@ const HealthPlatformCard = ({
               {t("devices.disconnect")}
             </Button>
           </>
+        ) : comingSoon ? (
+          <Button className="w-full" size="sm" disabled>
+            {t("devices.comingSoonDesc")}
+          </Button>
         ) : (
           <Button className="w-full" size="sm" onClick={onConnect}>
             {t("devices.connect")}

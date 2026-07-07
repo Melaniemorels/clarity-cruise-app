@@ -50,7 +50,7 @@ const WatchNotificationsCard = () => {
           </h2>
         </div>
         <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-          V1
+          {t("devices.comingSoon")}
         </span>
       </div>
 
