@@ -1,21 +1,15 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, vyvTables } from "@workspace/db";
-import { appUsers } from "@workspace/db";
-import { eq } from "drizzle-orm";
-import {
-  hashPassword,
-  verifyPassword,
-  signToken,
-  requireUser,
-} from "../lib/auth";
+import { requireUser } from "../lib/auth";
+
+// Auth is owned by Clerk (sign-in/up, verification, password reset, OAuth all
+// happen client-side against Clerk). The only server responsibility left is
+// exposing the bridged internal user so the client can learn its stable
+// internal UUID (app_users.id) — which every per-user query keys off.
 
 const router: IRouter = Router();
 
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
-
-function sessionShape(user: { id: string; email: string }, token: string) {
-  const now = Math.floor(Date.now() / 1000);
-  const userObj = {
+function userShape(user: { id: string; email: string }) {
+  return {
     id: user.id,
     email: user.email,
     aud: "authenticated",
@@ -24,158 +18,20 @@ function sessionShape(user: { id: string; email: string }, token: string) {
     user_metadata: {},
     created_at: new Date().toISOString(),
   };
-  return {
-    access_token: token,
-    token_type: "bearer",
-    expires_in: TOKEN_TTL_SECONDS,
-    expires_at: now + TOKEN_TTL_SECONDS,
-    refresh_token: token,
-    user: userObj,
-  };
 }
 
-// POST /api/auth/signup { email, password, data:{ handle, name } }
-router.post("/auth/signup", async (req: Request, res: Response): Promise<void> => {
-  const { email, password, data } = req.body ?? {};
-  if (!email || !password) {
-    res.status(400).json({ error: { message: "Email and password required" } });
-    return;
-  }
-  const normEmail = String(email).toLowerCase().trim();
-
-  const existing = await db
-    .select()
-    .from(appUsers)
-    .where(eq(appUsers.email, normEmail))
-    .limit(1);
-  if (existing.length > 0) {
-    res
-      .status(400)
-      .json({ error: { message: "User already registered", code: "user_already_exists" } });
-    return;
-  }
-
-  const [created] = await db
-    .insert(appUsers)
-    .values({ email: normEmail, passwordHash: hashPassword(String(password)) })
-    .returning();
-
-  // Create the profile row. Handle defaults to the email local-part.
-  const handleBase =
-    (data?.handle as string) || normEmail.split("@")[0] || "user";
-  let handle = handleBase.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30);
-  if (!handle) handle = `user_${created.id.slice(0, 8)}`;
-
-  try {
-    await db.insert(vyvTables.profiles).values({
-      user_id: created.id,
-      handle,
-      name: (data?.name as string) ?? null,
-    });
-  } catch {
-    // Handle collision -> suffix with a fragment of the user id.
-    await db.insert(vyvTables.profiles).values({
-      user_id: created.id,
-      handle: `${handle}_${created.id.slice(0, 4)}`,
-      name: (data?.name as string) ?? null,
-    });
-  }
-
-  const token = signToken(created.id, created.email);
-  res.json({
-    data: { user: sessionShape(created, token).user, session: sessionShape(created, token) },
-    error: null,
-  });
-});
-
-// POST /api/auth/signin { email, password }
-router.post("/auth/signin", async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body ?? {};
-  if (!email || !password) {
-    res.status(400).json({ error: { message: "Email and password required" } });
-    return;
-  }
-  const normEmail = String(email).toLowerCase().trim();
-  const [user] = await db
-    .select()
-    .from(appUsers)
-    .where(eq(appUsers.email, normEmail))
-    .limit(1);
-
-  if (!user || !user.passwordHash || !verifyPassword(String(password), user.passwordHash)) {
-    res
-      .status(400)
-      .json({ error: { message: "Invalid login credentials", code: "invalid_credentials" } });
-    return;
-  }
-
-  const token = signToken(user.id, user.email);
-  res.json({
-    data: { user: sessionShape(user, token).user, session: sessionShape(user, token) },
-    error: null,
-  });
-});
-
-// GET /api/auth/user  (validates the bearer token)
+// GET /api/auth/user — returns the internal (bridged) user for the Clerk session.
 router.get(
   "/auth/user",
   requireUser,
-  async (req: Request, res: Response): Promise<void> => {
+  (req: Request, res: Response): void => {
     const authUser = req.authUser!;
-    res.json({
-      data: {
-        user: sessionShape({ id: authUser.id, email: authUser.email }, "")
-          .user,
-      },
-      error: null,
-    });
+    res.json({ data: { user: userShape(authUser) }, error: null });
   },
 );
 
-// GET /api/auth/me  (Clerk session) -> this app's stable UUID + email.
-// Ensures a profile row exists (JIT). Email is already verified by Clerk, so we
-// mark the security-onboarding step complete to avoid trapping new users.
-router.get(
-  "/auth/me",
-  requireUser,
-  async (req: Request, res: Response): Promise<void> => {
-    const { id: userId, email } = req.authUser!;
-
-    const [prof] = await db
-      .select()
-      .from(vyvTables.profiles)
-      .where(eq(vyvTables.profiles.user_id, userId))
-      .limit(1);
-
-    if (!prof) {
-      const base = (email.split("@")[0] || "user")
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, "")
-        .slice(0, 30);
-      const handle = base || `user_${userId.slice(0, 8)}`;
-      const values = {
-        user_id: userId,
-        handle,
-        security_onboarding_completed: true,
-        onboarding_completed: true,
-        onboarding_step: "done",
-      };
-      try {
-        await db.insert(vyvTables.profiles).values(values);
-      } catch {
-        // Handle collision -> suffix with a fragment of the user id.
-        await db.insert(vyvTables.profiles).values({
-          ...values,
-          handle: `${handle}_${userId.slice(0, 4)}`,
-        });
-      }
-    }
-
-    res.json({ id: userId, email });
-  },
-);
-
-// POST /api/auth/signout (stateless — client discards the token)
+// POST /api/auth/signout — Clerk owns the browser session; this is a harmless
+// no-op kept for compatibility with any lingering client callers.
 router.post("/auth/signout", (_req: Request, res: Response): void => {
   res.json({ error: null });
 });

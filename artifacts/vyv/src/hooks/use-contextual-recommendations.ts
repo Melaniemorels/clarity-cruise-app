@@ -40,9 +40,9 @@ async function fetchContextualRecs(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/contextual-recommendations`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
         mode: "generate",

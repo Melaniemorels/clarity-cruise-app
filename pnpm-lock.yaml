@@ -433,7 +433,7 @@ importers:
         version: 8.0.2(@capacitor/core@8.4.1)
       '@clerk/localizations':
         specifier: ^4.11.1
-        version: 4.11.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 4.12.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@clerk/react':
         specifier: ^6.11.2
         version: 6.11.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -842,8 +842,8 @@ packages:
     peerDependencies:
       express: ^4.17.0 || ^5.0.0
 
-  '@clerk/localizations@4.11.1':
-    resolution: {integrity: sha512-7s3l288dcUJNQ0EdsZputK0bNXodUOa9qMrYvEC46JeDzcZczx5X0V6G6MtkLCUebdBnM0F2VOldtrzs0+xuZw==}
+  '@clerk/localizations@4.12.1':
+    resolution: {integrity: sha512-InuQIu0xbgjre50q81Pf0b3ka9cD8QEZRo48ViY2/2wATb8sidG8tzEYviotC6aeAU4F/IFJWnsSf7B5hZTG9A==}
     engines: {node: '>=20.9.0'}
 
   '@clerk/react@6.11.2':
@@ -867,6 +867,18 @@ packages:
 
   '@clerk/shared@4.22.1':
     resolution: {integrity: sha512-G7AaqgeE2rfnQzCg7V2fuHmprbt5FkMdqFBiNGUkg7yz+yjXfVjytic3TJENXI+FGK+r6vx8eTXVUIqDNQWq4g==}
+    engines: {node: '>=20.9.0'}
+    peerDependencies:
+      react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+      react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
+  '@clerk/shared@4.24.0':
+    resolution: {integrity: sha512-QgAihmKS4ld3YSqSPMaKnzU4RGV+60k5khcjiz0xi4BCUST+UJAbV8f3Hw0osxq/Rw9rsxmRlcoxhEMsN5SOFA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
@@ -4081,9 +4093,9 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/localizations@4.11.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@clerk/localizations@4.12.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@clerk/shared': 4.22.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@clerk/shared': 4.24.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - react
       - react-dom
@@ -4108,6 +4120,16 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@clerk/shared@4.22.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@tanstack/query-core': 5.101.0
+      dequal: 2.0.3
+      glob-to-regexp: 0.4.1
+      js-cookie: 3.0.7
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
+  '@clerk/shared@4.24.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@tanstack/query-core': 5.101.0
       dequal: 2.0.3

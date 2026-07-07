@@ -38,9 +38,9 @@ export function useDwellTracker(source: string = "explore") {
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/contextual-recommendations`,
             {
               method: "POST",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${fresh.access_token}`,
               },
               body: JSON.stringify({ mode: "log_dwell", ...ev }),
             }

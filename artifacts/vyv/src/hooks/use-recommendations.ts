@@ -54,9 +54,9 @@ export function useRecommendations(goal: RecommendationGoal = "auto") {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-recommendations`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({ goal: goal === "auto" ? null : goal, language }),
         }
@@ -93,9 +93,9 @@ export function useRefreshRecommendations() {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-recommendations`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({ 
             goal: goal === "auto" ? null : goal,

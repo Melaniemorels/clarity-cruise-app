@@ -159,13 +159,11 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
 
       let assistantSoFar = "";
       try {
-        const { data: sess } = await supabase.auth.getSession();
-        const accessToken = sess.session?.access_token;
         const resp = await fetch(CHAT_URL, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({ messages: updatedMessages, calendarAccess }),
         });

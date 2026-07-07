@@ -39,9 +39,9 @@ async function fetchExploreFeed(params: {
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/explore-feed`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${fresh.access_token}`,
       },
       body: JSON.stringify(params),
     }
@@ -117,9 +117,9 @@ export function useLogItemEvent() {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/explore-feed`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({
             mode: "log_event",

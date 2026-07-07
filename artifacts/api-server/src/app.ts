@@ -34,7 +34,8 @@ app.use(
   }),
 );
 
-// Clerk proxy must be mounted before body parsers (it streams raw bytes).
+// Clerk Frontend API proxy — must be mounted before body parsers (it streams
+// raw bytes). Production-only; a no-op passthrough in development.
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));

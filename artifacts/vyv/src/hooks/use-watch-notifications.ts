@@ -45,9 +45,9 @@ export const useWatchNotifications = () => {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-watch-notifications`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ language: i18n.language }),
         }

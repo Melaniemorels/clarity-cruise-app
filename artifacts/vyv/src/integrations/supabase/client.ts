@@ -4,61 +4,35 @@
 // (Express + Drizzle + Postgres). This module re-implements the small slice of
 // the supabase-js surface the app actually uses, backed by the api-server:
 //   - .from(table)         -> POST /api/db/query   (generic Drizzle executor)
-//   - .auth.*              -> Clerk (real Google/Apple/email + password reset)
+//   - .auth.*              -> /api/auth/*          (email + password, JWT)
 //   - .storage.from(b)     -> /api/storage/*       (object storage)
 //   - .functions.invoke()  -> /api/functions/v1/*  (edge-function ports)
 //   - .channel()/realtime  -> no-op stubs
-//
-// Auth transport: authentication is Clerk. The browser sends Clerk's session
-// cookie automatically for same-origin `/api` requests; we additionally attach
-// a Clerk bearer token (from window.Clerk) so requests authenticate even when
-// the API is served from a different origin. The backend's clerkMiddleware
-// accepts either. The `user.id` exposed here is this app's stable UUID (fetched
-// by AuthContext from /api/auth/me and cached), NOT the raw Clerk id — so every
-// `.eq("user_id", user.id)` call keeps working against the UUID-keyed schema.
 import type { Session, User } from "@supabase/supabase-js";
 
 const BASE = (import.meta.env.VITE_SUPABASE_URL as string) || "/api";
 
-// Cache of this app's stable identity ({ id: uuid, email }). Written by
-// AuthContext after it calls /api/auth/me; read here to shape sessions.
-const APP_USER_KEY = "vyv-app-user";
-
-interface AppUser {
-  id: string;
-  email: string;
-}
-
-function loadAppUser(): AppUser | null {
-  try {
-    const raw = localStorage.getItem(APP_USER_KEY);
-    return raw ? (JSON.parse(raw) as AppUser) : null;
-  } catch {
-    return null;
-  }
-}
-
 // ---------------------------------------------------------------------------
-// Clerk bridge
+// Session state
+//
+// Auth is owned by Clerk and transport is cookie-based (same-origin requests
+// automatically carry Clerk's session cookie). We keep NO bearer token here.
+// `AuthContext` drives this in-memory session via `setShimSession()` so that
+// legacy `supabase.auth.*` callers observe the same signed-in state.
 // ---------------------------------------------------------------------------
 
-function getClerk(): any {
-  return typeof window !== "undefined" ? (window as any).Clerk ?? null : null;
+type StoredSession = Session | null;
+
+let currentSession: StoredSession = null;
+
+function loadSession(): StoredSession {
+  return currentSession;
 }
 
-async function clerkToken(): Promise<string | null> {
-  try {
-    const c = getClerk();
-    if (c?.session) return (await c.session.getToken()) ?? null;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  const token = await clerkToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+// Cookie-based transport: never attach an Authorization/Bearer header on web.
+// All fetches below pass `credentials: "include"` so the Clerk cookie is sent.
+function authHeaders(): Record<string, string> {
+  return {};
 }
 
 // ---------------------------------------------------------------------------
@@ -71,11 +45,11 @@ type AuthEvent =
   | "SIGNED_OUT"
   | "TOKEN_REFRESHED"
   | "USER_UPDATED";
-type AuthListener = (event: AuthEvent, session: Session | null) => void;
+type AuthListener = (event: AuthEvent, session: StoredSession) => void;
 
 const listeners = new Set<AuthListener>();
 
-function emit(event: AuthEvent, session: Session | null): void {
+function emit(event: AuthEvent, session: StoredSession): void {
   listeners.forEach((cb) => {
     try {
       cb(event, session);
@@ -83,6 +57,15 @@ function emit(event: AuthEvent, session: Session | null): void {
       /* ignore */
     }
   });
+}
+
+// Driven by AuthContext to keep the shim's view of the session in sync with
+// Clerk. Passing null represents a signed-out state.
+export function setShimSession(session: StoredSession): void {
+  const wasSignedIn = !!currentSession;
+  currentSession = session;
+  if (session) emit(wasSignedIn ? "TOKEN_REFRESHED" : "SIGNED_IN", session);
+  else emit("SIGNED_OUT", null);
 }
 
 // ---------------------------------------------------------------------------
@@ -254,7 +237,7 @@ class QueryBuilder<T = any> implements PromiseLike<QueryResult<T>> {
       const res = await fetch(`${BASE}/db/query`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(payload),
       });
       const json = (await res.json()) as QueryResult<T>;
@@ -302,7 +285,7 @@ function storageFrom(bucket: string) {
             headers: {
               "Content-Type":
                 _opts?.contentType || (file as File).type || "application/octet-stream",
-              ...(await authHeaders()),
+              ...authHeaders(),
             },
             body: file,
           },
@@ -334,7 +317,7 @@ function storageFrom(bucket: string) {
         const res = await fetch(`${BASE}/storage/${bucket}/remove`, {
           method: "POST",
           credentials: "include",
-          headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+          headers: { "Content-Type": "application/json", ...authHeaders() },
           body: JSON.stringify({ paths }),
         });
         const json = await res.json();
@@ -350,7 +333,7 @@ function storageFrom(bucket: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Auth (bridged to Clerk)
+// Auth
 // ---------------------------------------------------------------------------
 
 interface AuthResponse {
@@ -358,93 +341,26 @@ interface AuthResponse {
   error: { message: string; code?: string } | null;
 }
 
-// Deduped in-flight fetch of /api/auth/me: when the localStorage cache is not
-// yet warm (first load after sign-in), resolve the app UUID directly instead
-// of ever exposing the raw Clerk id (which is NOT a UUID and would poison
-// `.eq("user_id", ...)` filters).
-let appUserPromise: Promise<AppUser | null> | null = null;
-
-async function resolveAppUserRemote(token: string): Promise<AppUser | null> {
-  if (!appUserPromise) {
-    appUserPromise = (async () => {
-      try {
-        const resp = await fetch(`${BASE}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
-        });
-        if (!resp.ok) return null;
-        const data = await resp.json();
-        const id = data?.user?.id ?? data?.id;
-        const email = data?.user?.email ?? data?.email ?? "";
-        if (!id) return null;
-        const appUser: AppUser = { id, email };
-        try {
-          localStorage.setItem(APP_USER_KEY, JSON.stringify(appUser));
-        } catch {
-          /* ignore */
-        }
-        return appUser;
-      } catch {
-        return null;
-      } finally {
-        // Allow a retry on the next call if this attempt failed.
-        setTimeout(() => {
-          if (!loadAppUser()) appUserPromise = null;
-        }, 0);
-      }
-    })();
-  }
-  return appUserPromise;
-}
-
-// Build a supabase-shaped session from the live Clerk session. The user id is
-// this app's stable UUID (from the /api/auth/me cache, fetched on demand) so
-// downstream `.eq("user_id", user.id)` calls resolve correctly. Never falls
-// back to the raw Clerk id.
-async function buildClerkSession(): Promise<Session | null> {
-  const clerk = getClerk();
-  if (!clerk?.session) return null;
-  const token = (await clerkToken()) ?? "";
-  let appUser = loadAppUser();
-  if (!appUser?.id && token) {
-    appUser = await resolveAppUserRemote(token);
-  }
-  if (!appUser?.id) return null;
-  const email =
-    appUser.email || clerk.user?.primaryEmailAddress?.emailAddress || "";
-  const id = appUser.id;
-  const user = {
-    id,
-    email,
-    aud: "authenticated",
-    role: "authenticated",
-    app_metadata: {},
-    user_metadata: {},
-    created_at: new Date().toISOString(),
-  } as unknown as User;
-  return {
-    access_token: token,
-    token_type: "bearer",
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: token,
-    user,
-  } as unknown as Session;
-}
+// Auth is owned by Clerk (see AuthContext + Clerk's hosted <SignIn>/<SignUp>).
+// The email/password endpoints (`/auth/signup`, `/auth/signin`) were removed, so
+// the legacy shim credential methods below no longer call the server — they fail
+// loudly and point callers to the Clerk sign-in experience instead.
+const CLERK_AUTH_MESSAGE =
+  "Authentication is handled by Clerk. Use the sign-in page.";
 
 const auth = {
   async getSession(): Promise<{
     data: { session: Session | null };
     error: null;
   }> {
-    return { data: { session: await buildClerkSession() }, error: null };
+    return { data: { session: loadSession() }, error: null };
   },
 
   async getUser(): Promise<{
     data: { user: User | null };
     error: { message: string } | null;
   }> {
-    const session = await buildClerkSession();
+    const session = loadSession();
     if (!session) {
       return { data: { user: null }, error: { message: "Not authenticated" } };
     }
@@ -453,7 +369,8 @@ const auth = {
 
   onAuthStateChange(cb: AuthListener) {
     listeners.add(cb);
-    buildClerkSession().then((s) => cb("INITIAL_SESSION", s));
+    // Fire the initial session asynchronously, matching supabase-js behaviour.
+    setTimeout(() => cb("INITIAL_SESSION", loadSession()), 0);
     return {
       data: {
         subscription: {
@@ -465,70 +382,65 @@ const auth = {
     };
   },
 
+  async signUp(_params: {
+    email: string;
+    password: string;
+    options?: { data?: Record<string, unknown>; emailRedirectTo?: string };
+  }): Promise<AuthResponse> {
+    return {
+      data: { user: null, session: null },
+      error: { message: `${CLERK_AUTH_MESSAGE} Create your account on the sign-up page.` },
+    };
+  },
+
+  async signInWithPassword(_params: {
+    email: string;
+    password: string;
+  }): Promise<AuthResponse> {
+    return {
+      data: { user: null, session: null },
+      error: { message: CLERK_AUTH_MESSAGE },
+    };
+  },
+
   async signOut(_opts?: { scope?: string }): Promise<{ error: null }> {
-    try {
-      const c = getClerk();
-      if (c) await c.signOut();
-    } catch {
-      /* ignore */
-    }
-    try {
-      localStorage.removeItem(APP_USER_KEY);
-    } catch {
-      /* ignore */
-    }
-    emit("SIGNED_OUT", null);
+    setShimSession(null);
     return { error: null };
   },
 
-  // Real sign-in / sign-up / OAuth / password reset are handled by Clerk's
-  // <SignIn>/<SignUp> components. These legacy methods remain only so unused
-  // imported screens still type-check; they should not be reached.
-  async signInWithPassword(): Promise<AuthResponse> {
-    return {
-      data: { user: null, session: null },
-      error: { message: "Sign in with Clerk" },
-    };
-  },
-
-  async signUp(): Promise<AuthResponse> {
-    return {
-      data: { user: null, session: null },
-      error: { message: "Sign up with Clerk" },
-    };
-  },
-
-  async signInWithOAuth(): Promise<{
-    data: null;
-    error: { message: string };
-  }> {
-    return { data: null, error: { message: "Sign in with Clerk" } };
-  },
-
-  async setSession(): Promise<AuthResponse> {
-    const session = await buildClerkSession();
+  async setSession(session: Session): Promise<AuthResponse> {
+    setShimSession(session);
     return { data: { user: session?.user ?? null, session }, error: null };
   },
 
   async refreshSession(): Promise<AuthResponse> {
-    const session = await buildClerkSession();
+    const session = loadSession();
     return { data: { user: session?.user ?? null, session }, error: null };
   },
 
-  async updateUser(): Promise<{ data: { user: User | null }; error: null }> {
-    const session = await buildClerkSession();
+  async updateUser(
+    _attrs: Record<string, unknown>,
+  ): Promise<{ data: { user: User | null }; error: null }> {
+    const session = loadSession();
     return { data: { user: session?.user ?? null }, error: null };
   },
 
-  async resend(): Promise<{ data: Record<string, unknown>; error: null }> {
+  async resend(
+    _params: Record<string, unknown>,
+  ): Promise<{ data: Record<string, unknown>; error: null }> {
     return { data: {}, error: null };
   },
 
-  async resetPasswordForEmail(): Promise<{
-    data: Record<string, unknown>;
-    error: null;
-  }> {
-    return { data: {}, error: null };
+  async resetPasswordForEmail(
+    _email: string,
+    _opts?: Record<string, unknown>,
+  ): Promise<{ data: Record<string, unknown>; error: { message: string } | null }> {
+    return {
+      data: {},
+      error: {
+        message: `${CLERK_AUTH_MESSAGE} Use "Forgot password?" on the sign-in page.`,
+      },
+    };
   },
 };
 
@@ -545,7 +457,7 @@ const functions = {
       const res = await fetch(`${BASE}/functions/v1/${name}`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(opts?.body ?? {}),
       });
       const data = await res.json();

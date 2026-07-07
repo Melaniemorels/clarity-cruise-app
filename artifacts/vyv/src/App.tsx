@@ -1,12 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
-import { dark } from "@clerk/themes";
+import { dark, shadcn } from "@clerk/themes";
 import { enUS, esES } from "@clerk/localizations";
 import { AuthProvider } from "./contexts/AuthContext";
 import { VYVProvider } from "./contexts/VYVContext";
@@ -87,22 +87,25 @@ const queryClient = new QueryClient({
   },
 });
 
-// --- Clerk auth wiring (adapted for react-router) --------------------------
-// REQUIRED — copy verbatim. Resolves the key from window.location.hostname so
-// the same build serves multiple Clerk custom domains.
+// ---------------------------------------------------------------------------
+// Clerk auth wiring
+// ---------------------------------------------------------------------------
+
+// REQUIRED — copy verbatim. Resolves the key from window.location.hostname so the
+// same build serves multiple Clerk custom domains.
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
 
-// REQUIRED — copy verbatim. Empty in dev (Clerk hits dev FAPI directly),
-// auto-set in prod. Do NOT gate on PROD/NODE_ENV.
+// REQUIRED — empty in dev (Clerk hits dev FAPI directly), auto-set in prod.
+// Do NOT gate on PROD/NODE_ENV.
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-// Clerk passes full paths to routerPush/routerReplace; react-router's navigate
-// re-applies the basename, so strip it here to avoid doubling.
+// Clerk passes full paths (with the base) to routerPush/routerReplace, but
+// react-router's navigate() re-applies the basename — strip it to avoid doubling.
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
     ? path.slice(basePath.length) || "/"
@@ -115,7 +118,7 @@ if (!clerkPubKey) {
 
 // Keep Clerk's UI in the same language the app is set to (no EN/ES mixing) and
 // brand the titles as VYV rather than the raw Clerk instance name.
-function clerkLocalization() {
+function getClerkLocalization() {
   let lang = "en";
   try {
     lang = localStorage.getItem("vyv-language") || navigator.language || "en";
@@ -147,12 +150,12 @@ function clerkLocalization() {
   };
 }
 
-// VYV dark brand (teal on near-black). Tailwind v3 project -> no cssLayerName;
+// VYV dark brand (emerald on near-black). Tailwind v3 project -> no cssLayerName;
 // element overrides use inline style objects.
 const clerkAppearance = {
   theme: dark,
   variables: {
-    colorPrimary: "#4FB3A2",
+    colorPrimary: "#4A8B7C", // Emerald VYV branding
     colorForeground: "#E8EBED",
     colorMutedForeground: "#9AA4AE",
     colorDanger: "#F87171",
@@ -168,6 +171,7 @@ const clerkAppearance = {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    socialButtonsVariant: "blockButton" as const,
   },
   elements: {
     rootBox: { width: "100%", display: "flex", justifyContent: "center" },
@@ -181,10 +185,10 @@ const clerkAppearance = {
     },
     card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
     footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
-    formButtonPrimary: { backgroundColor: "#4FB3A2", color: "#08110F" },
+    formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#08110F" },
     socialButtonsBlockButton: { borderColor: "#2A323C" },
     socialButtonsBlockButtonText: { color: "#E8EBED" },
-    footerActionLink: { color: "#4FB3A2" },
+    footerActionLink: { color: "#4A8B7C" },
   },
 };
 
@@ -210,27 +214,50 @@ const SignUpPage = () => (
   </div>
 );
 
-// ClerkProvider must live inside BrowserRouter (uses useNavigate) and wrap
-// AuthProvider (which reads Clerk hooks).
-const ClerkWithRouter = ({ children }: { children: React.ReactNode }) => {
+// Clears the react-query cache whenever the signed-in Clerk user changes, so one
+// user's cached data never leaks into another user's session.
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const qc = useQueryClient();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const unsubscribe = addListener(({ user }) => {
+      const userId = user?.id ?? null;
+      if (
+        prevUserIdRef.current !== undefined &&
+        prevUserIdRef.current !== userId
+      ) {
+        qc.clear();
+      }
+      prevUserIdRef.current = userId;
+    });
+    return unsubscribe;
+  }, [addListener, qc]);
+
+  return null;
+}
+
+// ClerkProvider must live inside BrowserRouter so routerPush/Replace can use
+// react-router navigation. AuthProvider (which consumes Clerk hooks) nests inside.
+function ClerkWithRouter({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
-      localization={clerkLocalization()}
+      localization={getClerkLocalization()}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
-      signInFallbackRedirectUrl={`${basePath}/`}
-      signUpFallbackRedirectUrl={`${basePath}/`}
       routerPush={(to) => navigate(stripBase(to))}
       routerReplace={(to) => navigate(stripBase(to), { replace: true })}
     >
+      <ClerkQueryClientCacheInvalidator />
       {children}
     </ClerkProvider>
   );
-};
+}
 
 const App = () => (
   <ErrorBoundary>
@@ -252,8 +279,9 @@ const App = () => (
                   <Route path="/welcome" element={<Welcome />} />
                   <Route path="/sign-in/*" element={<SignInPage />} />
                   <Route path="/sign-up/*" element={<SignUpPage />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
+                  {/* Legacy auth routes now redirect into the Clerk flow. */}
+                  <Route path="/auth/callback" element={<Navigate to="/sign-in" replace />} />
+                  <Route path="/reset-password" element={<Navigate to="/sign-in" replace />} />
                   <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
                   <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
                   <Route path="/entries" element={<ProtectedRoute><Home /></ProtectedRoute>} />

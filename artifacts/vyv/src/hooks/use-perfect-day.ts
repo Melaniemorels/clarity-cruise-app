@@ -46,9 +46,9 @@ export function usePerfectDay() {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-perfect-day`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${fresh.access_token}`,
           },
           body: JSON.stringify({
             userLanguage: i18n.language,
