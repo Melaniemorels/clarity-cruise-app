@@ -11,7 +11,11 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
-import { classifyHealthy, type HealthyCategory } from "../lib/healthy";
+import {
+  classifyHealthy,
+  isBlockedContent,
+  type HealthyCategory,
+} from "../lib/healthy";
 
 const router: IRouter = Router();
 
@@ -377,6 +381,9 @@ export async function syncSpotifyHealthy(userId: string): Promise<{
       });
       for (const ep of found.episodes?.items ?? []) {
         if (!ep?.id || !ep?.name) continue;
+        // Strict healthy-only: the searched-category fallback must never
+        // rescue content that matches a hard blocker.
+        if (isBlockedContent(ep.name, [ep.description ?? ""])) continue;
         const cat =
           classifyHealthy(ep.name, [ep.description ?? ""]) ?? category;
         candidates.push({

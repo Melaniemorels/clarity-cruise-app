@@ -72,6 +72,14 @@ const RULES: { category: HealthyCategory; pattern: RegExp }[] = [
 const BLOCKED = /gaming|gameplay|crypto|apuestas|casino|mukbang|fast food challenge|borracher|alcohol tour|prank|drama|chisme|gossip/i;
 
 /**
+ * True when the content matches a hard blocker (off-mission content that must
+ * never enter the catalogue, even via curated-search category fallbacks).
+ */
+export function isBlockedContent(title: string, extra: string[] = []): boolean {
+  return BLOCKED.test([title, ...extra].join(" "));
+}
+
+/**
  * Classify a piece of content (title + optional channel/tags) into a healthy
  * category, or return null when it is not wellness content.
  */

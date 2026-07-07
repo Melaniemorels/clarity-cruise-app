@@ -13,6 +13,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
 import {
   classifyHealthy,
+  isBlockedContent,
   isoDurationToMinutes,
   CATEGORY_SEARCH_QUERIES,
   type HealthyCategory,
@@ -335,10 +336,12 @@ function videoToCandidate(
   const id = typeof v.id === "string" ? v.id : v.id?.videoId;
   const sn = v.snippet;
   if (!id || !sn?.title) return null;
+  const extras = [sn.channelTitle ?? "", sn.description ?? ""];
+  // Strict healthy-only: the searched-category fallback must never rescue
+  // content that matches a hard blocker.
+  if (isBlockedContent(sn.title, extras)) return null;
   const category =
-    classifyHealthy(sn.title, [sn.channelTitle ?? "", sn.description ?? ""]) ??
-    fallbackCategory ??
-    null;
+    classifyHealthy(sn.title, extras) ?? fallbackCategory ?? null;
   if (!category) return null;
   return {
     title: sn.title,
