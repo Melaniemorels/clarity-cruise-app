@@ -9,7 +9,7 @@
 import crypto from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
 import {
   classifyHealthy,
@@ -365,28 +365,36 @@ function videoToCandidate(
   };
 }
 
-export async function syncYouTubeHealthy(userId: string): Promise<{
+export async function syncYouTubeHealthy(
+  userId: string,
+  opts: { includePersonal?: boolean } = {},
+): Promise<{
   scanned: number;
   inserted: number;
 }> {
+  // Personal data (liked videos) may only feed the shared catalogue when
+  // the sync runs on behalf of the account owner themself.
+  const includePersonal = opts.includePersonal ?? true;
   const token = await getYouTubeAccessToken(userId);
   if (!token) return { scanned: 0, inserted: 0 };
 
   const candidates: CandidateItem[] = [];
 
   // 1) The user's liked videos → keep only the healthy ones.
-  try {
-    const likes = await ytGet(token, "videos", {
-      part: "snippet,contentDetails",
-      myRating: "like",
-      maxResults: "50",
-    });
-    for (const v of likes.items ?? []) {
-      const c = videoToCandidate(v);
-      if (c) candidates.push(c);
+  if (includePersonal) {
+    try {
+      const likes = await ytGet(token, "videos", {
+        part: "snippet,contentDetails",
+        myRating: "like",
+        maxResults: "50",
+      });
+      for (const v of likes.items ?? []) {
+        const c = videoToCandidate(v);
+        if (c) candidates.push(c);
+      }
+    } catch {
+      // Likes are optional — keep going with searches.
     }
-  } catch {
-    // Likes are optional — keep going with searches.
   }
 
   // 2) Curated wellness searches per category (real, current videos).
@@ -482,12 +490,17 @@ export async function syncYouTubeHealthy(userId: string): Promise<{
   return { scanned: candidates.length, inserted: fresh.length };
 }
 
-/** Fire-and-forget sync when the connection exists and data is stale. */
+/**
+ * Fire-and-forget sync that keeps the global catalogue stocked. Prefers the
+ * requesting user's own connection (includes their likes); otherwise falls
+ * back to any active YouTube connection — the catalogue is shared by
+ * everyone, so a single linked account keeps all Explorers filled.
+ */
 export async function maybeSyncYouTubeHealthy(userId: string): Promise<void> {
-  const rows = await db
+  let rows = await db
     .select({
+      user_id: mediaIntegrations.user_id,
       last_sync_at: mediaIntegrations.last_sync_at,
-      is_active: mediaIntegrations.is_active,
     })
     .from(mediaIntegrations)
     .where(
@@ -497,11 +510,33 @@ export async function maybeSyncYouTubeHealthy(userId: string): Promise<void> {
         eq(mediaIntegrations.is_active, true),
       ),
     );
+
+  if (rows.length === 0) {
+    rows = await db
+      .select({
+        user_id: mediaIntegrations.user_id,
+        last_sync_at: mediaIntegrations.last_sync_at,
+      })
+      .from(mediaIntegrations)
+      .where(
+        and(
+          eq(mediaIntegrations.provider, "youtube"),
+          eq(mediaIntegrations.is_active, true),
+        ),
+      )
+      .orderBy(sql`${mediaIntegrations.last_sync_at} ASC NULLS FIRST`)
+      .limit(1);
+  }
+
   const row = rows[0];
   if (!row) return;
   const last = row.last_sync_at ? new Date(row.last_sync_at).getTime() : 0;
   if (Date.now() - last < SYNC_STALE_MS) return;
-  await syncYouTubeHealthy(userId);
+  // Privacy: personal data (likes) only feeds the shared catalogue when the
+  // sync runs for the requesting user themself.
+  await syncYouTubeHealthy(row.user_id, {
+    includePersonal: row.user_id === userId,
+  });
 }
 
 router.post(

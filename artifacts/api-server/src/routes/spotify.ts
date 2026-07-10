@@ -9,7 +9,7 @@
 import crypto from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
 import {
   classifyHealthy,
@@ -311,7 +311,23 @@ const EPISODE_SEARCH_QUERIES: Partial<Record<HealthyCategory, string>> = {
   Podcasts: "podcast bienestar salud",
   "Nutrición": "nutrición alimentación saludable",
   "Energía": "hábitos energía mañana",
+  Yoga: "yoga nidra relajación guiada",
+  PlanesDeComida: "meal prep planificación comidas saludables",
+  "Música": "música relajante para dormir y concentrarse",
+  Audiolibros: "audiolibro desarrollo personal completo",
 };
+
+// Second-pass queries for sections the classifier tends to leave thin (many
+// results of the primary query get reclassified into Meditación/Calma).
+// Only used by the app-level catalogue sync.
+const EXTRA_EPISODE_QUERIES: [HealthyCategory, string][] = [
+  ["Podcasts", "podcast crecimiento personal español"],
+  ["Podcasts", "podcast psicología positiva"],
+  ["Música", "playlist sonidos para concentración estudio"],
+  ["Música", "música instrumental bienestar"],
+  ["PlanesDeComida", "plan semanal de comidas batch cooking"],
+  ["Audiolibros", "audiolibro hábitos español"],
+];
 
 interface CandidateItem {
   title: string;
@@ -324,65 +340,22 @@ interface CandidateItem {
   language: string | null;
 }
 
-export async function syncSpotifyHealthy(userId: string): Promise<{
-  scanned: number;
-  inserted: number;
-}> {
-  const token = await getSpotifyAccessToken(userId);
-  if (!token) return { scanned: 0, inserted: 0 };
-
+/** Run the curated wellness episode searches for the given categories. */
+async function searchHealthyEpisodes(
+  token: string,
+  entries: [HealthyCategory, string][],
+): Promise<CandidateItem[]> {
   const candidates: CandidateItem[] = [];
-
-  // 1) The user's saved podcasts → keep only the healthy ones.
-  try {
-    const shows = await spGet(token, "me/shows", { limit: "50" });
-    for (const it of shows.items ?? []) {
-      const show = it.show;
-      if (!show?.id || !show?.name) continue;
-      const category = classifyHealthy(show.name, [
-        show.publisher ?? "",
-        show.description ?? "",
-      ]);
-      if (!category) continue;
-      candidates.push({
-        title: show.name,
-        url:
-          show.external_urls?.spotify ??
-          `https://open.spotify.com/show/${show.id}`,
-        category,
-        duration_min: null,
-        creator: show.publisher ?? null,
-        thumbnail: show.images?.[1]?.url ?? show.images?.[0]?.url ?? null,
-        tags: [category.toLowerCase(), "spotify", "bienestar"],
-        language: show.languages?.some((l: string) => l.startsWith("es"))
-          ? "es"
-          : null,
-      });
-    }
-  } catch {
-    // Saved shows are optional — keep going with searches.
-  }
-
-  // 2) Curated wellness episode searches (rotate 3 categories per sync to
-  // stay well inside Spotify's rate limits; the window advances every 12h).
-  const allEntries = Object.entries(EPISODE_SEARCH_QUERIES) as [
-    HealthyCategory,
-    string,
-  ][];
-  const CATEGORIES_PER_SYNC = 3;
-  const offset =
-    (Math.floor(Date.now() / SYNC_STALE_MS) * CATEGORIES_PER_SYNC) %
-    allEntries.length;
-  const searchEntries = Array.from(
-    { length: CATEGORIES_PER_SYNC },
-    (_, i) => allEntries[(offset + i) % allEntries.length],
-  );
-  for (const [category, query] of searchEntries) {
+  for (const [category, query] of entries) {
     try {
       const found = await spGet(token, "search", {
         q: query,
         type: "episode",
+        // Spotify rejects larger limits on episode search ("Invalid limit").
         limit: "8",
+        // Required for app (client-credentials) tokens — without a market the
+        // search returns null items. Harmless with user tokens.
+        market: "ES",
       });
       for (const ep of found.episodes?.items ?? []) {
         if (!ep?.id || !ep?.name) continue;
@@ -414,12 +387,17 @@ export async function syncSpotifyHealthy(userId: string): Promise<{
       // One category failing must not abort the whole sync.
     }
   }
+  return candidates;
+}
 
-  // 3) Dedupe against what is already in the catalogue and insert the rest.
+/** Dedupe against the existing catalogue and insert the fresh items. */
+async function insertSpotifyCandidates(
+  candidates: CandidateItem[],
+): Promise<number> {
   const byUrl = new Map<string, CandidateItem>();
   for (const c of candidates) if (!byUrl.has(c.url)) byUrl.set(c.url, c);
   const urls = [...byUrl.keys()];
-  if (urls.length === 0) return { scanned: candidates.length, inserted: 0 };
+  if (urls.length === 0) return 0;
 
   const existing = await db
     .select({ url: exploreItems.url })
@@ -451,6 +429,130 @@ export async function syncSpotifyHealthy(userId: string): Promise<{
       .values(fresh)
       .onConflictDoNothing({ target: exploreItems.url });
 
+  return fresh.length;
+}
+
+// -- App-level (client-credentials) catalogue sync ----------------------------
+//
+// The Explorer catalogue is global, so it must not depend on any single user
+// connecting Spotify. When nobody is connected yet, we use the app's own
+// credentials to search Spotify's public catalogue for wellness episodes.
+
+let cachedAppToken: { token: string; expiresAt: number } | null = null;
+
+async function getSpotifyAppToken(): Promise<string | null> {
+  if (!clientId() || !clientSecret()) return null;
+  if (cachedAppToken && cachedAppToken.expiresAt > Date.now() + 60_000)
+    return cachedAppToken.token;
+
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basicAuth()}`,
+    },
+    body: new URLSearchParams({ grant_type: "client_credentials" }),
+  });
+  const data = (await res.json()) as {
+    access_token?: string;
+    expires_in?: number;
+  };
+  if (!res.ok || !data.access_token) return null;
+  cachedAppToken = {
+    token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+  };
+  return cachedAppToken.token;
+}
+
+let lastCatalogSyncAt = 0;
+let catalogSyncInFlight = false;
+
+export async function syncSpotifyCatalog(): Promise<{
+  scanned: number;
+  inserted: number;
+}> {
+  const token = await getSpotifyAppToken();
+  if (!token) return { scanned: 0, inserted: 0 };
+
+  // App-level syncs cover ALL audio categories in one pass plus the
+  // second-pass queries for the thin sections (~16 searches, well inside
+  // Spotify's rate limits, and only every 12h).
+  const entries = (
+    Object.entries(EPISODE_SEARCH_QUERIES) as [HealthyCategory, string][]
+  ).concat(EXTRA_EPISODE_QUERIES);
+  const candidates = await searchHealthyEpisodes(token, entries);
+  const inserted = await insertSpotifyCandidates(candidates);
+  lastCatalogSyncAt = Date.now();
+  return { scanned: candidates.length, inserted };
+}
+
+export async function syncSpotifyHealthy(
+  userId: string,
+  opts: { includePersonal?: boolean } = {},
+): Promise<{
+  scanned: number;
+  inserted: number;
+}> {
+  // Personal library (saved shows) may only feed the shared catalogue when
+  // the sync runs on behalf of the account owner themself.
+  const includePersonal = opts.includePersonal ?? true;
+  const token = await getSpotifyAccessToken(userId);
+  if (!token) return { scanned: 0, inserted: 0 };
+
+  const candidates: CandidateItem[] = [];
+
+  // 1) The user's saved podcasts → keep only the healthy ones.
+  if (includePersonal) {
+    try {
+      const shows = await spGet(token, "me/shows", { limit: "50" });
+      for (const it of shows.items ?? []) {
+        const show = it.show;
+        if (!show?.id || !show?.name) continue;
+        const category = classifyHealthy(show.name, [
+          show.publisher ?? "",
+          show.description ?? "",
+        ]);
+        if (!category) continue;
+        candidates.push({
+          title: show.name,
+          url:
+            show.external_urls?.spotify ??
+            `https://open.spotify.com/show/${show.id}`,
+          category,
+          duration_min: null,
+          creator: show.publisher ?? null,
+          thumbnail: show.images?.[1]?.url ?? show.images?.[0]?.url ?? null,
+          tags: [category.toLowerCase(), "spotify", "bienestar"],
+          language: show.languages?.some((l: string) => l.startsWith("es"))
+            ? "es"
+            : null,
+        });
+      }
+    } catch {
+      // Saved shows are optional — keep going with searches.
+    }
+  }
+
+  // 2) Curated wellness episode searches (rotate 3 categories per sync to
+  // stay well inside Spotify's rate limits; the window advances every 12h).
+  const allEntries = Object.entries(EPISODE_SEARCH_QUERIES) as [
+    HealthyCategory,
+    string,
+  ][];
+  const CATEGORIES_PER_SYNC = 3;
+  const offset =
+    (Math.floor(Date.now() / SYNC_STALE_MS) * CATEGORIES_PER_SYNC) %
+    allEntries.length;
+  const searchEntries = Array.from(
+    { length: CATEGORIES_PER_SYNC },
+    (_, i) => allEntries[(offset + i) % allEntries.length],
+  );
+  candidates.push(...(await searchHealthyEpisodes(token, searchEntries)));
+
+  // 3) Dedupe against what is already in the catalogue and insert the rest.
+  const inserted = await insertSpotifyCandidates(candidates);
+
   await db
     .update(mediaIntegrations)
     .set({ last_sync_at: new Date(), updated_at: new Date() })
@@ -461,15 +563,21 @@ export async function syncSpotifyHealthy(userId: string): Promise<{
       ),
     );
 
-  return { scanned: candidates.length, inserted: fresh.length };
+  return { scanned: candidates.length, inserted };
 }
 
-/** Fire-and-forget sync when the connection exists and data is stale. */
+/**
+ * Fire-and-forget sync that keeps the global catalogue stocked:
+ * 1. Prefer the requesting user's own connection (includes their saved shows).
+ * 2. Otherwise any active connection — the catalogue is shared by everyone.
+ * 3. If nobody has connected Spotify yet, fall back to the app-level
+ *    client-credentials catalogue sync so the Explorer is never empty.
+ */
 export async function maybeSyncSpotifyHealthy(userId: string): Promise<void> {
-  const rows = await db
+  let rows = await db
     .select({
+      user_id: mediaIntegrations.user_id,
       last_sync_at: mediaIntegrations.last_sync_at,
-      is_active: mediaIntegrations.is_active,
     })
     .from(mediaIntegrations)
     .where(
@@ -479,11 +587,58 @@ export async function maybeSyncSpotifyHealthy(userId: string): Promise<void> {
         eq(mediaIntegrations.is_active, true),
       ),
     );
+
+  if (rows.length === 0) {
+    rows = await db
+      .select({
+        user_id: mediaIntegrations.user_id,
+        last_sync_at: mediaIntegrations.last_sync_at,
+      })
+      .from(mediaIntegrations)
+      .where(
+        and(
+          eq(mediaIntegrations.provider, "spotify"),
+          eq(mediaIntegrations.is_active, true),
+        ),
+      )
+      .orderBy(sql`${mediaIntegrations.last_sync_at} ASC NULLS FIRST`)
+      .limit(1);
+  }
+
   const row = rows[0];
-  if (!row) return;
-  const last = row.last_sync_at ? new Date(row.last_sync_at).getTime() : 0;
-  if (Date.now() - last < SYNC_STALE_MS) return;
-  await syncSpotifyHealthy(userId);
+  if (row) {
+    const last = row.last_sync_at ? new Date(row.last_sync_at).getTime() : 0;
+    if (Date.now() - last < SYNC_STALE_MS) return;
+    // Privacy: personal library (saved shows) only feeds the shared
+    // catalogue when the sync runs for the requesting user themself.
+    await syncSpotifyHealthy(row.user_id, {
+      includePersonal: row.user_id === userId,
+    });
+    return;
+  }
+
+  // Nobody connected yet — app-level catalogue sync, throttled to 12h.
+  if (catalogSyncInFlight || Date.now() - lastCatalogSyncAt < SYNC_STALE_MS)
+    return;
+  const newest = await db
+    .select({ created_at: exploreItems.created_at })
+    .from(exploreItems)
+    .where(eq(exploreItems.source, "spotify"))
+    .orderBy(desc(exploreItems.created_at))
+    .limit(1);
+  const newestAt = newest[0]?.created_at
+    ? new Date(newest[0].created_at).getTime()
+    : 0;
+  if (Date.now() - newestAt < SYNC_STALE_MS) {
+    lastCatalogSyncAt = Date.now();
+    return;
+  }
+  catalogSyncInFlight = true;
+  try {
+    await syncSpotifyCatalog();
+  } finally {
+    catalogSyncInFlight = false;
+  }
 }
 
 router.post(
