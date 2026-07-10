@@ -1,0 +1,27 @@
+Attempt to use history.replaceState() more than 100 times per 10 seconds
+Navigate@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/react-router-dom.js:7471:20
+ProtectedRoute@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/components/ProtectedRoute.tsx:8:5
+RenderedRoute@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/react-router-dom.js:6648:33
+Routes@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/react-router-dom.js:7575:19
+Suspense@unknown:0:0
+ErrorBoundary@
+QueryErrorResetBoundary@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js:108:25
+QueryErrorBoundary@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/components/QueryErrorBoundary.tsx:5:46
+NetworkProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/contexts/NetworkContext.tsx:18:5
+GuideProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/contexts/GuideContext.tsx:119:6
+VYVProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/contexts/VYVContext.tsx:233:6
+AuthProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/contexts/AuthContext.tsx:11:5
+__experimental_CheckoutProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-G7NDJH2E.js:861:40
+InitialStateProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-G7NDJH2E.js:849:50
+ClerkContextProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-G7NDJH2E.js:2017:22
+ClerkProviderBase@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-G7NDJH2E.js:5564:74
+ClerkProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-G7NDJH2E.js:2657:32
+ClerkWithRouter@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/App.tsx:262:6
+Router@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/react-router-dom.js:7514:17
+BrowserRouter@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/react-router-dom.js:10818:17
+TooltipProviderProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/chunk-Q4P3AEOU.js:22:52
+TooltipProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js:70:12
+ThemeProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/src/components/ThemeProvider.tsx:12:15
+QueryClientProvider@https://e5b41443-f1b8-4549-aecc-90e76c3a154d-00-3li7va1cbrs3l.worf.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js:68:9
+ErrorBoundary@
+App@unknown:0:0

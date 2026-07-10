@@ -9,6 +9,11 @@ description: When Drizzle schema column names drift from the live DB, the auth m
 - **Why:** The schema declared `clerk_user_id` while the live column was `clerk_id`. `attachUser` swallowed the failed query, so Clerk auth succeeded (valid userId) but the internal-user lookup threw → no `req.authUser` → blanket 401 with zero log output. Cost several e2e runs to find.
 - **How to apply:** Keep a log line in the `attachUser` catch (never fully swallow). Fix drift with an in-place `ALTER TABLE ... RENAME COLUMN` (preserves data + unique index) instead of drizzle push, which may drop/recreate.
 
+# Renames never survive the post-merge script (recurring)
+
+- **Rule:** A column rename fixed inside a task agent's isolated environment does NOT reach the main dev DB. The post-merge `drizzle-kit push` runs non-interactively and dies at the rename prompt ("Interactive prompts require a TTY"), silently leaving the old column name — so the same drift (e.g. `clerk_id` vs `clerk_user_id`) reappears after every merge until someone applies the `ALTER TABLE ... RENAME COLUMN` manually via psql on the main DB.
+- **How to apply:** After merging any task that changed a column name, check the live column with `\d <table>` and apply the rename DDL directly. Watch post-merge logs for the TTY error — it means the push did nothing for conflicting changes.
+
 # Generic query surface: timestamp filters
 
 - Client filters (gte/lte etc.) send ISO strings; drizzle date-mode timestamp params call `value.toISOString()`, so string values throw TypeError at bind time. Any generic query path must coerce string→Date for timestamp columns on the filter path, not just the insert/update values path.

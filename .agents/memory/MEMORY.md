@@ -5,4 +5,4 @@
 - [YouTube Data API ingestion](youtube-data-api.md) — search.list costs 100 units/call: rotate categories, throttle via last_sync_at (only set after real syncs), dedupe with unique constraint.
 - [VYV Clerk auth bridge](vyv-clerk-auth.md) — Clerk id→stable internal UUID (JIT link by email); cookies only, a stray Bearer header makes Clerk getAuth 401 even with a valid cookie; Tailwind v3 = no cssLayerName.
 - [VYV migration architecture](vyv-migration.md) — imported Lovable/Supabase app onto pnpm-workspace via a Supabase compatibility shim routing to an Express API.
-- [Schema drift breaks auth silently](vyv-schema-drift.md) — blanket 401s with valid Clerk cookie = check live-DB column drift on app_users; never swallow attachUser errors.
+- [Schema drift breaks auth silently](vyv-schema-drift.md) — blanket 401s with valid Clerk cookie = live-DB column drift; post-merge drizzle push silently skips renames (TTY prompt), apply DDL via psql.
