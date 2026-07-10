@@ -27,10 +27,7 @@ export function useMediaConnections() {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_integrations?user_id=eq.${user!.id}&is_active=eq.true&select=*`,
         {
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
+          credentials: "include",
         }
       );
 
@@ -54,9 +51,8 @@ export function useDisconnectMedia() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_integrations?user_id=eq.${user!.id}&provider=eq.${provider}`,
         {
           method: "PATCH",
+          credentials: "include",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal",
           },
@@ -89,10 +85,7 @@ export function useHealthyVerifiedMode() {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=healthy_verified_mode`,
         {
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
+          credentials: "include",
         }
       );
 
@@ -117,10 +110,7 @@ export function useToggleHealthyVerified() {
       const checkResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}&select=id`,
         {
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
+          credentials: "include",
         }
       );
 
@@ -131,9 +121,8 @@ export function useToggleHealthyVerified() {
           `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent?user_id=eq.${user!.id}`,
           {
             method: "PATCH",
+            credentials: "include",
             headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               Prefer: "return=minimal",
             },
@@ -145,9 +134,8 @@ export function useToggleHealthyVerified() {
           `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/media_consent`,
           {
             method: "POST",
+            credentials: "include",
             headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${session.access_token}`,
               "Content-Type": "application/json",
               Prefer: "return=minimal",
             },

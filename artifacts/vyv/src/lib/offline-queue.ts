@@ -46,16 +46,10 @@ export function clearQueue() {
   localStorage.removeItem(QUEUE_KEY);
 }
 
+// Transport is cookie-based (Clerk session): never attach Authorization/apikey
+// headers — a stray Bearer header makes the server reject the session cookie.
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const { supabase } = await import("@/integrations/supabase/client");
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
   return {
-    apikey: key,
-    Authorization: `Bearer ${token || key}`,
     "Content-Type": "application/json",
     Prefer: "return=minimal",
   };
@@ -98,7 +92,7 @@ export async function flushQueue(): Promise<{ synced: number; failed: number }> 
         case "upsert": {
           method = "POST";
           const upsertHeaders = { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" };
-          const res = await fetch(url, { method, headers: upsertHeaders, body });
+          const res = await fetch(url, { method, credentials: "include", headers: upsertHeaders, body });
           if (res.ok || res.status === 409) synced++;
           else { failed++; remaining.push(action); }
           continue;
@@ -116,7 +110,7 @@ export async function flushQueue(): Promise<{ synced: number; failed: number }> 
           break;
       }
 
-      const res = await fetch(url, { method, headers, body });
+      const res = await fetch(url, { method, credentials: "include", headers, body });
       if (res.ok || res.status === 409) {
         synced++;
       } else {

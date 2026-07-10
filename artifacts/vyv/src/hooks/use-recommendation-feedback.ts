@@ -27,9 +27,8 @@ export function useRecommendationFeedback() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/recommendation_feedback`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal,resolution=merge-duplicates",
           },
@@ -69,9 +68,8 @@ export function useMarkSeen() {
         `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/seen_items`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal,resolution=ignore-duplicates",
           },

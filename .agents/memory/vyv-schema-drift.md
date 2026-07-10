@@ -15,6 +15,7 @@ description: When Drizzle schema column names drift from the live DB, the auth m
 
 - **Rule:** A column rename fixed inside a task agent's isolated environment does NOT reach the main dev DB. The post-merge `drizzle-kit push` runs non-interactively and dies at the rename prompt ("Interactive prompts require a TTY"), silently leaving the old column name — so the same drift (e.g. `clerk_id` vs `clerk_user_id`) reappears after every merge until someone applies the `ALTER TABLE ... RENAME COLUMN` manually via psql on the main DB.
 - **How to apply:** After merging any task that changed a column name, check the live column with `\d <table>` and apply the rename DDL directly. Watch post-merge logs for the TTY error — it means the push did nothing for conflicting changes.
+- **Non-interactive push:** `drizzle-kit push` aborts without a TTY whenever it wants to prompt (column rename, adding a unique constraint to a populated table). Resolve by making the live DB match by hand — including renaming the constraint to drizzle's expected name (e.g. `app_users_clerk_user_id_unique`) — until push reports "Changes applied" with no prompt. This drift recurred in a fresh task environment; always diff schema vs live DB before auth-dependent e2e runs.
 
 # Generic query surface: timestamp filters
 

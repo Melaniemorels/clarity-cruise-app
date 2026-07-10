@@ -81,11 +81,13 @@ resolution changed.
   Clerk shared credentials and the button auto-appears. Production/App Store
   later requires the user's own Apple Developer credentials.
 
-## e2e harness flakiness (July 2026)
-- The `testClerkAuth` programmatic sign-in sometimes leaves the CLIENT signed in
-  (Clerk console says "already signed in") while the SERVER never sees a session
-  cookie — `GET /api/auth/user` stays 401 across reloads, and the app shows a
-  blank loading screen. Retrying and minimal probe tests reproduced it; real
-  Clerk UI sign-in is a different path and unaffected. If this recurs, don't
-  assume an app auth regression — verify the proxy chain with curl (healthz 200,
-  unauthenticated /api/auth/user 401) and fall back to build/typecheck/DB checks.
+## e2e harness "flakiness" was actually schema drift (resolved July 2026)
+- A prior session blamed the `testClerkAuth` harness for "client signed in but
+  server 401s". Root cause was live-DB drift: `app_users` had `clerk_id` while
+  the schema expected `clerk_user_id`, so `attachUser` silently failed for every
+  request. After renaming the column (and its unique constraint) in place, the
+  programmatic Clerk sign-in works reliably end to end — onboarding, DB writes
+  and Explore were all verified through the harness.
+- **Rule:** when the harness reports server-side 401s with a valid client
+  session, run the schema-vs-live-DB column diff FIRST (see vyv-schema-drift.md);
+  do not write it off as harness flakiness.
