@@ -12,7 +12,6 @@ import { PostItem } from "@/components/PostItem";
 import { QuickCamera } from "@/components/QuickCamera";
 import { SocialBudgetModal } from "@/components/SocialBudgetModal";
 import { SocialBudgetLockOverlay } from "@/components/SocialBudgetLockOverlay";
-import { FeedMotivationalCard } from "@/components/FeedMotivationalCard";
 import { TravelDetectionBanner } from "@/components/TravelDetectionBanner";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
@@ -115,7 +114,6 @@ const Feed = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [showMotivationalCard, setShowMotivationalCard] = useState(false);
   const [hasReachedLimitThisSession, setHasReachedLimitThisSession] = useState(false);
   const [isInCooldown, setIsInCooldown] = useState(false);
   const device = useDevice();
@@ -174,7 +172,6 @@ const Feed = () => {
     if (isLimitReached && !showBudgetModal && !hasReachedLimitThisSession && !isInCooldown) {
       setShowBudgetModal(true);
       setHasReachedLimitThisSession(true);
-      setShowMotivationalCard(true);
     }
   }, [isLimitReached, showBudgetModal, hasReachedLimitThisSession, isInCooldown]);
 
@@ -375,11 +372,6 @@ const Feed = () => {
             />
           ) : (
             <div className="p-4 space-y-4">
-              {/* Motivational card when limit was reached */}
-              <FeedMotivationalCard 
-                visible={showMotivationalCard && !showBudgetModal && !isLimitReached}
-                onDismiss={() => setShowMotivationalCard(false)}
-              />
 
               {/* Feed content */}
               {isLoading ? (

@@ -31,10 +31,14 @@ export const ProtectedRoute = ({ children, skipOnboardingCheck = false }: Protec
     return <>{children}</>;
   }
 
-  // Linear onboarding flow: security → devices → done
+  // Linear onboarding flow: security → personalization → devices → done
   // Once a step is completed, user cannot go back
   if (step === "security" && location.pathname !== "/security-onboarding") {
     return <Navigate to="/security-onboarding" replace />;
+  }
+
+  if (step === "personalization" && location.pathname !== "/personalization") {
+    return <Navigate to="/personalization" replace />;
   }
 
   if (step === "devices" && location.pathname !== "/onboarding") {

@@ -80,3 +80,12 @@ resolution changed.
 - Apple sign-in needs no code: enabling it in the Auth pane (Development) uses
   Clerk shared credentials and the button auto-appears. Production/App Store
   later requires the user's own Apple Developer credentials.
+
+## e2e harness flakiness (July 2026)
+- The `testClerkAuth` programmatic sign-in sometimes leaves the CLIENT signed in
+  (Clerk console says "already signed in") while the SERVER never sees a session
+  cookie — `GET /api/auth/user` stays 401 across reloads, and the app shows a
+  blank loading screen. Retrying and minimal probe tests reproduced it; real
+  Clerk UI sign-in is a different path and unaffected. If this recurs, don't
+  assume an app auth regression — verify the proxy chain with curl (healthz 200,
+  unauthenticated /api/auth/user 401) and fall back to build/typecheck/DB checks.

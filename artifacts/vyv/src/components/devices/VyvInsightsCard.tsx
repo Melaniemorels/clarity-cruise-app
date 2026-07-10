@@ -25,9 +25,14 @@ const VyvInsightsCard = () => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Brain className="h-4 w-4 text-primary" />
-        <h2 className="font-semibold text-foreground">{t("devices.howVyvAdapts")}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold text-foreground">{t("devices.howVyvAdapts")}</h2>
+        </div>
+        <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+          {t("devices.comingSoon")}
+        </span>
       </div>
       <Card className="bg-muted/30">
         <CardContent className="p-4 space-y-4">

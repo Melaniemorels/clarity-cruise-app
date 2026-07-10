@@ -155,7 +155,8 @@
       "tryAnother": "Probá con otro título, autor o palabra clave.",
       "maybeInterest": "Tal vez te interese"
     },
-    "searchSection": "Buscar en esta sección…"
+    "searchSection": "Buscar en esta sección…",
+    "sectionEmpty": "Todavía estamos curando contenido para esta colección. Vuelve pronto."
   },
   "calendar": {
     "title": "Calendario",
@@ -321,7 +322,16 @@
     "findFriends": "Encontrar amigos",
     "findFriendsDesc": "Busca y conecta con personas",
     "replayTour": "Ver recorrido nuevamente",
-    "replayTourDesc": "Repetir el tour de bienvenida"
+    "replayTourDesc": "Repetir el tour de bienvenida",
+    "comingSoonBadge": "Próximamente",
+    "notificationsComingSoonDesc": "Los controles de notificaciones estarán disponibles en una próxima actualización.",
+    "aiExperienceComingSoonDesc": "Los controles avanzados de la experiencia de IA estarán disponibles en una próxima actualización.",
+    "aiCalendarAccess": "Acceso al calendario de la Guía VYV",
+    "aiCalendarAccessOnDesc": "El asistente puede leer tu calendario y proponer cambios. Tú confirmas cada cambio.",
+    "aiCalendarAccessOffDesc": "Desactivado. El asistente no puede ver ni cambiar tu calendario.",
+    "myMemory": "Mi memoria",
+    "myMemoryOnDesc": "La Guía VYV recuerda discretamente lo que compartes para que los próximos chats sean más personales.",
+    "myMemoryOffDesc": "Desactivado. La Guía VYV no recordará nada entre chats."
   },
   "devices": {
     "title": "Dispositivos de Salud",
@@ -605,6 +615,42 @@
       "viewDevices": "Ver dispositivos de salud",
       "doItLater": "Hacerlo después",
       "privacyNote": "Tus datos permanecen privados. Puedes gestionar conexiones en Configuración."
+    },
+    "personalization": {
+      "title": "Haz que VYV sea tuyo",
+      "description": "Unas preguntas rápidas para que tu calendario, tu planificador con IA y el Explorador se adapten a ti.",
+      "focusQuestion": "¿Qué quieres organizar mejor?",
+      "focus": {
+        "work": "Trabajo",
+        "study": "Estudio",
+        "fitness": "Ejercicio",
+        "social": "Vida social",
+        "selfcare": "Autocuidado",
+        "creativity": "Creatividad"
+      },
+      "toneQuestion": "¿Cómo debería hablarte tu planificador con IA?",
+      "tone": {
+        "gentle": "Suave y motivador",
+        "direct": "Directo y al grano"
+      },
+      "privateQuestion": "¿Empezar con un perfil privado?",
+      "privateHint": "Solo tus seguidores aprobados verán tu actividad. Puedes cambiarlo cuando quieras.",
+      "continue": "Continuar",
+      "skip": "Omitir por ahora",
+      "note": "Tus respuestas solo personalizan tu experiencia. Puedes actualizarlas después en Ajustes.",
+      "saveError": "No pudimos guardar tus respuestas. Inténtalo de nuevo.",
+      "interestsQuestion": "¿Qué áreas te interesan más?",
+      "interests": {
+        "fitness": "Fitness",
+        "wellness": "Bienestar",
+        "social": "Social",
+        "productivity": "Productividad",
+        "creativity": "Creatividad"
+      },
+      "calendarQuestion": "Conecta tu calendario",
+      "calendarHint": "Permite que VYV planifique alrededor de tus eventos.",
+      "availabilityQuestion": "Comparte tu disponibilidad con amigos",
+      "availabilityHint": "Tus amigos podrán ver cuándo estás libre para quedar."
     }
   },
   "security": {
@@ -622,7 +668,8 @@
     "verifyWarning": "Debes verificar tu email para continuar. Revisa tu bandeja de entrada o spam.",
     "continue": "Continuar",
     "doItLater": "Hacerlo después",
-    "accountSecured": "Tu cuenta está verificada y protegida"
+    "accountSecured": "Tu cuenta está verificada y protegida",
+    "privacyFirst": "Tu privacidad es lo primero."
   },
   "recommendations": {
     "title": "Para Ti",
@@ -899,7 +946,7 @@
       "weekStructure": "Estructura semanal",
       "digitalDistraction": "Distracción digital",
       "idealMorning": "Mañana ideal",
-      "energyManagement": "Gestión de energía",
+      "energyManagement": "Gestión del tiempo",
       "mentalClarity": "Claridad mental",
       "focusPsychology": "Psicología del enfoque",
       "travelProductivity": "Productividad viajando"
@@ -909,7 +956,7 @@
       "weekStructure": "Cómo planificar con el método 80/20",
       "digitalDistraction": "Estrategias para evitar interrupciones",
       "idealMorning": "Diseña tu rutina matutina",
-      "energyManagement": "Optimiza tu energía, no tu tiempo",
+      "energyManagement": "Toma el control de tu tiempo libre",
       "mentalClarity": "Técnicas rápidas de claridad",
       "focusPsychology": "La ciencia detrás de la concentración",
       "travelProductivity": "Mantén el ritmo mientras viajas"

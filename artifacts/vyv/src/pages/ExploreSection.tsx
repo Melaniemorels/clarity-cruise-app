@@ -37,7 +37,7 @@ const ELEVATE_ITEMS = [
   { title: "Week Structure", duration: "8 min", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
   { title: "Digital Distraction", duration: "15 min", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
   { title: "Ideal Morning", duration: "10 min", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
-  { title: "Energy Management", duration: "7 min", url: "https://www.youtube.com/watch?v=jDGMuwBuC9o" },
+  { title: "Time Management", duration: "12 min", url: "https://www.youtube.com/watch?v=n3kNlFMXslo" },
   { title: "Mental Clarity", duration: "5 min", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
   { title: "Focus Psychology", duration: "25 min", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
   { title: "Travel Productivity", duration: "6 min", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },

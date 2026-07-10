@@ -62,6 +62,13 @@ export const profiles = pgTable("profiles", {
   ai_memory_enabled: boolean("ai_memory_enabled").notNull().default(false),
   onboarding_completed: boolean("onboarding_completed").notNull().default(false),
   onboarding_step: text("onboarding_step").notNull().default("welcome"),
+  personalization_completed: boolean("personalization_completed")
+    .notNull()
+    .default(false),
+  // Onboarding personalization answers: { organize: string[], connectCalendar:
+  // boolean, shareAvailability: boolean, interests: string[], aiTone:
+  // "soft"|"direct", startPrivate: boolean }
+  personalization: jsonb("personalization"),
   phone_number: text("phone_number"),
   phone_verified: boolean("phone_verified").notNull().default(false),
   security_onboarding_completed: boolean("security_onboarding_completed")
@@ -234,6 +241,7 @@ export const feedSettings = pgTable("feed_settings", {
 export const exploreItems = pgTable("explore_items", {
   id: id(),
   title: text("title").notNull(),
+  description: text("description"),
   source: text("source").notNull().default("web"),
   url: text("url").notNull().unique(),
   duration_min: integer("duration_min"),

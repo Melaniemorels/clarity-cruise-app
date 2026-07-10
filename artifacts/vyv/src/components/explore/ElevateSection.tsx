@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useDevice, useResponsiveFontSize } from "@/hooks/use-device";
-import { Hexagon, Bookmark, ExternalLink } from "lucide-react";
+import { Hexagon, ExternalLink } from "lucide-react";
 import { detectProvider, COMING_SOON_PROVIDERS, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
 import { openContent } from "@/lib/open-content";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,7 @@ const ELEVATE_ITEMS: ElevateItem[] = [
   { titleKey: "elevate.items.weekStructure", descKey: "elevate.descs.weekStructure", duration: "8 min", color: "from-blue-500/20 to-cyan-500/20", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
   { titleKey: "elevate.items.digitalDistraction", descKey: "elevate.descs.digitalDistraction", duration: "15 min", color: "from-emerald-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
   { titleKey: "elevate.items.idealMorning", descKey: "elevate.descs.idealMorning", duration: "10 min", color: "from-amber-500/20 to-orange-500/20", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
-  { titleKey: "elevate.items.energyManagement", descKey: "elevate.descs.energyManagement", duration: "7 min", color: "from-rose-500/20 to-pink-500/20", url: "https://www.youtube.com/watch?v=jDGMuwBuC9o" },
+  { titleKey: "elevate.items.energyManagement", descKey: "elevate.descs.energyManagement", duration: "12 min", color: "from-rose-500/20 to-pink-500/20", url: "https://www.youtube.com/watch?v=n3kNlFMXslo" },
   { titleKey: "elevate.items.mentalClarity", descKey: "elevate.descs.mentalClarity", duration: "5 min", color: "from-sky-500/20 to-blue-500/20", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
   { titleKey: "elevate.items.focusPsychology", descKey: "elevate.descs.focusPsychology", duration: "25 min", color: "from-purple-500/20 to-violet-500/20", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
   { titleKey: "elevate.items.travelProductivity", descKey: "elevate.descs.travelProductivity", duration: "6 min", color: "from-cyan-500/20 to-teal-500/20", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
@@ -98,14 +98,6 @@ export function ElevateSection() {
                   >
                     <ExternalLink className="h-3 w-3" />
                     {t('explore.open')}
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6"
-                    onClick={(e) => { e.stopPropagation(); }}
-                  >
-                    <Bookmark className="h-3 w-3" />
                   </Button>
                 </div>
                 {showComingSoon && (

@@ -16,6 +16,8 @@ export const HEALTHY_CATEGORIES = [
   "PlanesDeComida", // meal prep / weekly plans
   "Motivacional", // motivational audio / talks
   "Podcasts", // wellness podcasts
+  "Música", // music & focus playlists
+  "Audiolibros", // audiobooks & learning
 ] as const;
 
 export type HealthyCategory = (typeof HEALTHY_CATEGORIES)[number];
@@ -118,6 +120,8 @@ export const CATEGORY_SEARCH_QUERIES: Record<HealthyCategory, string> = {
   PlanesDeComida: "meal prep semanal saludable",
   Motivacional: "audio motivacional hábitos disciplina",
   Podcasts: "podcast bienestar y salud mental",
+  Música: "música para concentrarse y estudiar",
+  Audiolibros: "audiolibro desarrollo personal completo",
 };
 
 // Time-of-day → categories that fit that moment (used by contextual recs).

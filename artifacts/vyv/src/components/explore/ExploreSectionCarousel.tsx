@@ -104,19 +104,14 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   Motivacional: Megaphone,
 };
 
+// Curated sections only — each backed by real, verified content in the DB.
 export const EXPLORE_SECTIONS: SectionConfig[] = [
+  { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
+  { key: "Yoga", titleKey: "yoga", icon: "dumbbell", emoji: "🧘" },
+  { key: "Motivacional", titleKey: "motivational", icon: "megaphone", emoji: "🔥" },
+  { key: "Podcasts", titleKey: "podcasts", icon: "headphones", emoji: "🎙️" },
   { key: "Música", titleKey: "music", icon: "music", emoji: "🎵" },
   { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones", emoji: "🎧" },
-  { key: "Podcasts", titleKey: "podcasts", icon: "headphones", emoji: "🎙️" },
-  { key: "Yoga", titleKey: "yoga", icon: "dumbbell", emoji: "🧘" },
-  { key: "Pilates", titleKey: "pilates", icon: "dumbbell", emoji: "💪" },
-  { key: "Meditación", titleKey: "meditation", icon: "brain", emoji: "🧠" },
-  { key: "Calma", titleKey: "calm", icon: "wind", emoji: "🌿" },
-  { key: "Energía", titleKey: "energy", icon: "flame", emoji: "⚡" },
-  { key: "Ejercicios", titleKey: "exercises", icon: "dumbbell", emoji: "🏋️" },
-  { key: "Nutrición", titleKey: "nutrition", icon: "salad", emoji: "🥗" },
-  { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
-  { key: "Motivacional", titleKey: "motivational", icon: "megaphone", emoji: "🔥" },
 ];
 
 export function ExploreSectionCarousel({
@@ -186,7 +181,26 @@ export function ExploreSectionCarousel({
   }
 
   const items = data?.items ?? [];
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <div ref={sectionRef} className="space-y-3">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">{section.emoji}</span>
+          <h2
+            className={cn(
+              "font-bold tracking-tight text-foreground",
+              device.isMobile ? "text-lg" : "text-xl"
+            )}
+          >
+            {t(`explore.categories.${section.titleKey}`)}
+          </h2>
+        </div>
+        <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-5 text-center">
+          <p className="text-sm text-muted-foreground">{t("explore.sectionEmpty")}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={sectionRef} className="space-y-4">
@@ -257,6 +271,12 @@ export function ExploreSectionCarousel({
                     {item.title}
                   </h3>
 
+                  {item.description && (
+                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 whitespace-normal">
+                      {item.description}
+                    </p>
+                  )}
+
                   {/* Provider badge + duration */}
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-medium tracking-wide bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
@@ -291,11 +311,6 @@ export function ExploreSectionCarousel({
                       <Bookmark className="h-4 w-4" />
                     </button>
                   </div>
-
-                  {/* Coming soon note */}
-                  <p className="text-[10px] text-muted-foreground/50 pt-0.5">
-                    {t("explore.integrationComingSoon")}
-                  </p>
                 </div>
               </div>
             );

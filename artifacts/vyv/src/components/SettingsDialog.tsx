@@ -46,7 +46,6 @@ import {
   Scale,
   LogOut,
   Bell,
-  BellOff,
   User,
   Mail,
   KeyRound,
@@ -56,7 +55,6 @@ import {
   Trash2,
   Sparkles,
   Lightbulb,
-  SlidersHorizontal,
   HelpCircle,
   MessageCircle,
   AlertTriangle,
@@ -86,16 +84,6 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const navigate = useNavigate();
   const { replayTour } = useGuide();
 
-  // Local state for toggles (these would connect to real settings in production)
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [activityNotifications, setActivityNotifications] = useState(true);
-  const [requestsNotifications, setRequestsNotifications] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState(true);
-  const [quietMode, setQuietMode] = useState(false);
-  const [enableAI, setEnableAI] = useState(true);
-  const [routineRecommendations, setRoutineRecommendations] = useState(true);
-  const [reflectionPrompts, setReflectionPrompts] = useState(true);
-  const [personalizationLevel, setPersonalizationLevel] = useState<"minimal" | "balanced" | "guided">("balanced");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [autoSaveCaptures, setAutoSaveCaptures] = useState(() => getAutoSavePreference());
 
@@ -261,58 +249,41 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
               {/* Notifications */}
               <div>
-                <SectionHeader>{t("settings.notificationsSection")}</SectionHeader>
-                <div className="space-y-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">{t("settings.notificationsSection")}</h3>
+                  <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                    {t("settings.comingSoonBadge")}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {t("settings.notificationsComingSoonDesc")}
+                </p>
+                <div className="space-y-4 opacity-60">
                   <SettingRow
-                    icon={pushNotifications ? Bell : BellOff}
+                    icon={Bell}
                     label={t("settings.pushNotifications")}
-                    action={
-                      <Switch
-                        checked={pushNotifications}
-                        onCheckedChange={setPushNotifications}
-                      />
-                    }
+                    action={<Switch checked={false} disabled />}
                   />
                   <SettingRow
                     icon={Activity}
                     label={t("settings.activityNotifications")}
-                    action={
-                      <Switch
-                        checked={activityNotifications}
-                        onCheckedChange={setActivityNotifications}
-                      />
-                    }
+                    action={<Switch checked={false} disabled />}
                   />
                   <SettingRow
                     icon={Users}
                     label={t("settings.requestsNotifications")}
-                    action={
-                      <Switch
-                        checked={requestsNotifications}
-                        onCheckedChange={setRequestsNotifications}
-                      />
-                    }
+                    action={<Switch checked={false} disabled />}
                   />
                   <SettingRow
                     icon={Sparkles}
                     label={t("settings.aiNotifications")}
-                    action={
-                      <Switch
-                        checked={aiSuggestions}
-                        onCheckedChange={setAiSuggestions}
-                      />
-                    }
+                    action={<Switch checked={false} disabled />}
                   />
                   <SettingRow
                     icon={Moon}
                     label={t("settings.quietMode")}
                     description={t("settings.quietModeDesc")}
-                    action={
-                      <Switch
-                        checked={quietMode}
-                        onCheckedChange={setQuietMode}
-                      />
-                    }
+                    action={<Switch checked={false} disabled />}
                   />
                 </div>
               </div>
@@ -334,11 +305,13 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                   <LinkButton
                     icon={Mail}
                     label={t("settings.changeEmail")}
+                    description={t("settings.comingSoonBadge")}
                     onClick={handleComingSoon}
                   />
                   <LinkButton
                     icon={KeyRound}
                     label={t("settings.changePassword")}
+                    description={t("settings.comingSoonBadge")}
                     onClick={handleComingSoon}
                   />
                 </div>
@@ -373,11 +346,11 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <div className="mt-4">
                   <SettingRow
                     icon={Sparkles}
-                    label="VYV Guide calendar access"
+                    label={t("settings.aiCalendarAccess")}
                     description={
                       (profile as any)?.ai_calendar_access_enabled
-                        ? "Assistant can read your calendar and propose changes. You confirm every change."
-                        : "Off. Assistant cannot see or change your calendar."
+                        ? t("settings.aiCalendarAccessOnDesc")
+                        : t("settings.aiCalendarAccessOffDesc")
                     }
                     action={
                       <Switch
@@ -396,11 +369,11 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 <div className="mt-4">
                   <SettingRow
                     icon={Brain}
-                    label="My Memory"
+                    label={t("settings.myMemory")}
                     description={
                       (profile as any)?.ai_memory_enabled === false
-                        ? "Off. VYV Guide will not remember anything between chats."
-                        : "VYV Guide quietly remembers what you share so future chats feel personal."
+                        ? t("settings.myMemoryOffDesc")
+                        : t("settings.myMemoryOnDesc")
                     }
                     action={
                       <Switch
@@ -562,60 +535,31 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
               {/* AI & Experience */}
               <div>
-                <SectionHeader>{t("settings.aiExperience")}</SectionHeader>
-                <div className="space-y-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">{t("settings.aiExperience")}</h3>
+                  <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                    {t("settings.comingSoonBadge")}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {t("settings.aiExperienceComingSoonDesc")}
+                </p>
+                <div className="space-y-4 opacity-60">
                   <SettingRow
                     icon={Sparkles}
                     label={t("settings.enableAI")}
                     description={t("settings.enableAIDesc")}
-                    action={
-                      <Switch
-                        checked={enableAI}
-                        onCheckedChange={setEnableAI}
-                      />
-                    }
+                    action={<Switch checked={true} disabled />}
                   />
                   <SettingRow
                     icon={Lightbulb}
                     label={t("settings.routineRecommendations")}
-                    action={
-                      <Switch
-                        checked={routineRecommendations}
-                        onCheckedChange={setRoutineRecommendations}
-                        disabled={!enableAI}
-                      />
-                    }
+                    action={<Switch checked={true} disabled />}
                   />
                   <SettingRow
                     icon={MessageCircle}
                     label={t("settings.reflectionPrompts")}
-                    action={
-                      <Switch
-                        checked={reflectionPrompts}
-                        onCheckedChange={setReflectionPrompts}
-                        disabled={!enableAI}
-                      />
-                    }
-                  />
-                  <SettingRow
-                    icon={SlidersHorizontal}
-                    label={t("settings.personalizationLevel")}
-                    action={
-                      <Select
-                        value={personalizationLevel}
-                        onValueChange={(v) => setPersonalizationLevel(v as typeof personalizationLevel)}
-                        disabled={!enableAI}
-                      >
-                        <SelectTrigger className="w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="minimal">{t("settings.minimal")}</SelectItem>
-                          <SelectItem value="balanced">{t("settings.balanced")}</SelectItem>
-                          <SelectItem value="guided">{t("settings.guided")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    }
+                    action={<Switch checked={true} disabled />}
                   />
                 </div>
               </div>

@@ -63,14 +63,14 @@ const SecurityOnboarding = () => {
   const handleContinue = async () => {
     setIsCompleting(true);
     const success = await completeSecurityStep();
-    if (success) window.location.href = "/onboarding";
+    if (success) window.location.href = "/personalization";
     setIsCompleting(false);
   };
 
   const handleSkip = async () => {
     setIsCompleting(true);
     const success = await completeSecurityStep();
-    if (success) window.location.href = "/onboarding";
+    if (success) window.location.href = "/personalization";
     setIsCompleting(false);
   };
 
@@ -229,7 +229,7 @@ const SecurityOnboarding = () => {
 
         {/* Footer */}
         <p className="text-[11px] text-center text-muted-foreground/60">
-          Tu privacidad es lo primero.
+          {t("security.privacyFirst")}
         </p>
       </div>
     </div>

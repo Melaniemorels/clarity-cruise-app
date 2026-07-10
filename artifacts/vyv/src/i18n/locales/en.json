@@ -155,7 +155,8 @@
       "tryAnother": "Try another title, author or keyword.",
       "maybeInterest": "You might also like"
     },
-    "searchSection": "Search in this section…"
+    "searchSection": "Search in this section…",
+    "sectionEmpty": "We're still curating content for this collection. Check back soon."
   },
   "calendar": {
     "title": "Calendar",
@@ -321,7 +322,16 @@
     "findFriends": "Find friends",
     "findFriendsDesc": "Search and connect with people",
     "replayTour": "Replay tour",
-    "replayTourDesc": "Repeat the welcome walkthrough"
+    "replayTourDesc": "Repeat the welcome walkthrough",
+    "comingSoonBadge": "Coming soon",
+    "notificationsComingSoonDesc": "Notification controls will be available in a future update.",
+    "aiExperienceComingSoonDesc": "Fine-grained AI experience controls will be available in a future update.",
+    "aiCalendarAccess": "VYV Guide calendar access",
+    "aiCalendarAccessOnDesc": "Assistant can read your calendar and propose changes. You confirm every change.",
+    "aiCalendarAccessOffDesc": "Off. Assistant cannot see or change your calendar.",
+    "myMemory": "My Memory",
+    "myMemoryOnDesc": "VYV Guide quietly remembers what you share so future chats feel personal.",
+    "myMemoryOffDesc": "Off. VYV Guide will not remember anything between chats."
   },
   "devices": {
     "title": "Health Devices",
@@ -605,6 +615,42 @@
       "viewDevices": "View health devices",
       "doItLater": "Do it later",
       "privacyNote": "Your data stays private. You can manage connections anytime in Settings."
+    },
+    "personalization": {
+      "title": "Make VYV yours",
+      "description": "A few quick questions so your calendar, AI planner and Explorer fit how you live.",
+      "focusQuestion": "What do you want to organize better?",
+      "focus": {
+        "work": "Work",
+        "study": "Study",
+        "fitness": "Fitness",
+        "social": "Social life",
+        "selfcare": "Self-care",
+        "creativity": "Creativity"
+      },
+      "toneQuestion": "How should your AI planner talk to you?",
+      "tone": {
+        "gentle": "Gentle & encouraging",
+        "direct": "Direct & to the point"
+      },
+      "privateQuestion": "Start with a private profile?",
+      "privateHint": "Only approved followers see your activity. You can change this anytime.",
+      "continue": "Continue",
+      "skip": "Skip for now",
+      "note": "Your answers only personalize your experience. You can update them later in Settings.",
+      "saveError": "We couldn't save your answers. Please try again.",
+      "interestsQuestion": "Which areas interest you most?",
+      "interests": {
+        "fitness": "Fitness",
+        "wellness": "Wellness",
+        "social": "Social",
+        "productivity": "Productivity",
+        "creativity": "Creativity"
+      },
+      "calendarQuestion": "Connect your calendar",
+      "calendarHint": "Let VYV plan around your existing events.",
+      "availabilityQuestion": "Share availability with friends",
+      "availabilityHint": "Friends can see when you're free to meet up."
     }
   },
   "security": {
@@ -622,7 +668,8 @@
     "verifyWarning": "You must verify your email to continue. Check your inbox or spam folder.",
     "continue": "Continue",
     "doItLater": "Do it later",
-    "accountSecured": "Your account is verified and protected"
+    "accountSecured": "Your account is verified and protected",
+    "privacyFirst": "Your privacy comes first."
   },
   "recommendations": {
     "title": "For You",
@@ -899,7 +946,7 @@
       "weekStructure": "Week Structure",
       "digitalDistraction": "Digital Distraction",
       "idealMorning": "Ideal Morning",
-      "energyManagement": "Energy Management",
+      "energyManagement": "Time Management",
       "mentalClarity": "Mental Clarity",
       "focusPsychology": "Focus Psychology",
       "travelProductivity": "Travel Productivity"
@@ -909,7 +956,7 @@
       "weekStructure": "How to plan with the 80/20 method",
       "digitalDistraction": "Strategies to avoid interruptions",
       "idealMorning": "Design your morning routine",
-      "energyManagement": "Optimize energy, not time",
+      "energyManagement": "Gain control of your free time",
       "mentalClarity": "Quick clarity techniques",
       "focusPsychology": "The science behind concentration",
       "travelProductivity": "Keep your rhythm while traveling"

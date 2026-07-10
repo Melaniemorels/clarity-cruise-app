@@ -39,6 +39,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const DeviceSettings = lazy(() => import("./pages/DeviceSettings"));
 const DeviceOnboarding = lazy(() => import("./pages/DeviceOnboarding"));
 const SecurityOnboarding = lazy(() => import("./pages/SecurityOnboarding"));
+const Personalization = lazy(() => import("./pages/Personalization"));
 const MediaConnections = lazy(() => import("./pages/MediaConnections"));
 const FindFriends = lazy(() => import("./pages/FindFriends"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
@@ -296,6 +297,7 @@ const App = () => (
                   <Route path="/device-settings" element={<ProtectedRoute skipOnboardingCheck><DeviceSettings /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute skipOnboardingCheck><DeviceOnboarding /></ProtectedRoute>} />
                   <Route path="/security-onboarding" element={<ProtectedRoute skipOnboardingCheck><SecurityOnboarding /></ProtectedRoute>} />
+                  <Route path="/personalization" element={<ProtectedRoute skipOnboardingCheck><Personalization /></ProtectedRoute>} />
                   <Route path="/media-connections" element={<ProtectedRoute><MediaConnections /></ProtectedRoute>} />
                   <Route path="/find-friends" element={<ProtectedRoute><FindFriends /></ProtectedRoute>} />
                   <Route path="/u/:username" element={<PublicProfile />} />

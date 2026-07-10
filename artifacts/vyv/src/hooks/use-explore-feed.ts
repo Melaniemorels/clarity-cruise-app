@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface ExploreItem {
   id: string;
   title: string;
+  description: string | null;
   source: string;
   url: string;
   duration_min: number | null;
