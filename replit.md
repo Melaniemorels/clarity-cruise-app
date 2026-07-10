@@ -9,6 +9,7 @@ A social wellness app for planning your day intentionally: a calendar, an AI "pe
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/db run check-drift` — fail loudly if the Drizzle schema and the live DB disagree (registered as the `schema-drift` validation)
 - Required env: `DATABASE_URL` — Postgres connection string
 - Object storage env: `DEFAULT_OBJECT_STORAGE_BUCKET_ID`, `PRIVATE_OBJECT_DIR`, `PUBLIC_OBJECT_SEARCH_PATHS`
 - Auth env: `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY` (server), `VITE_CLERK_PUBLISHABLE_KEY` (frontend) — Replit-managed Clerk
