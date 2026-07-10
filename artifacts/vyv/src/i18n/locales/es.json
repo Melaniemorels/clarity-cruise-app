@@ -219,7 +219,11 @@
       "planSuggested": "\"{{plan}}\" sugerido",
       "inviteFriends": "Invitar amigos",
       "createPlan": "Crear plan",
-      "inviteSent": "Invitación enviada a {{name}}"
+      "inviteSent": "Invitación enviada a {{name}}",
+      "loading": "Comprobando la disponibilidad de tus amigos…",
+      "error": "No se pudo cargar la disponibilidad de tus amigos",
+      "noFriends": "Ningún amigo comparte disponibilidad todavía — conecta con amigos para encontrar tiempo libre en común",
+      "noSharedTime": "Hoy no hay tiempo libre en común con tus amigos"
     },
     "createPlan": {
       "title": "Crear un plan",

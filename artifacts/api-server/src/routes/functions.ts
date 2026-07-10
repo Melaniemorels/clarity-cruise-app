@@ -1246,25 +1246,61 @@ router.post(
       ]);
 
       const followerSet = new Set(followers.map((f) => f.id));
-      const friendIds = [
+      const mutualIds = [
         ...new Set(following.map((f) => f.id).filter((id) => followerSet.has(id))),
       ].slice(0, 50);
 
-      if (friendIds.length === 0) {
+      if (mutualIds.length === 0) {
         res.json({ friends: [], busy: [] });
         return;
       }
 
-      const [profileRows, busyRows] = await Promise.all([
+      // Privacy gate: a friend only contributes availability if their
+      // calendar section is shared (profile_section_visibility DB default is
+      // "public"; an explicit "private" opts out) and their profile is not
+      // private or suspended. Friends who don't share are omitted entirely.
+      const [allProfileRows, visibilityRows] = await Promise.all([
         db
           .select({
             user_id: vyvTables.profiles.user_id,
             handle: vyvTables.profiles.handle,
             name: vyvTables.profiles.name,
             photo_url: vyvTables.profiles.photo_url,
+            is_private: vyvTables.profiles.is_private,
+            is_suspended: vyvTables.profiles.is_suspended,
           })
           .from(vyvTables.profiles)
-          .where(inArray(vyvTables.profiles.user_id, friendIds)),
+          .where(inArray(vyvTables.profiles.user_id, mutualIds)),
+        db
+          .select({
+            user_id: vyvTables.profile_section_visibility.user_id,
+            calendar_visibility:
+              vyvTables.profile_section_visibility.calendar_visibility,
+          })
+          .from(vyvTables.profile_section_visibility)
+          .where(
+            inArray(vyvTables.profile_section_visibility.user_id, mutualIds),
+          ),
+      ]);
+
+      const calendarVisibility = new Map(
+        visibilityRows.map((v) => [v.user_id, v.calendar_visibility]),
+      );
+      const profileRows = allProfileRows.filter(
+        (p) =>
+          !p.is_private &&
+          !p.is_suspended &&
+          (calendarVisibility.get(p.user_id) ?? "public") === "public",
+      );
+      const friendIds = profileRows.map((p) => p.user_id);
+
+      if (friendIds.length === 0) {
+        res.json({ friends: [], busy: [] });
+        return;
+      }
+
+      // Busy = calendar events + schedule blocks overlapping the window.
+      const [eventRows, blockRows] = await Promise.all([
         db
           .select({
             friend_id: vyvTables.calendar_events.user_id,
@@ -1279,6 +1315,20 @@ router.post(
               gt(vyvTables.calendar_events.ends_at, dayStart),
             ),
           ),
+        db
+          .select({
+            friend_id: vyvTables.schedule_blocks.user_id,
+            starts_at: vyvTables.schedule_blocks.start_at,
+            ends_at: vyvTables.schedule_blocks.end_at,
+          })
+          .from(vyvTables.schedule_blocks)
+          .where(
+            and(
+              inArray(vyvTables.schedule_blocks.user_id, friendIds),
+              lt(vyvTables.schedule_blocks.start_at, dayEnd),
+              gt(vyvTables.schedule_blocks.end_at, dayStart),
+            ),
+          ),
       ]);
 
       res.json({
@@ -1288,7 +1338,7 @@ router.post(
           avatar: p.photo_url ?? undefined,
         })),
         // Only busy intervals are shared — no titles, notes or categories.
-        busy: busyRows.map((b) => ({
+        busy: [...eventRows, ...blockRows].map((b) => ({
           friendId: b.friend_id,
           starts_at: b.starts_at.toISOString(),
           ends_at: b.ends_at.toISOString(),

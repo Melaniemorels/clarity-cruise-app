@@ -219,7 +219,11 @@
       "planSuggested": "\"{{plan}}\" suggested",
       "inviteFriends": "Invite friends",
       "createPlan": "Create plan",
-      "inviteSent": "Invite sent to {{name}}"
+      "inviteSent": "Invite sent to {{name}}",
+      "loading": "Checking friends' availability…",
+      "error": "Couldn't load friends' availability",
+      "noFriends": "No friends sharing availability yet — connect with friends to find shared free time",
+      "noSharedTime": "No shared free time with friends today"
     },
     "createPlan": {
       "title": "Create a plan",

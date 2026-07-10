@@ -302,7 +302,12 @@ const Calendar = () => {
 
   const dayEvents = getEventsForDate(currentDate);
   const dayPhotos = getPhotosForDate(currentDate);
-  const friendHints = useFriendAvailability(currentDate, dayEvents);
+  const {
+    blocks: friendHints,
+    friends: availabilityFriends,
+    isLoading: isAvailabilityLoading,
+    isError: isAvailabilityError,
+  } = useFriendAvailability(currentDate, dayEvents);
 
   const device = useDevice();
   const navStyle = useNavStyle();
@@ -466,6 +471,27 @@ const Calendar = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Friend availability status — loading / error / empty states */}
+            {!isLoading && (
+              isAvailabilityLoading ? (
+                <p className="text-[11px] text-muted-foreground/60 px-1">
+                  {t('calendar.friendHint.loading')}
+                </p>
+              ) : isAvailabilityError ? (
+                <p className="text-[11px] text-muted-foreground/60 px-1">
+                  {t('calendar.friendHint.error')}
+                </p>
+              ) : availabilityFriends.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground/60 px-1">
+                  {t('calendar.friendHint.noFriends')}
+                </p>
+              ) : friendHints.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground/60 px-1">
+                  {t('calendar.friendHint.noSharedTime')}
+                </p>
+              ) : null
+            )}
 
             {/* Health Overlay */}
             <Card>

@@ -66,16 +66,25 @@ function toMinutes(iso: string, dayStart: Date, dayEnd: Date): number {
  * based on the friends' real calendar events.
  * Groups overlapping friends into single blocks.
  */
+export interface FriendAvailabilityResult {
+  /** Merged shared-free-time blocks between the user and their friends. */
+  blocks: SharedFreeBlock[];
+  /** Friends who share availability (privacy-gated server-side). */
+  friends: { id: string; name: string; avatar?: string }[];
+  isLoading: boolean;
+  isError: boolean;
+}
+
 export function useFriendAvailability(
   date: Date,
   events: EventBlock[]
-): SharedFreeBlock[] {
+): FriendAvailabilityResult {
   const { user } = useAuth();
   const dayStart = startOfDay(date);
   const dayEnd = endOfDay(date);
   const dayKey = dayStart.toISOString();
 
-  const { data } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["friend-availability", user?.id, dayKey],
     queryFn: async (): Promise<FriendAvailabilityResponse> => {
       const { data, error } = await supabase.functions.invoke(
@@ -94,7 +103,7 @@ export function useFriendAvailability(
     staleTime: 1000 * 60 * 2,
   });
 
-  return useMemo(() => {
+  const blocks = useMemo(() => {
     const friends = data?.friends ?? [];
     if (friends.length === 0) return [];
 
@@ -203,4 +212,11 @@ export function useFriendAvailability(
     // Limit to 2 suggestions max
     return merged.slice(0, 2);
   }, [date, events, data]);
+
+  return {
+    blocks,
+    friends: data?.friends ?? [],
+    isLoading: !!user && isLoading,
+    isError,
+  };
 }
