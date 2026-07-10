@@ -109,6 +109,21 @@ after(async () => {
     await db
       .delete(vyvTables.calendar_events)
       .where(inArray(vyvTables.calendar_events.user_id, ids));
+    await db
+      .delete(vyvTables.follows)
+      .where(inArray(vyvTables.follows.follower_id, ids));
+    await db
+      .delete(vyvTables.follows)
+      .where(inArray(vyvTables.follows.following_id, ids));
+    await db
+      .delete(vyvTables.social_plan_invites)
+      .where(inArray(vyvTables.social_plan_invites.invitee_id, ids));
+    await db
+      .delete(vyvTables.social_plans)
+      .where(inArray(vyvTables.social_plans.creator_id, ids));
+    await db
+      .delete(vyvTables.media_integrations)
+      .where(inArray(vyvTables.media_integrations.user_id, ids));
     for (const id of ids) {
       await db.delete(appUsers).where(eq(appUsers.id, id));
     }
@@ -179,4 +194,210 @@ test("unauthenticated request is rejected", async () => {
     body: JSON.stringify({ table: "notes", action: "select" }),
   });
   assert.equal(res.status, 401);
+});
+
+// ---------------------------------------------------------------------------
+// Mutation authorization: tables without a plain user_id column.
+// ---------------------------------------------------------------------------
+
+test("follows: insert cannot spoof follower_id (forced to caller)", async () => {
+  const res = await query("b", {
+    table: "follows",
+    action: "insert",
+    values: { follower_id: users.a.id, following_id: users.a.id },
+  });
+  assert.equal(res.error, null);
+  const row = (res.data ?? [])[0];
+  assert.ok(row, "insert should return the row");
+  assert.equal(row.follower_id, users.b.id, "follower_id must be the caller");
+});
+
+test("follows: a third party cannot delete someone else's follow edge", async () => {
+  // A follows B (seeded directly).
+  const [edge] = await db
+    .insert(vyvTables.follows)
+    .values({ follower_id: users.a.id, following_id: users.b.id })
+    .returning();
+  // B deletes it as the target — allowed (remove-follower flow).
+  const asTarget = await query("b", {
+    table: "follows",
+    action: "delete",
+    filters: [{ col: "id", op: "eq", val: edge.id }],
+  });
+  assert.equal(asTarget.error, null);
+  assert.equal((asTarget.data ?? []).length, 1, "target may remove a follower");
+
+  // Re-seed: A follows a synthetic third id; B is neither side.
+  const [edge2] = await db
+    .insert(vyvTables.follows)
+    .values({ follower_id: users.a.id, following_id: users.a.id })
+    .returning();
+  const asStranger = await query("b", {
+    table: "follows",
+    action: "delete",
+    filters: [{ col: "id", op: "eq", val: edge2.id }],
+  });
+  assert.equal(
+    (asStranger.data ?? []).length,
+    0,
+    "user B must not delete a follow edge they are not part of",
+  );
+  const still = await db
+    .select()
+    .from(vyvTables.follows)
+    .where(eq(vyvTables.follows.id, edge2.id));
+  assert.equal(still.length, 1, "edge must survive the foreign delete");
+});
+
+test("social_plans: creator forced on insert; strangers cannot update/delete", async () => {
+  const created = await query("a", {
+    table: "social_plans",
+    action: "insert",
+    values: {
+      creator_id: users.b.id, // spoof attempt
+      title: `PLAN-${marker}`,
+      plan_date: "2026-07-11",
+      start_minute: 600,
+      end_minute: 660,
+    },
+  });
+  assert.equal(created.error, null);
+  const plan = (created.data ?? [])[0];
+  assert.equal(plan.creator_id, users.a.id, "creator_id must be the caller");
+
+  const foreignUpdate = await query("b", {
+    table: "social_plans",
+    action: "update",
+    values: { title: "HIJACKED" },
+    filters: [{ col: "id", op: "eq", val: plan.id }],
+  });
+  assert.equal((foreignUpdate.data ?? []).length, 0, "B must not update A's plan");
+
+  const foreignDelete = await query("b", {
+    table: "social_plans",
+    action: "delete",
+    filters: [{ col: "id", op: "eq", val: plan.id }],
+  });
+  assert.equal((foreignDelete.data ?? []).length, 0, "B must not delete A's plan");
+
+  const [still] = await db
+    .select()
+    .from(vyvTables.social_plans)
+    .where(eq(vyvTables.social_plans.id, plan.id as string));
+  assert.equal(still.title, `PLAN-${marker}`, "plan must be unchanged");
+});
+
+test("social_plan_invites: only the plan's creator can invite; invitee can respond", async () => {
+  const [plan] = await db
+    .insert(vyvTables.social_plans)
+    .values({
+      creator_id: users.a.id,
+      title: `PLAN2-${marker}`,
+      plan_date: "2026-07-12",
+      start_minute: 600,
+      end_minute: 660,
+    })
+    .returning();
+
+  // B (not the creator) tries to invite themselves.
+  const foreignInvite = await query("b", {
+    table: "social_plan_invites",
+    action: "insert",
+    values: { plan_id: plan.id, invitee_id: users.b.id },
+  });
+  assert.ok(foreignInvite.error, "non-creator insert must be rejected");
+
+  // A (creator) invites B.
+  const invite = await query("a", {
+    table: "social_plan_invites",
+    action: "insert",
+    values: { plan_id: plan.id, invitee_id: users.b.id },
+  });
+  assert.equal(invite.error, null);
+  const inviteRow = (invite.data ?? [])[0];
+
+  // B (invitee) accepts.
+  const respond = await query("b", {
+    table: "social_plan_invites",
+    action: "update",
+    values: { status: "accepted" },
+    filters: [{ col: "id", op: "eq", val: inviteRow.id }],
+  });
+  assert.equal((respond.data ?? []).length, 1, "invitee may respond");
+
+  // A (not the invitee) cannot flip the response.
+  const creatorFlip = await query("a", {
+    table: "social_plan_invites",
+    action: "update",
+    values: { status: "declined" },
+    filters: [{ col: "id", op: "eq", val: inviteRow.id }],
+  });
+  assert.equal(
+    (creatorFlip.data ?? []).length,
+    0,
+    "only the invitee may change their response",
+  );
+});
+
+test("media_integrations: another user's row cannot be updated or deleted", async () => {
+  const [row] = await db
+    .insert(vyvTables.media_integrations)
+    .values({
+      user_id: users.a.id,
+      provider: "spotify",
+      is_active: true,
+      access_token: "sekret",
+    })
+    .returning();
+
+  const foreignUpdate = await query("b", {
+    table: "media_integrations",
+    action: "update",
+    values: { is_active: false },
+    filters: [{ col: "id", op: "eq", val: row.id }],
+  });
+  assert.equal((foreignUpdate.data ?? []).length, 0, "B must not touch A's integration");
+
+  const foreignDelete = await query("b", {
+    table: "media_integrations",
+    action: "delete",
+    filters: [{ col: "id", op: "eq", val: row.id }],
+  });
+  assert.equal((foreignDelete.data ?? []).length, 0, "B must not delete A's integration");
+
+  const [still] = await db
+    .select()
+    .from(vyvTables.media_integrations)
+    .where(eq(vyvTables.media_integrations.id, row.id));
+  assert.equal(still?.is_active, true, "integration must be unchanged");
+});
+
+test("update cannot reassign a row to another user (owner columns stripped)", async () => {
+  const inserted = await query("a", {
+    table: "notes",
+    action: "insert",
+    values: { title: `OWNNOTE-${marker}`, content: "x" },
+  });
+  const note = (inserted.data ?? [])[0];
+  const res = await query("a", {
+    table: "notes",
+    action: "update",
+    values: { user_id: users.b.id, title: `OWNNOTE2-${marker}` },
+    filters: [{ col: "id", op: "eq", val: note.id }],
+  });
+  assert.equal(res.error, null);
+  const updated = (res.data ?? [])[0];
+  assert.equal(updated.user_id, users.a.id, "user_id must not be reassignable");
+  assert.equal(updated.title, `OWNNOTE2-${marker}`);
+});
+
+test("global reference tables are read-only for clients", async () => {
+  for (const table of ["explore_items", "categories", "activity_types"]) {
+    const res = await query("a", {
+      table,
+      action: "insert",
+      values: { name: "nope" },
+    });
+    assert.ok(res.error, `insert into ${table} must be rejected`);
+  }
 });

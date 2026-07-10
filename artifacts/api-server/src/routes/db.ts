@@ -197,28 +197,138 @@ function buildWhere(
 }
 
 // Write authorization: the original app relied on Postgres RLS which the shim
-// removes. To prevent cross-user writes/deletes (IDOR), any mutation on a table
-// that has a `user_id` column is forced/scoped to the authenticated user. Reads
-// remain open because Phase-1 features (friend availability, public profiles,
-// explorer) legitimately read other users' rows.
+// removes. To prevent cross-user writes/deletes (IDOR), every mutation must be
+// tied to an owner column:
+//   - tables with `user_id`: forced/scoped to the authenticated user
+//   - tables with other owner semantics: see OWNER_RULES below
+//   - global/reference tables: client writes rejected outright
+// Reads remain open (outside PRIVATE_READ_TABLES) because Phase-1 features
+// (friend availability, public profiles, explorer) legitimately read other
+// users' rows.
+
+// Global/reference tables that clients must never mutate through this surface.
+// They are written server-side only (explore syncs, seeds).
+const READONLY_TABLES = new Set<string>([
+  "explore_items",
+  "categories",
+  "activity_types",
+]);
+
+// Owner semantics for mutable tables that don't use a plain `user_id` column.
+// insertOwner: column forced to the caller on insert/upsert.
+// mutateOwners: update/delete are scoped to rows where at least one of these
+// columns equals the caller (e.g. the target of a follow may accept/remove it).
+const OWNER_RULES: Record<
+  string,
+  { insertOwner?: string; mutateOwners: string[] }
+> = {
+  follows: {
+    insertOwner: "follower_id",
+    mutateOwners: ["follower_id", "following_id"],
+  },
+  follow_requests: {
+    insertOwner: "requester_id",
+    mutateOwners: ["requester_id", "target_id"],
+  },
+  social_plans: { insertOwner: "creator_id", mutateOwners: ["creator_id"] },
+  // Invites are created by the plan's creator (checked against social_plans
+  // in assertInsertAllowed) and responded to by the invitee.
+  social_plan_invites: { mutateOwners: ["invitee_id"] },
+};
+
+// Condition selecting only rows owned by the caller, or undefined when the
+// table has no ownership model (in which case the mutation must be rejected).
+function ownerCondition(
+  tableName: string,
+  cols: Record<string, AnyColumn>,
+  userId: string,
+): SQL | undefined {
+  const userCol = cols["user_id"];
+  if (userCol) return eq(userCol, userId);
+  const rule = OWNER_RULES[tableName];
+  if (!rule) return undefined;
+  const conds = rule.mutateOwners
+    .filter((c) => cols[c])
+    .map((c) => eq(cols[c], userId));
+  if (conds.length === 0) return undefined;
+  return conds.length === 1 ? conds[0] : or(...conds);
+}
+
 function ownershipScope(
+  tableName: string,
   cols: Record<string, AnyColumn>,
   where: SQL | undefined,
   userId: string,
 ): SQL | undefined {
-  const userCol = cols["user_id"];
-  if (!userCol) return where;
-  const scope = eq(userCol, userId);
+  const scope = ownerCondition(tableName, cols, userId);
+  if (!scope) return undefined;
   return where ? and(where, scope) : scope;
 }
 
 function forceOwner(
+  tableName: string,
   cols: Record<string, AnyColumn>,
   row: Record<string, unknown>,
   userId: string,
 ): Record<string, unknown> {
   if (cols["user_id"]) return { ...row, user_id: userId };
+  const rule = OWNER_RULES[tableName];
+  if (rule?.insertOwner && cols[rule.insertOwner]) {
+    return { ...row, [rule.insertOwner]: userId };
+  }
   return row;
+}
+
+// Columns a client may never change via update/upsert-update: rewriting an
+// owner column would reassign the row to (or from) another user.
+function ownerColumns(tableName: string): string[] {
+  const rule = OWNER_RULES[tableName];
+  return ["user_id", ...(rule ? rule.mutateOwners : [])];
+}
+
+function stripOwnerColumns(
+  tableName: string,
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const out = { ...values };
+  for (const col of ownerColumns(tableName)) delete out[col];
+  return out;
+}
+
+// Extra insert validation for tables whose rows reference another user by
+// design. Returns an error message, or null when the insert is allowed.
+async function assertInsertAllowed(
+  tableName: string,
+  rows: Record<string, unknown>[],
+  userId: string,
+): Promise<string | null> {
+  if (tableName !== "social_plan_invites") return null;
+  const planIds = [
+    ...new Set(
+      rows
+        .map((r) => r["plan_id"])
+        .filter((v): v is string => typeof v === "string" && v.length > 0),
+    ),
+  ];
+  if (planIds.length === 0 || rows.some((r) => !r["plan_id"])) {
+    return "plan_id is required";
+  }
+  const plans = getTable("social_plans");
+  if (!plans) return "social_plans not available";
+  const planCols = getTableColumns(plans) as unknown as Record<
+    string,
+    AnyColumn
+  >;
+  const owned = await db
+    .select({ id: sql<string>`${planCols["id"]}` })
+    .from(plans)
+    .where(
+      and(inArray(planCols["id"], planIds), eq(planCols["creator_id"], userId)),
+    );
+  if (owned.length !== planIds.length) {
+    return "Cannot invite to a plan you did not create";
+  }
+  return null;
 }
 
 // Coerce incoming JSON values to types drizzle expects (timestamps as Date).
@@ -268,12 +378,20 @@ router.post(
     try {
       const where = buildWhere(cols, payload.filters);
 
+      if (payload.action !== "select" && READONLY_TABLES.has(payload.table)) {
+        res.status(403).json({
+          data: null,
+          error: { message: `Table ${payload.table} is read-only` },
+        });
+        return;
+      }
+
       switch (payload.action) {
         case "select": {
           // Force owner-scope on reads of strictly-personal tables so an
           // authenticated caller cannot read another user's private rows.
           const readWhere = PRIVATE_READ_TABLES.has(payload.table)
-            ? ownershipScope(cols, where, userId)
+            ? ownershipScope(payload.table, cols, where, userId)
             : where;
 
           // Count-only (head) request.
@@ -346,8 +464,24 @@ router.post(
             ? payload.values
             : [payload.values ?? {}];
           const cleaned = rawList.map((v) =>
-            forceOwner(cols, coerceValues(cols, v as Record<string, unknown>), userId),
+            forceOwner(
+              payload.table,
+              cols,
+              coerceValues(cols, v as Record<string, unknown>),
+              userId,
+            ),
           );
+          const insertError = await assertInsertAllowed(
+            payload.table,
+            cleaned,
+            userId,
+          );
+          if (insertError) {
+            res
+              .status(403)
+              .json({ data: null, error: { message: insertError } });
+            return;
+          }
           const inserted = await db
             .insert(table)
             .values(cleaned)
@@ -361,8 +495,24 @@ router.post(
             ? payload.values
             : [payload.values ?? {}];
           const cleaned = rawList.map((v) =>
-            forceOwner(cols, coerceValues(cols, v as Record<string, unknown>), userId),
+            forceOwner(
+              payload.table,
+              cols,
+              coerceValues(cols, v as Record<string, unknown>),
+              userId,
+            ),
           );
+          const upsertError = await assertInsertAllowed(
+            payload.table,
+            cleaned,
+            userId,
+          );
+          if (upsertError) {
+            res
+              .status(403)
+              .json({ data: null, error: { message: upsertError } });
+            return;
+          }
           const conflictCols = (payload.onConflict ?? "")
             .split(",")
             .map((c) => c.trim())
@@ -388,13 +538,28 @@ router.post(
             return;
           }
 
-          // Update all provided (non-conflict) columns on conflict.
+          // Update all provided (non-conflict) columns on conflict — but never
+          // owner columns, and only when the existing row belongs to the
+          // caller (setWhere), so an upsert cannot hijack another user's row.
           const setObj: Record<string, unknown> = {};
           const conflictNames = new Set(
             (payload.onConflict ?? "").split(",").map((c) => c.trim()),
           );
+          const protectedCols = new Set(ownerColumns(payload.table));
           for (const key of Object.keys(cleaned[0] ?? {})) {
-            if (!conflictNames.has(key)) setObj[key] = sql.raw(`excluded."${key}"`);
+            if (!conflictNames.has(key) && !protectedCols.has(key)) {
+              setObj[key] = sql.raw(`excluded."${key}"`);
+            }
+          }
+          const upsertScope = ownerCondition(payload.table, cols, userId);
+          if (!upsertScope) {
+            res.status(403).json({
+              data: null,
+              error: {
+                message: `Refusing upsert on ${payload.table}: no ownership model`,
+              },
+            });
+            return;
           }
           const result = await db
             .insert(table)
@@ -402,6 +567,7 @@ router.post(
             .onConflictDoUpdate({
               target: conflictCols as never,
               set: setObj,
+              setWhere: upsertScope,
             })
             .returning();
           finishWrite(res, payload, result);
@@ -409,15 +575,24 @@ router.post(
         }
 
         case "update": {
-          const cleaned = coerceValues(
-            cols,
-            (payload.values as Record<string, unknown>) ?? {},
+          const cleaned = stripOwnerColumns(
+            payload.table,
+            coerceValues(cols, (payload.values as Record<string, unknown>) ?? {}),
           );
-          const writeWhere = ownershipScope(cols, where, userId);
-          if (!writeWhere) {
+          if (Object.keys(cleaned).length === 0) {
             res.status(400).json({
               data: null,
-              error: { message: "Refusing unscoped update (no filter)" },
+              error: { message: "No updatable columns in payload" },
+            });
+            return;
+          }
+          const writeWhere = ownershipScope(payload.table, cols, where, userId);
+          if (!writeWhere) {
+            res.status(403).json({
+              data: null,
+              error: {
+                message: `Refusing update on ${payload.table}: no ownership model`,
+              },
             });
             return;
           }
@@ -431,11 +606,13 @@ router.post(
         }
 
         case "delete": {
-          const writeWhere = ownershipScope(cols, where, userId);
+          const writeWhere = ownershipScope(payload.table, cols, where, userId);
           if (!writeWhere) {
-            res.status(400).json({
+            res.status(403).json({
               data: null,
-              error: { message: "Refusing unscoped delete (no filter)" },
+              error: {
+                message: `Refusing delete on ${payload.table}: no ownership model`,
+              },
             });
             return;
           }
