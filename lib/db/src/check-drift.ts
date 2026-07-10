@@ -54,6 +54,17 @@ type LiveColumn = {
   is_nullable: "YES" | "NO";
 };
 
+type LiveUniqueIndex = {
+  table_name: string;
+  index_name: string;
+  columns: string[];
+};
+
+// Canonical key for a set of columns, order-insensitive.
+function columnSetKey(columns: string[]): string {
+  return [...columns].sort().join(",");
+}
+
 async function main() {
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
@@ -64,7 +75,39 @@ async function main() {
       WHERE table_schema = 'public'
       ORDER BY table_name, ordinal_position`,
   );
+
+  // All unique indexes in the live DB. This covers UNIQUE constraints,
+  // PRIMARY KEYs, and standalone CREATE UNIQUE INDEX — Postgres backs all of
+  // them with an entry in pg_index where indisunique = true.
+  const { rows: uniqueIndexRows } = await client.query<LiveUniqueIndex>(
+    `SELECT t.relname AS table_name,
+            i.relname AS index_name,
+            array_agg(a.attname::text ORDER BY k.ord) AS columns
+       FROM pg_index ix
+       JOIN pg_class t ON t.oid = ix.indrelid
+       JOIN pg_class i ON i.oid = ix.indexrelid
+       JOIN pg_namespace n ON n.oid = t.relnamespace
+       JOIN LATERAL unnest(ix.indkey) WITH ORDINALITY AS k(attnum, ord)
+            ON k.attnum <> 0
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public'
+        AND ix.indisunique
+        AND ix.indpred IS NULL
+        AND ix.indexprs IS NULL
+      GROUP BY t.relname, i.relname`,
+  );
   await client.end();
+
+  // table name -> set of columnSetKey() for every live unique index.
+  const liveUniqueSets = new Map<string, Set<string>>();
+  for (const row of uniqueIndexRows) {
+    let sets = liveUniqueSets.get(row.table_name);
+    if (!sets) {
+      sets = new Set();
+      liveUniqueSets.set(row.table_name, sets);
+    }
+    sets.add(columnSetKey(row.columns));
+  }
 
   const liveTables = new Map<string, Map<string, LiveColumn>>();
   for (const row of rows) {
@@ -128,6 +171,52 @@ async function main() {
       if (!schemaColNames.has(liveColName)) {
         errors.push(
           `Column "${tableName}.${liveColName}" exists in the database but is not in the Drizzle schema (possible rename drift).`,
+        );
+      }
+    }
+
+    // Unique constraint / index drift: every uniqueness rule declared in the
+    // Drizzle schema must be backed by a live unique index on the same column
+    // set. A silently-dropped unique index (e.g. on app_users.email or
+    // app_users.clerk_user_id) would let duplicate rows in with no error.
+    const declaredUniques: { columns: string[]; label: string }[] = [];
+    for (const col of config.columns) {
+      if (col.isUnique) {
+        declaredUniques.push({
+          columns: [col.name],
+          label: `column .unique() on "${col.name}"`,
+        });
+      }
+    }
+    for (const uc of config.uniqueConstraints) {
+      declaredUniques.push({
+        columns: uc.columns.map((c) => c.name),
+        label: `unique constraint on (${uc.columns.map((c) => c.name).join(", ")})`,
+      });
+    }
+    for (const idx of config.indexes) {
+      if (!idx.config.unique) continue;
+      const colNames: string[] = [];
+      let hasExpression = false;
+      for (const c of idx.config.columns) {
+        if (c && typeof c === "object" && "name" in c && typeof c.name === "string") {
+          colNames.push(c.name);
+        } else {
+          hasExpression = true; // expression index: can't compare by column set
+        }
+      }
+      if (hasExpression || colNames.length === 0) continue;
+      declaredUniques.push({
+        columns: colNames,
+        label: `unique index on (${colNames.join(", ")})`,
+      });
+    }
+
+    const liveSets = liveUniqueSets.get(tableName) ?? new Set<string>();
+    for (const u of declaredUniques) {
+      if (!liveSets.has(columnSetKey(u.columns))) {
+        errors.push(
+          `Table "${tableName}": ${u.label} is declared in the Drizzle schema but no matching unique index/constraint exists in the database (duplicate rows possible).`,
         );
       }
     }
