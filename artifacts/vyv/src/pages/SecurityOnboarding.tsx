@@ -63,14 +63,14 @@ const SecurityOnboarding = () => {
   const handleContinue = async () => {
     setIsCompleting(true);
     const success = await completeSecurityStep();
-    if (success) window.location.href = "/personalization";
+    if (success) window.location.href = "/profile-setup";
     setIsCompleting(false);
   };
 
   const handleSkip = async () => {
     setIsCompleting(true);
     const success = await completeSecurityStep();
-    if (success) window.location.href = "/personalization";
+    if (success) window.location.href = "/profile-setup";
     setIsCompleting(false);
   };
 

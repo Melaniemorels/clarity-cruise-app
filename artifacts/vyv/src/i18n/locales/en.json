@@ -616,6 +616,16 @@
       "doItLater": "Do it later",
       "privacyNote": "Your data stays private. You can manage connections anytime in Settings."
     },
+    "profile": {
+      "title": "Complete your profile",
+      "description": "Pick your username and photo so your friends can find you on VYV.",
+      "addPhoto": "Add photo",
+      "changePhoto": "Change photo",
+      "usernameHint": "3-20 characters: lowercase letters, numbers and underscores.",
+      "continue": "Continue",
+      "skip": "Do it later",
+      "saveError": "We couldn't save your profile. Please try again."
+    },
     "personalization": {
       "title": "Make VYV yours",
       "description": "A few quick questions so your calendar, AI planner and Explorer fit how you live.",

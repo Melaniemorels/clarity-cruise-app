@@ -2,20 +2,21 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export type OnboardingStep = "security" | "personalization" | "devices" | "done";
+export type OnboardingStep = "security" | "profile" | "personalization" | "devices" | "done";
 
 interface ProfileOnboardingState {
   security_onboarding_completed: boolean;
+  profile_setup_completed: boolean;
   personalization_completed: boolean;
   onboarding_completed: boolean;
 }
 
 /**
  * Unified onboarding step hook that derives the current step from
- * security_onboarding_completed, personalization_completed and
- * onboarding_completed flags.
+ * security_onboarding_completed, profile_setup_completed,
+ * personalization_completed and onboarding_completed flags.
  *
- * Flow: security → personalization → devices → done
+ * Flow: security → profile → personalization → devices → done
  */
 export function useOnboardingStep() {
   const { user } = useAuth();
@@ -31,7 +32,7 @@ export function useOnboardingStep() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("security_onboarding_completed, personalization_completed, onboarding_completed")
+        .select("security_onboarding_completed, profile_setup_completed, personalization_completed, onboarding_completed")
         .eq("user_id", user.id)
         .single();
 
@@ -39,14 +40,17 @@ export function useOnboardingStep() {
 
       const profile = data as unknown as ProfileOnboardingState | null;
       const securityDone = profile?.security_onboarding_completed ?? false;
+      const profileDone = profile?.profile_setup_completed ?? false;
       const personalizationDone = profile?.personalization_completed ?? false;
       const devicesDone = profile?.onboarding_completed ?? false;
 
-      // Derive step from flags
+      // Derive step from flags. Existing users who already finished
+      // onboarding (devicesDone) skip the newer steps.
       if (!securityDone) {
         setStep("security");
+      } else if (!profileDone && !devicesDone) {
+        setStep("profile");
       } else if (!personalizationDone && !devicesDone) {
-        // Existing users who already finished onboarding skip personalization
         setStep("personalization");
       } else if (!devicesDone) {
         setStep("devices");
@@ -76,10 +80,28 @@ export function useOnboardingStep() {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      setStep("personalization");
+      setStep("profile");
       return true;
     } catch (error) {
       console.error("Error completing security step:", error);
+      return false;
+    }
+  }, [user]);
+
+  const completeProfileStep = useCallback(async (): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ profile_setup_completed: true } as any)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      setStep("personalization");
+      return true;
+    } catch (error) {
+      console.error("Error completing profile step:", error);
       return false;
     }
   }, [user]);
@@ -133,6 +155,7 @@ export function useOnboardingStep() {
     step,
     loading,
     completeSecurityStep,
+    completeProfileStep,
     completePersonalizationStep,
     completeDevicesStep,
     refetch: fetchStep,

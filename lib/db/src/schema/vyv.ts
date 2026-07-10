@@ -65,6 +65,9 @@ export const profiles = pgTable("profiles", {
   personalization_completed: boolean("personalization_completed")
     .notNull()
     .default(false),
+  profile_setup_completed: boolean("profile_setup_completed")
+    .notNull()
+    .default(false),
   // Onboarding personalization answers: { organize: string[], connectCalendar:
   // boolean, shareAvailability: boolean, interests: string[], aiTone:
   // "soft"|"direct", startPrivate: boolean }

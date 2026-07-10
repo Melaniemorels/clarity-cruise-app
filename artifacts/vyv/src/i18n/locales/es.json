@@ -616,6 +616,16 @@
       "doItLater": "Hacerlo después",
       "privacyNote": "Tus datos permanecen privados. Puedes gestionar conexiones en Configuración."
     },
+    "profile": {
+      "title": "Completa tu perfil",
+      "description": "Elige tu nombre de usuario y foto para que tus amigos te encuentren en VYV.",
+      "addPhoto": "Agregar foto",
+      "changePhoto": "Cambiar foto",
+      "usernameHint": "3-20 caracteres: letras minúsculas, números y guiones bajos.",
+      "continue": "Continuar",
+      "skip": "Hacerlo después",
+      "saveError": "No pudimos guardar tu perfil. Inténtalo de nuevo."
+    },
     "personalization": {
       "title": "Haz que VYV sea tuyo",
       "description": "Unas preguntas rápidas para que tu calendario, tu planificador con IA y el Explorador se adapten a ti.",
