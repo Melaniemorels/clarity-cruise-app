@@ -51,39 +51,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      try {
-        const res = await fetch(`${BASE}/auth/user`, {
-          credentials: "include",
-        });
-        const json = await res.json();
-        const internalUser = (json?.data?.user ?? null) as User | null;
-        if (cancelled) return;
+      // Right after an OAuth return (e.g. Apple/Google), Clerk reports
+      // isSignedIn before the session cookie is usable by our API, so the
+      // first bridge fetch can 401. Retry briefly instead of giving up —
+      // giving up while Clerk still holds a session causes a redirect loop
+      // between ProtectedRoute (→ /sign-in) and Clerk's <SignIn> (→ /).
+      const MAX_ATTEMPTS = 5;
+      const RETRY_DELAY_MS = 1000;
 
-        if (internalUser) {
-          const now = Math.floor(Date.now() / 1000);
-          // access_token is a sentinel — transport is cookie-based (Clerk),
-          // but the app has many `if (session?.access_token)` truthy guards.
-          const sess = {
-            access_token: "clerk",
-            token_type: "bearer",
-            expires_in: 3600,
-            expires_at: now + 3600,
-            refresh_token: "clerk",
-            user: internalUser,
-          } as unknown as Session;
-          setUser(internalUser);
-          setSession(sess);
-          setShimSession(sess);
-        } else {
-          clearAuth();
-          return;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const res = await fetch(`${BASE}/auth/user`, {
+            credentials: "include",
+          });
+          const json = await res.json();
+          const internalUser = (json?.data?.user ?? null) as User | null;
+          if (cancelled) return;
+
+          if (internalUser) {
+            const now = Math.floor(Date.now() / 1000);
+            // access_token is a sentinel — transport is cookie-based (Clerk),
+            // but the app has many `if (session?.access_token)` truthy guards.
+            const sess = {
+              access_token: "clerk",
+              token_type: "bearer",
+              expires_in: 3600,
+              expires_at: now + 3600,
+              refresh_token: "clerk",
+              user: internalUser,
+            } as unknown as Session;
+            setUser(internalUser);
+            setSession(sess);
+            setShimSession(sess);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          /* network hiccup — fall through to retry */
         }
-      } catch {
-        clearAuth();
-        return;
-      } finally {
-        if (!cancelled) setLoading(false);
+
+        if (cancelled) return;
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+          if (cancelled) return;
+        }
       }
+
+      // The Clerk session could not be bridged to an internal account.
+      // Leaving Clerk signed-in while the app is signed-out would loop the
+      // router forever, so drop the Clerk session for a clean signed-out state.
+      console.error(
+        "Auth bridge failed after retries; signing out to avoid a redirect loop.",
+      );
+      try {
+        await clerk.signOut();
+      } catch {
+        /* best effort */
+      }
+      clearAuth();
     };
 
     void sync();

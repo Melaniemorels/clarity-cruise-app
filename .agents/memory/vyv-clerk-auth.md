@@ -65,3 +65,18 @@ resolution changed.
 - e2e (testing skill, `testClerkAuth: true`): signed-out -> /sign-in; programmatic
   Clerk sign-in lands in app; `GET /api/auth/user` returns internal UUID + email;
   signed-in visit to /sign-in redirects away.
+
+## Bridge failure modes (hard-won)
+- `attachUser` swallows ALL errors and treats them as "unauthenticated". If the
+  drizzle schema and the live DB drift (e.g. a column rename not pushed), every
+  request 401s app-wide and it looks like an auth/transport bug. When "valid
+  Clerk session but /api/auth/user 401s", first verify the `app_users` columns
+  match the drizzle schema (`clerk_user_id`), then suspect transport.
+- Right after an OAuth return, Clerk reports isSignedIn before the session is
+  bridgeable; AuthContext retries the /auth/user fetch (5x1s) and, if it still
+  fails, calls clerk.signOut() — otherwise the router loops forever between
+  ProtectedRoute (→ /sign-in) and Clerk's <SignIn> (→ /) and the browser throws
+  "history.replaceState more than 100 times per 10 seconds".
+- Apple sign-in needs no code: enabling it in the Auth pane (Development) uses
+  Clerk shared credentials and the button auto-appears. Production/App Store
+  later requires the user's own Apple Developer credentials.
