@@ -9,6 +9,7 @@ description: When Drizzle schema column names drift from the live DB, the auth m
 - **Why:** The schema declared `clerk_user_id` while the live column was `clerk_id`. `attachUser` swallowed the failed query, so Clerk auth succeeded (valid userId) but the internal-user lookup threw → no `req.authUser` → blanket 401 with zero log output. Cost several e2e runs to find.
 - **How to apply:** Keep a log line in the `attachUser` catch (never fully swallow). Fix drift with an in-place `ALTER TABLE ... RENAME COLUMN` (preserves data + unique index) instead of drizzle push, which may drop/recreate.
 - **Guard:** A registered `schema-drift` validation (`pnpm --filter @workspace/db run check-drift`) compares the Drizzle schema against information_schema and exits 1 on any table/column/type/nullability disagreement. Run it whenever auth 401s look unexplained or after any schema change. Note: information_schema reports array udt_names with a leading underscore (`text[]` → `_text`).
+- **Recurs per environment:** each isolated task environment carries its own dev-DB copy, so the same drift (e.g. `clerk_id` vs `clerk_user_id`) can resurface in a fresh environment even after being fixed elsewhere. Check and fix the local DB before debugging auth in a new environment.
 
 # Renames never survive the post-merge script (recurring)
 
