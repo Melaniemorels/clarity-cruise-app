@@ -1268,6 +1268,8 @@ router.post(
             photo_url: vyvTables.profiles.photo_url,
             is_private: vyvTables.profiles.is_private,
             is_suspended: vyvTables.profiles.is_suspended,
+            home_timezone: vyvTables.profiles.home_timezone,
+            current_timezone: vyvTables.profiles.current_timezone,
           })
           .from(vyvTables.profiles)
           .where(inArray(vyvTables.profiles.user_id, mutualIds)),
@@ -1336,6 +1338,8 @@ router.post(
           id: p.user_id,
           name: p.name || p.handle,
           avatar: p.photo_url ?? undefined,
+          // Where the friend currently is takes precedence over home base.
+          timezone: p.current_timezone ?? p.home_timezone ?? undefined,
         })),
         // Only busy intervals are shared — no titles, notes or categories.
         busy: [...eventRows, ...blockRows].map((b) => ({

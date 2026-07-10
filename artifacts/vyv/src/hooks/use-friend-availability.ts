@@ -19,7 +19,7 @@ export interface SharedFreeBlock {
 }
 
 interface FriendAvailabilityResponse {
-  friends: { id: string; name: string; avatar?: string }[];
+  friends: { id: string; name: string; avatar?: string; timezone?: string }[];
   busy: { friendId: string; starts_at: string; ends_at: string }[];
 }
 
@@ -31,24 +31,127 @@ interface EventBlock {
 const DAY_START = 7 * 60;
 const DAY_END = 22 * 60;
 
-// Build free intervals (7:00-22:00) from a list of busy intervals in minutes
-function freeFromBusy(
-  busy: { start: number; end: number }[]
-): { start: number; end: number }[] {
-  const sorted = [...busy].sort((a, b) => a.start - b.start);
-  const free: { start: number; end: number }[] = [];
-  let cursor = DAY_START;
+interface Interval {
+  start: number;
+  end: number;
+}
 
-  for (const b of sorted) {
-    if (b.start > cursor) {
-      free.push({ start: cursor, end: Math.min(b.start, DAY_END) });
+// Build free intervals from a list of busy intervals (all in viewer-local
+// minutes), constrained to the given waking-hours windows. Defaults to the
+// viewer-local 7:00-22:00 window.
+function freeFromBusy(
+  busy: Interval[],
+  windows: Interval[] = [{ start: DAY_START, end: DAY_END }]
+): Interval[] {
+  const sorted = [...busy].sort((a, b) => a.start - b.start);
+  const free: Interval[] = [];
+
+  for (const w of windows) {
+    let cursor = w.start;
+    for (const b of sorted) {
+      if (b.end <= cursor) continue;
+      if (b.start >= w.end) break;
+      if (b.start > cursor) {
+        free.push({ start: cursor, end: Math.min(b.start, w.end) });
+      }
+      cursor = Math.max(cursor, b.end);
+      if (cursor >= w.end) break;
     }
-    cursor = Math.max(cursor, b.end);
-  }
-  if (cursor < DAY_END) {
-    free.push({ start: cursor, end: DAY_END });
+    if (cursor < w.end) {
+      free.push({ start: cursor, end: w.end });
+    }
   }
   return free.filter((f) => f.end > f.start);
+}
+
+// --- Timezone helpers -------------------------------------------------------
+// A friend in another timezone is awake during *their* 7:00-22:00, not the
+// viewer's. These helpers express a friend's waking hours as viewer-local
+// minutes on the viewed day so free windows can be clipped to them.
+
+interface WallParts {
+  y: number;
+  m: number;
+  d: number;
+  h: number;
+  min: number;
+}
+
+function getWallParts(instant: Date, timeZone: string): WallParts {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts: Record<string, number> = {};
+  for (const p of fmt.formatToParts(instant)) {
+    if (p.type !== "literal") parts[p.type] = Number(p.value);
+  }
+  return {
+    y: parts.year,
+    m: parts.month,
+    d: parts.day,
+    h: parts.hour % 24,
+    min: parts.minute,
+  };
+}
+
+// Absolute instant for a wall-clock time in a given IANA timezone.
+function wallTimeToUtc(
+  timeZone: string,
+  y: number,
+  m: number,
+  d: number,
+  h: number,
+  min: number
+): Date {
+  const target = Date.UTC(y, m - 1, d, h, min);
+  let utc = target;
+  for (let i = 0; i < 2; i++) {
+    const w = getWallParts(new Date(utc), timeZone);
+    const asUtc = Date.UTC(w.y, w.m - 1, w.d, w.h, w.min);
+    utc += target - asUtc;
+  }
+  return new Date(utc);
+}
+
+// The friend's 7:00-22:00 waking windows (in their own timezone) that overlap
+// the viewed day, expressed as viewer-local minutes clamped to the day.
+// Returns null if the timezone is unknown/invalid (caller falls back to the
+// viewer-local default window).
+function friendWakingWindows(
+  timeZone: string,
+  dayStart: Date,
+  dayEnd: Date
+): Interval[] | null {
+  try {
+    const seen = new Set<string>();
+    const friendDays: WallParts[] = [];
+    for (const instant of [dayStart, dayEnd]) {
+      const w = getWallParts(instant, timeZone);
+      const key = `${w.y}-${w.m}-${w.d}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        friendDays.push(w);
+      }
+    }
+
+    const windows: Interval[] = [];
+    for (const day of friendDays) {
+      const startAbs = wallTimeToUtc(timeZone, day.y, day.m, day.d, 7, 0);
+      const endAbs = wallTimeToUtc(timeZone, day.y, day.m, day.d, 22, 0);
+      const start = toMinutes(startAbs.toISOString(), dayStart, dayEnd);
+      const end = toMinutes(endAbs.toISOString(), dayStart, dayEnd);
+      if (end > start) windows.push({ start, end });
+    }
+    return windows;
+  } catch {
+    return null;
+  }
 }
 
 // Convert an absolute instant to viewer-local minutes-from-midnight, clamped
@@ -133,9 +236,20 @@ export function useFriendAvailability(
       busyByFriend.set(b.friendId, list);
     }
 
+    const viewerTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const friendSlots: FriendFreeSlot[] = [];
     for (const friend of friends) {
-      const free = freeFromBusy(busyByFriend.get(friend.id) ?? []);
+      // Clip a remote friend's free time to *their* local 7:00-22:00 so we
+      // never suggest hanging out while they're asleep.
+      const windows =
+        friend.timezone && friend.timezone !== viewerTz
+          ? friendWakingWindows(friend.timezone, dayStart, dayEnd)
+          : null;
+      const free = freeFromBusy(
+        busyByFriend.get(friend.id) ?? [],
+        windows ?? undefined
+      );
       for (const slot of free) {
         friendSlots.push({
           friendId: friend.id,
