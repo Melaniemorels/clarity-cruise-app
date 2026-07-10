@@ -58,16 +58,18 @@ const Calendar = () => {
 
   // Fetch events from database
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ['calendar-events'],
+    queryKey: ['calendar-events', user?.id],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('calendar_events')
         .select('*')
+        .eq('user_id', user!.id)
         .order('starts_at', { ascending: true });
       
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   // Fetch photo entries from database

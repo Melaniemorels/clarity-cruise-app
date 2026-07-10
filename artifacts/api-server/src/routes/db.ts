@@ -62,11 +62,16 @@ function getTable(name: string) {
 // an authenticated caller cannot pull another user's private data by omitting a
 // user_id filter. Tables deliberately left OUT (open reads) are the ones Phase-1
 // legitimately reads across users: profiles/follows/handle_changes/section
-// visibility (public/social graph), calendar_events + schedule_blocks (friend
-// availability overlap), posts/post_likes/reactions (feed), explore_items +
-// categories + activity_types (public content/reference), social_plans +
-// social_plan_invites (shared planning).
+// visibility (public/social graph), posts/post_likes/reactions (feed),
+// explore_items + categories + activity_types (public content/reference),
+// social_plans + social_plan_invites (shared planning).
+// calendar_events + schedule_blocks ARE private here: the friend-availability
+// overlap feature reads them server-side in functions.ts (direct db access),
+// never through this generic query surface, so client reads are always
+// own-rows-only.
 const PRIVATE_READ_TABLES = new Set<string>([
+  "calendar_events",
+  "schedule_blocks",
   "media_consent",
   "notes",
   "entries",
@@ -108,6 +113,28 @@ function buildCondition(
 ): SQL | undefined {
   const column = cols[f.col];
   if (!column) return undefined; // unknown column -> ignore filter
+
+  // Coerce string filter values to Date for timestamp columns — drizzle's
+  // date-mode timestamps call value.toISOString() when binding params, so a
+  // raw ISO string from the client would throw a TypeError at query time.
+  const isTimestamp = String(
+    (column as { columnType?: string }).columnType,
+  ).includes("Timestamp");
+  if (isTimestamp) {
+    if (typeof f.val === "string") {
+      const d = new Date(f.val);
+      if (!Number.isNaN(d.getTime())) f = { ...f, val: d };
+    } else if (Array.isArray(f.val)) {
+      f = {
+        ...f,
+        val: f.val.map((v) =>
+          typeof v === "string" && !Number.isNaN(new Date(v).getTime())
+            ? new Date(v)
+            : v,
+        ),
+      };
+    }
+  }
 
   const negate = f.op.startsWith("not_");
   const op = negate ? f.op.slice(4) : f.op;

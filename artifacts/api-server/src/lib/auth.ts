@@ -179,8 +179,11 @@ export async function attachUser(
       const user = await resolveInternalUser(clerkUserId);
       if (user) req.authUser = user;
     }
-  } catch {
-    /* treat as unauthenticated */
+  } catch (err) {
+    // Treat as unauthenticated, but never silently: a swallowed error here
+    // (e.g. a failing app_users query) turns every request into a 401 with
+    // no trace, which is extremely hard to debug.
+    console.warn(`[auth] attachUser failed, treating as unauthenticated: ${String(err)}`);
   }
   next();
 }
