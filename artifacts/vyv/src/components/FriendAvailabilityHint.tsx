@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Users, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Users, ChevronDown, ChevronUp, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { SharedFreeBlock } from "@/hooks/use-friend-availability";
 import { CreatePlanSheet } from "@/components/CreatePlanSheet";
+import { useCreateSocialPlan } from "@/hooks/use-create-social-plan";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PLAN_CATEGORIES = {
@@ -26,15 +27,19 @@ const PLAN_CATEGORIES = {
 interface FriendAvailabilityHintProps {
   block: SharedFreeBlock;
   pixelsPerMinute: number;
+  date?: Date;
 }
 
 export const FriendAvailabilityHint = ({
   block,
   pixelsPerMinute,
+  date,
 }: FriendAvailabilityHintProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [createPlanOpen, setCreatePlanOpen] = useState(false);
+  const createSocialPlan = useCreateSocialPlan();
+  const sending = createSocialPlan.isPending;
 
   // Guard against missing data
   const friends = block?.friends ?? [];
@@ -63,12 +68,43 @@ export const FriendAvailabilityHint = ({
     });
   };
 
-  const handleSuggestPlan = (planKey: string, e: React.MouseEvent) => {
+  const sendPlanInvite = async (title: string, successMessage: string) => {
+    if (sending) return;
+    try {
+      const { invitedCount } = await createSocialPlan.mutateAsync({
+        title,
+        date,
+        startMinute: block.startMinute,
+        endMinute: block.endMinute,
+        friends,
+      });
+      if (invitedCount > 0) {
+        toast.success(successMessage, { duration: 2500 });
+      } else {
+        toast.error(t("calendar.friendHint.inviteError"));
+      }
+    } catch (error) {
+      console.error("Error sending plan invite:", error);
+      toast.error(t("calendar.friendHint.inviteError"));
+    }
+  };
+
+  const handleSuggestPlan = async (planKey: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const planName = t(`calendar.friendHint.plans.${planKey}`);
-    toast.success(
-      t("calendar.friendHint.planSuggested", { plan: planName }),
-      { duration: 2500 }
+    await sendPlanInvite(
+      planName,
+      t("calendar.friendHint.planSuggested", { plan: planName })
+    );
+  };
+
+  const handleInviteFriends = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await sendPlanInvite(
+      t("calendar.friendHint.defaultPlanTitle"),
+      t("calendar.friendHint.inviteSent", {
+        name: friends.map((f) => f.name).join(", "),
+      })
     );
   };
 
@@ -169,9 +205,11 @@ export const FriendAvailabilityHint = ({
                         <button
                           key={plan.key}
                           onClick={(e) => handleSuggestPlan(plan.key, e)}
+                          disabled={sending}
                           className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
                             bg-background text-foreground/70 hover:bg-secondary/50 
-                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                            transition-colors duration-200 whitespace-nowrap flex-shrink-0
+                            disabled:opacity-50 disabled:pointer-events-none"
                         >
                           {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
                         </button>
@@ -186,9 +224,11 @@ export const FriendAvailabilityHint = ({
                         <button
                           key={plan.key}
                           onClick={(e) => handleSuggestPlan(plan.key, e)}
+                          disabled={sending}
                           className="text-[10px] px-3 py-1.5 rounded-full border border-border/60 
                             bg-background text-foreground/70 hover:bg-secondary/50 
-                            transition-colors duration-200 whitespace-nowrap flex-shrink-0"
+                            transition-colors duration-200 whitespace-nowrap flex-shrink-0
+                            disabled:opacity-50 disabled:pointer-events-none"
                         >
                           {plan.icon} {t(`calendar.friendHint.plans.${plan.key}`)}
                         </button>
@@ -202,19 +242,17 @@ export const FriendAvailabilityHint = ({
                   {/* Actions */}
                   <div className="flex gap-4">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.success(
-                          t("calendar.friendHint.inviteSent", {
-                            name: friends.map((f) => f.name).join(", "),
-                          }),
-                          { duration: 2500 }
-                        );
-                      }}
+                      onClick={handleInviteFriends}
+                      disabled={sending}
                       className="text-[10px] font-medium text-primary/60 hover:text-primary 
-                        transition-colors duration-200 flex items-center gap-1.5"
+                        transition-colors duration-200 flex items-center gap-1.5
+                        disabled:opacity-50 disabled:pointer-events-none"
                     >
-                      <Users className="h-3 w-3" />
+                      {sending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Users className="h-3 w-3" />
+                      )}
                       {t("calendar.friendHint.inviteFriends")}
                     </button>
                     <button
@@ -242,6 +280,7 @@ export const FriendAvailabilityHint = ({
         friends={friends}
         startMinute={block.startMinute}
         endMinute={block.endMinute}
+        date={date}
       />
     </>
   );

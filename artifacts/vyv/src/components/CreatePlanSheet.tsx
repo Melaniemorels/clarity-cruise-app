@@ -11,9 +11,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateNotification } from "@/hooks/use-notifications";
+import { useCreateSocialPlan } from "@/hooks/use-create-social-plan";
 
 interface CreatePlanSheetProps {
   open: boolean;
@@ -21,6 +20,7 @@ interface CreatePlanSheetProps {
   friends: { id?: string; name: string; avatar?: string }[];
   startMinute: number;
   endMinute: number;
+  date?: Date;
 }
 
 export const CreatePlanSheet = ({
@@ -29,10 +29,11 @@ export const CreatePlanSheet = ({
   friends,
   startMinute,
   endMinute,
+  date,
 }: CreatePlanSheetProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const createNotification = useCreateNotification();
+  const createSocialPlan = useCreateSocialPlan();
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -68,50 +69,14 @@ export const CreatePlanSheet = ({
     setSaving(true);
 
     try {
-      // 1. Create the plan
-      const { data: plan, error: planError } = await supabase
-        .from("social_plans" as any)
-        .insert({
-          creator_id: user.id,
-          title: title.trim(),
-          note: note.trim() || null,
-          plan_date: new Date().toISOString().split("T")[0],
-          start_minute: startMinute,
-          end_minute: endMinute,
-        })
-        .select("id")
-        .maybeSingle();
-
-      if (planError) throw planError;
-
-      const planId = (plan as any)?.id;
-      if (!planId) throw new Error("Plan creation failed");
-
-      // 2. Create invites and notifications for friends with real IDs
-      const invitedFriends = friends.filter(
-        (f) => f.id && selectedFriends.includes(f.name)
-      );
-
-      if (invitedFriends.length > 0 && planId) {
-        // Insert invites
-        const invites = invitedFriends.map((f) => ({
-          plan_id: planId,
-          invitee_id: f.id!,
-        }));
-
-        await supabase.from("social_plan_invites" as any).insert(invites);
-
-        // Send notifications to each invited friend
-        for (const friend of invitedFriends) {
-          await createNotification.mutateAsync({
-            user_id: friend.id!,
-            type: "plan_invite",
-            actor_id: user.id,
-            reference_id: planId,
-            message: title.trim(),
-          });
-        }
-      }
+      await createSocialPlan.mutateAsync({
+        title,
+        note,
+        date,
+        startMinute,
+        endMinute,
+        friends: friends.filter((f) => selectedFriends.includes(f.name)),
+      });
 
       toast.success(t("calendar.createPlan.created"), { duration: 2500 });
       setTitle("");

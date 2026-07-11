@@ -216,10 +216,12 @@
         "workout": "Workout class",
         "dinner": "Spontaneous dinner"
       },
-      "planSuggested": "\"{{plan}}\" suggested",
+      "planSuggested": "\"{{plan}}\" sent as an invite",
       "inviteFriends": "Invite friends",
       "createPlan": "Create plan",
       "inviteSent": "Invite sent to {{name}}",
+      "inviteError": "Could not send the invite",
+      "defaultPlanTitle": "Hang out",
       "loading": "Checking friends' availability…",
       "error": "Couldn't load friends' availability",
       "noFriends": "No friends sharing availability yet — connect with friends to find shared free time",

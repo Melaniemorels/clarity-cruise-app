@@ -216,10 +216,12 @@
         "workout": "Clase de ejercicio",
         "dinner": "Cena espontánea"
       },
-      "planSuggested": "\"{{plan}}\" sugerido",
+      "planSuggested": "\"{{plan}}\" enviado como invitación",
       "inviteFriends": "Invitar amigos",
       "createPlan": "Crear plan",
       "inviteSent": "Invitación enviada a {{name}}",
+      "inviteError": "No se pudo enviar la invitación",
+      "defaultPlanTitle": "Quedamos",
       "loading": "Comprobando la disponibilidad de tus amigos…",
       "error": "No se pudo cargar la disponibilidad de tus amigos",
       "noFriends": "Ningún amigo comparte disponibilidad todavía — conecta con amigos para encontrar tiempo libre en común",

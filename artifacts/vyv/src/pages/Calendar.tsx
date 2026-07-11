@@ -463,6 +463,7 @@ const Calendar = () => {
                             key={`friend-hint-${idx}`}
                             block={hint}
                             pixelsPerMinute={PIXELS_PER_MINUTE}
+                            date={currentDate}
                           />
                         ))}
                       </div>

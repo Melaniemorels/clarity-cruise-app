@@ -271,6 +271,12 @@ function forceOwner(
   row: Record<string, unknown>,
   userId: string,
 ): Record<string, unknown> {
+  // Notifications are the one legitimate cross-user insert: the recipient
+  // (user_id) is another user, but the actor is ALWAYS the authenticated
+  // caller so nobody can forge notifications on someone else's behalf.
+  if (tableName === "notifications") {
+    return { ...row, actor_id: userId };
+  }
   if (cols["user_id"]) return { ...row, user_id: userId };
   const rule = OWNER_RULES[tableName];
   if (rule?.insertOwner && cols[rule.insertOwner]) {
