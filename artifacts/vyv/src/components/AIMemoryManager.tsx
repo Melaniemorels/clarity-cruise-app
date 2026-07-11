@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pencil, Trash2, Check, X, Brain, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -20,19 +21,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const TYPE_LABEL: Record<string, string> = {
-  preference: "Preference",
-  goal: "Goal",
-  routine: "Routine",
-  relationship: "Relationship",
-  health: "Health",
-  work: "Work",
-  calendar: "Calendar",
-  interest: "Interest",
-  other: "Other",
+const TYPE_KEY: Record<string, string> = {
+  preference: "assistant.memories.typePreference",
+  goal: "assistant.memories.typeGoal",
+  routine: "assistant.memories.typeRoutine",
+  relationship: "assistant.memories.typeRelationship",
+  health: "assistant.memories.typeHealth",
+  work: "assistant.memories.typeWork",
+  calendar: "assistant.memories.typeCalendar",
+  interest: "assistant.memories.typeInterest",
+  other: "assistant.memories.typeOther",
 };
 
 function MemoryRow({ memory }: { memory: AIMemory }) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(memory.content);
   const update = useUpdateAIMemory();
@@ -43,7 +45,7 @@ function MemoryRow({ memory }: { memory: AIMemory }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-medium">
-            {TYPE_LABEL[memory.memory_type] || memory.memory_type}
+            {TYPE_KEY[memory.memory_type] ? t(TYPE_KEY[memory.memory_type]) : memory.memory_type}
           </span>
           <span className="text-[10px] text-muted-foreground/60">
             · {memory.importance_score}/10
@@ -74,7 +76,7 @@ function MemoryRow({ memory }: { memory: AIMemory }) {
                 setEditing(false);
               }}
               className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-secondary"
-              aria-label="Save"
+              aria-label={t("assistant.memories.save")}
             >
               <Check className="h-3.5 w-3.5" />
             </button>
@@ -84,7 +86,7 @@ function MemoryRow({ memory }: { memory: AIMemory }) {
                 setEditing(false);
               }}
               className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-secondary"
-              aria-label="Cancel"
+              aria-label={t("assistant.memories.cancel")}
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -94,14 +96,14 @@ function MemoryRow({ memory }: { memory: AIMemory }) {
             <button
               onClick={() => setEditing(true)}
               className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-secondary text-muted-foreground"
-              aria-label="Edit"
+              aria-label={t("assistant.memories.edit")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => remove.mutate(memory.id)}
               className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-              aria-label="Delete"
+              aria-label={t("assistant.memories.delete")}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -113,6 +115,7 @@ function MemoryRow({ memory }: { memory: AIMemory }) {
 }
 
 export function AIMemoryManager() {
+  const { t } = useTranslation();
   const { data: memories, isLoading } = useAIMemories();
   const clearAll = useClearAIMemories();
 
@@ -123,31 +126,28 @@ export function AIMemoryManager() {
           <Brain className="h-3.5 w-3.5" />
           <span>
             {isLoading
-              ? "Loading…"
-              : `${memories?.length || 0} saved ${
-                  (memories?.length || 0) === 1 ? "memory" : "memories"
-                }`}
+              ? t("assistant.memories.loading")
+              : t("assistant.memories.savedCount", { count: memories?.length || 0 })}
           </span>
         </div>
         {!!memories?.length && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button className="text-[11px] text-destructive hover:underline">
-                Clear all
+                {t("assistant.memories.clearAll")}
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Clear all memories?</AlertDialogTitle>
+                <AlertDialogTitle>{t("assistant.memories.clearTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  VYV Guide will forget everything it has learned about you. This can't be
-                  undone.
+                  {t("assistant.memories.clearBody")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("assistant.memories.cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={() => clearAll.mutate()}>
-                  Clear
+                  {t("assistant.memories.clear")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -158,7 +158,7 @@ export function AIMemoryManager() {
       {!isLoading && !memories?.length && (
         <div className="flex items-center gap-2 py-3 text-[12px] text-muted-foreground/80">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>Nothing remembered yet. As you chat, VYV will quietly remember what matters.</span>
+          <span>{t("assistant.memories.empty")}</span>
         </div>
       )}
 

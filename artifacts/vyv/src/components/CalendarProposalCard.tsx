@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, X, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,16 +44,17 @@ interface Props {
 }
 
 export function CalendarProposalCard({ proposal, prompt }: Props) {
+  const { t } = useTranslation();
   const [state, setState] = useState<"idle" | "loading" | "done" | "cancelled" | "error">(
     "idle"
   );
 
   const label =
     proposal.action === "create"
-      ? "Add to calendar"
+      ? t("assistant.proposal.addToCalendar")
       : proposal.action === "update"
-      ? "Update event"
-      : "Delete event";
+      ? t("assistant.proposal.updateEvent")
+      : t("assistant.proposal.deleteEvent");
 
   const confirm = async () => {
     setState("loading");
@@ -77,12 +79,12 @@ export function CalendarProposalCard({ proposal, prompt }: Props) {
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       setState("done");
-      toast({ title: "Calendar updated" });
+      toast({ title: t("assistant.proposal.calendarUpdated") });
     } catch (e: any) {
       setState("error");
       toast({
-        title: "Could not update",
-        description: e?.message || "Try again",
+        title: t("assistant.proposal.couldNotUpdate"),
+        description: e?.message || t("assistant.proposal.tryAgain"),
         variant: "destructive",
       });
     }
@@ -131,7 +133,7 @@ export function CalendarProposalCard({ proposal, prompt }: Props) {
               "active:scale-[0.98] transition"
             )}
           >
-            Confirm
+            {t("assistant.proposal.confirm")}
           </button>
           <button
             onClick={() => setState("cancelled")}
@@ -140,7 +142,7 @@ export function CalendarProposalCard({ proposal, prompt }: Props) {
               "text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition"
             )}
           >
-            Cancel
+            {t("assistant.proposal.cancel")}
           </button>
         </div>
       )}
@@ -151,12 +153,12 @@ export function CalendarProposalCard({ proposal, prompt }: Props) {
       )}
       {state === "done" && (
         <div className="flex items-center gap-1.5 mt-3 text-[12px] text-primary">
-          <Check className="h-3.5 w-3.5" /> Done
+          <Check className="h-3.5 w-3.5" /> {t("assistant.proposal.done")}
         </div>
       )}
       {state === "cancelled" && (
         <div className="flex items-center gap-1.5 mt-3 text-[12px] text-muted-foreground">
-          <X className="h-3.5 w-3.5" /> Cancelled
+          <X className="h-3.5 w-3.5" /> {t("assistant.proposal.cancelled")}
         </div>
       )}
       {state === "error" && (
@@ -164,7 +166,7 @@ export function CalendarProposalCard({ proposal, prompt }: Props) {
           onClick={confirm}
           className="mt-3 text-[12px] text-destructive underline"
         >
-          Retry
+          {t("assistant.proposal.retry")}
         </button>
       )}
     </div>

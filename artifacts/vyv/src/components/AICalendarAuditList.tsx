@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -24,23 +25,24 @@ function formatWhen(iso: string) {
   });
 }
 
-function summarize(row: AuditRow) {
+function summarize(row: AuditRow, t: (key: string) => string) {
   const title =
     row.after?.title ||
     row.before?.title ||
-    (row.event_id ? "Event" : "Calendar change");
+    (row.event_id ? t("assistant.audit.event") : t("assistant.audit.calendarChange"));
   const action =
     row.action === "create"
-      ? "Created"
+      ? t("assistant.audit.created")
       : row.action === "update"
-      ? "Updated"
+      ? t("assistant.audit.updated")
       : row.action === "delete"
-      ? "Removed"
+      ? t("assistant.audit.removed")
       : row.action;
   return `${action} · ${title}`;
 }
 
 export function AICalendarAuditList() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -68,7 +70,7 @@ export function AICalendarAuditList() {
           "text-[12px] text-muted-foreground hover:text-foreground transition-colors"
         )}
       >
-        <span>View audit log</span>
+        <span>{t("assistant.audit.viewLog")}</span>
         {open ? (
           <ChevronUp className="h-3.5 w-3.5" />
         ) : (
@@ -80,12 +82,12 @@ export function AICalendarAuditList() {
         <div className="border-t border-border/50 max-h-64 overflow-y-auto">
           {isLoading && (
             <div className="px-3.5 py-3 text-[12px] text-muted-foreground">
-              Loading…
+              {t("assistant.audit.loading")}
             </div>
           )}
           {!isLoading && (!data || data.length === 0) && (
             <div className="px-3.5 py-3 text-[12px] text-muted-foreground">
-              No changes yet.
+              {t("assistant.audit.noChanges")}
             </div>
           )}
           {!isLoading &&
@@ -97,7 +99,7 @@ export function AICalendarAuditList() {
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="text-[12px] text-foreground/85 tracking-[-0.01em]">
-                    {summarize(row)}
+                    {summarize(row, t)}
                   </span>
                   <span className="text-[10.5px] text-muted-foreground tabular-nums shrink-0">
                     {formatWhen(row.created_at)}

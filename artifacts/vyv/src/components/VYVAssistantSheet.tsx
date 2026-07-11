@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { X, ArrowUp, RotateCcw, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -57,17 +58,17 @@ function AssistantMessage({ content }: { content: string }) {
   );
 }
 
-const QUICK_PROMPTS = [
-  "I feel unmotivated",
-  "I want to reset my energy",
-  "I need clarity",
-  "I feel a bit off today",
-  "I want to do something meaningful",
-  "I need a small win",
-  "I want to get out of my head",
-  "I don't know what to do",
-  "I'm stuck",
-  "I need to move",
+const QUICK_PROMPT_KEYS = [
+  "assistant.quick1",
+  "assistant.quick2",
+  "assistant.quick3",
+  "assistant.quick4",
+  "assistant.quick5",
+  "assistant.quick6",
+  "assistant.quick7",
+  "assistant.quick8",
+  "assistant.quick9",
+  "assistant.quick10",
 ];
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vyv-assistant`;
@@ -78,6 +79,7 @@ interface Props {
 }
 
 export function VYVAssistantSheet({ open, onOpenChange }: Props) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -103,7 +105,7 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
 
   const downloadChat = useCallback(() => {
     const text = messages
-      .map((m) => `${m.role === "user" ? "You" : "VYV Guide"}: ${m.content}`)
+      .map((m) => `${m.role === "user" ? t("assistant.you") : t("assistant.title")}: ${m.content}`)
       .join("\n\n");
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -112,8 +114,8 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
     a.download = `vyv-guide-${new Date().toISOString().slice(0, 10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Saved", description: "Conversation downloaded." });
-  }, [messages]);
+    toast({ title: t("assistant.savedTitle"), description: t("assistant.savedDesc") });
+  }, [messages, t]);
 
   const handleNewChat = useCallback(() => {
     if (messages.length > 0 && !showSavePrompt) {
@@ -170,10 +172,10 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
 
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
-          throw new Error(err.error || "Something went wrong");
+          throw new Error(err.error || t("assistant.somethingWrong"));
         }
 
-        if (!resp.body) throw new Error("No response");
+        if (!resp.body) throw new Error(t("assistant.noResponse"));
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
@@ -217,26 +219,26 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
         }
       } catch (e: any) {
         toast({
-          title: "VYV Guide",
-          description: e.message || "Could not connect",
+          title: t("assistant.title"),
+          description: e.message || t("assistant.couldNotConnect"),
           variant: "destructive",
         });
       } finally {
         setIsLoading(false);
       }
     },
-    [messages, isLoading, calendarAccess]
+    [messages, isLoading, calendarAccess, t]
   );
 
   const grantCalendarAccess = useCallback(async () => {
     try {
       await updateProfile.mutateAsync({ ai_calendar_access_enabled: true } as any);
       setShowCalendarConsent(false);
-      toast({ title: "Calendar connected" });
+      toast({ title: t("assistant.calendarConnected") });
     } catch {
-      toast({ title: "Could not enable", variant: "destructive" });
+      toast({ title: t("assistant.couldNotEnable"), variant: "destructive" });
     }
-  }, [updateProfile]);
+  }, [updateProfile, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -268,13 +270,13 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
         {/* header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
           <span className="text-sm font-semibold tracking-tight text-foreground">
-            VYV Guide
+            {t("assistant.title")}
           </span>
           <div className="flex items-center gap-1">
             {messages.length > 0 && (
               <button
                 onClick={handleNewChat}
-                aria-label="New conversation"
+                aria-label={t("assistant.newConversation")}
                 className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
@@ -293,20 +295,20 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
         {showSavePrompt && (
           <div className="px-5 py-3 border-b border-border/30 bg-secondary/20 animate-in fade-in-0 duration-200">
             <p className="text-xs text-muted-foreground mb-2">
-              Would you like to save this conversation before starting fresh?
+              {t("assistant.savePrompt")}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={saveAndReset}
                 className="px-3 py-1 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Save and start new
+                {t("assistant.saveAndNew")}
               </button>
               <button
                 onClick={dismissSaveAndReset}
                 className="px-3 py-1 text-xs rounded-lg border border-border text-muted-foreground hover:bg-secondary transition-colors"
               >
-                Just start new
+                {t("assistant.justNew")}
               </button>
             </div>
           </div>
@@ -317,12 +319,14 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-[260px]">
-                A quiet space for clarity. What's on your mind?
+                {t("assistant.emptyPrompt")}
               </p>
               <div className="flex flex-wrap justify-center gap-2">
-                {QUICK_PROMPTS.map((p) => (
+                {QUICK_PROMPT_KEYS.map((key) => {
+                  const p = t(key);
+                  return (
                   <button
-                    key={p}
+                    key={key}
                     onClick={() => send(p)}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-xs",
@@ -333,7 +337,8 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
                   >
                     {p}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -358,7 +363,7 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
                 )}
                 {proposal && !calendarAccess && (
                   <div className="mt-2 text-[12px] text-muted-foreground italic">
-                    Enable calendar access to apply this.
+                    {t("assistant.enableCalendarHint")}
                   </div>
                 )}
               </div>
@@ -373,23 +378,23 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
                 </div>
                 <div className="flex-1">
                   <div className="text-[13px] text-foreground leading-[1.5]">
-                    Let VYV Guide see your calendar?
+                    {t("assistant.consentTitle")}
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-0.5">
-                    Read-only at first. Any change is asked before it happens.
+                    {t("assistant.consentBody")}
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={grantCalendarAccess}
                       className="h-8 px-3 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium"
                     >
-                      Allow
+                      {t("assistant.allow")}
                     </button>
                     <button
                       onClick={() => setShowCalendarConsent(false)}
                       className="h-8 px-3 rounded-lg border border-border/60 text-[12px] text-muted-foreground"
                     >
-                      Not now
+                      {t("assistant.notNow")}
                     </button>
                   </div>
                 </div>
@@ -414,7 +419,7 @@ export function VYVAssistantSheet({ open, onOpenChange }: Props) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask something..."
+              placeholder={t("assistant.placeholder")}
               rows={1}
               className={cn(
                 "flex-1 resize-none bg-transparent text-sm",
