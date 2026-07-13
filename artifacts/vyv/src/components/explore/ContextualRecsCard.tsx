@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { ExplorerContentCard } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
 import { categoryLabelKey } from "@/lib/explore-categories";
+import { translateReason } from "@/lib/explore-reasons";
 import { useExplorerCardActions, urlRef } from "./use-explorer-card-actions";
 import type { ExplorerItemRef } from "@/hooks/use-saved-items";
 
@@ -62,7 +63,7 @@ function ContextualCard({ rec }: { rec: ContextualRec }) {
   return (
     <ExplorerContentCard
       title={rec.title}
-      reason={rec.reason}
+      reason={translateReason(t, rec.reason)}
       providerLabelKey={rec.url ? PROVIDER_LABEL_KEYS[provider] : null}
       categoryLabelKey={categoryLabelKey(rec.category)}
       durationMin={rec.duration_min}
@@ -85,10 +86,17 @@ export function ExplorerContextualRecs() {
   const hasCalendar = !!(data?.signals as any)?.calendar?.next_event_title;
 
   const handleRefresh = () => {
-    refreshMutation.mutate("explorer", {
-      onSuccess: () => toast.success(t("recommendations.refreshed")),
-      onError: (err) => toast.error(err.message),
-    });
+    // Send the ids currently on screen so the refresh shows different items.
+    const excludeIds = recs
+      .map((r) => (r as { item_id?: string }).item_id)
+      .filter((id): id is string => !!id);
+    refreshMutation.mutate(
+      { target: "explorer", excludeIds },
+      {
+        onSuccess: () => toast.success(t("recommendations.refreshed")),
+        onError: (err) => toast.error(err.message),
+      },
+    );
   };
 
   if (!isLoading && recs.length === 0 && !error) return null;

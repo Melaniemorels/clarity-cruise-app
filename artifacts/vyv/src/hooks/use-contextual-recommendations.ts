@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import type { FeedReason } from "@/lib/explore-reasons";
 
 export interface ContextualRec {
   title: string;
   category: string;
-  reason: string;
+  reason: FeedReason | string;
   duration_min: number;
   mood: string;
   url?: string;
@@ -29,7 +30,8 @@ export interface ContextualRecommendationsResponse {
 async function fetchContextualRecs(
   target: "home" | "explorer" | "both",
   language: string,
-  forceRefresh = false
+  forceRefresh = false,
+  excludeIds?: string[]
 ): Promise<ContextualRecommendationsResponse> {
   // Always fetch a fresh session so an expired access_token is auto-refreshed
   const { data: { session } } = await supabase.auth.getSession();
@@ -49,6 +51,7 @@ async function fetchContextualRecs(
         target,
         language,
         force_refresh: forceRefresh,
+        exclude_ids: excludeIds?.length ? excludeIds : undefined,
       }),
     }
   );
@@ -102,13 +105,29 @@ export function useRefreshContextualRecs() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (target: "home" | "explorer" | "both") => {
+    mutationFn: async (
+      input:
+        | "home"
+        | "explorer"
+        | "both"
+        | { target: "home" | "explorer" | "both"; excludeIds?: string[] }
+    ) => {
       if (!session) throw new Error("Not authenticated");
+      const { target, excludeIds } =
+        typeof input === "string" ? { target: input, excludeIds: undefined } : input;
       const lang = i18n.language?.split("-")[0] || "es";
-      return fetchContextualRecs(target, lang, true);
+      return fetchContextualRecs(target, lang, true, excludeIds);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
+    onSuccess: (data, input) => {
+      // Write the fresh response (which honored exclude_ids) straight into the
+      // cache. A plain invalidate would refetch WITHOUT the exclusions and
+      // overwrite this result with the same items we just asked to replace.
+      const target = typeof input === "string" ? input : input.target;
+      const lang = i18n.language?.split("-")[0] || "es";
+      const targets = target === "both" ? ["explorer", "home"] : [target];
+      for (const key of targets) {
+        queryClient.setQueryData(["contextual-recs", key, lang], data);
+      }
     },
   });
 }

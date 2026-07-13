@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tansta
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { FeedReason } from "@/lib/explore-reasons";
 
 export interface ExploreItem {
   id: string;
@@ -18,6 +19,8 @@ export interface ExploreItem {
   is_verified: boolean;
   popularity_score: number;
   created_at: string;
+  /** Structured reason behind the recommendation (localized client-side) */
+  reason?: FeedReason | null;
 }
 
 interface ExploreFeedResponse {
@@ -32,6 +35,7 @@ async function fetchExploreFeed(params: {
   page?: number;
   pageSize?: number;
   language?: string;
+  exclude_ids?: string[];
 }): Promise<ExploreFeedResponse> {
   // Always fetch a fresh session: Clerk tokens are short-lived, and the
   // AuthContext session intentionally carries no token.
@@ -59,19 +63,21 @@ async function fetchExploreFeed(params: {
 }
 
 /** "Para Ti" carousel — small batch, personalized */
-export function useForYouFeed(category?: string) {
+export function useForYouFeed(category?: string, excludeIds?: string[]) {
   const { session } = useAuth();
   const { i18n } = useTranslation();
   const lang = i18n.language?.split("-")[0] || "es";
+  const excludeKey = excludeIds?.length ? [...excludeIds].sort().join(",") : "";
 
   return useQuery({
-    queryKey: ["explore-feed", "for_you", category, lang],
+    queryKey: ["explore-feed", "for_you", category, lang, excludeKey],
     queryFn: () =>
       fetchExploreFeed({
         mode: "for_you",
         category: category || undefined,
         pageSize: 8,
         language: lang,
+        exclude_ids: excludeIds?.length ? excludeIds : undefined,
       }),
     enabled: !!session,
     staleTime: 3 * 60 * 1000,

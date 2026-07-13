@@ -1,9 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, Megaphone } from "lucide-react";
+import { Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, Megaphone, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
@@ -14,6 +14,7 @@ import { useInView } from "react-intersection-observer";
 import { ExplorerContentCard, type ExplorerCardIcon } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
 import { useExplorerCardActions, catalogueRef } from "./use-explorer-card-actions";
+import { translateReason } from "@/lib/explore-reasons";
 
 export interface SectionConfig {
   key: string;
@@ -129,7 +130,9 @@ export function ExploreSectionCarousel({
   const device = useDevice();
   const logEvent = useLogItemEvent();
   const navigate = useNavigate();
-  const { data, isLoading } = useForYouFeed(section.key);
+  // Per-section refresh: exclude the ids currently shown to get fresh items.
+  const [excludeIds, setExcludeIds] = useState<string[]>([]);
+  const { data, isLoading, isFetching } = useForYouFeed(section.key, excludeIds);
   const { buildMenu, recordOpen } = useExplorerCardActions();
 
   // Track section visibility for dwell time
@@ -209,14 +212,26 @@ export function ExploreSectionCarousel({
     <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         {header}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs text-primary hover:text-primary/80 font-medium h-7 px-2"
-          onClick={() => navigate(`/explore/section/${section.key}`)}
-        >
-          {t("common.viewAll")}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setExcludeIds(items.map((i) => i.id))}
+            disabled={isFetching}
+            aria-label={t("explore.refreshSection")}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-primary hover:text-primary/80 font-medium h-7 px-2"
+            onClick={() => navigate(`/explore/section/${section.key}`)}
+          >
+            {t("common.viewAll")}
+          </Button>
+        </div>
       </div>
 
       <ScrollArea className="w-full whitespace-nowrap">
@@ -226,6 +241,7 @@ export function ExploreSectionCarousel({
               key={item.id}
               title={item.title}
               description={item.description}
+              reason={translateReason(t, item.reason)}
               providerLabelKey={PROVIDER_LABEL_KEYS[detectProvider(item.url)]}
               durationMin={item.duration_min}
               language={item.language}

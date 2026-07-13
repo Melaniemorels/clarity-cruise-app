@@ -73,12 +73,28 @@ const RULES: { category: HealthyCategory; pattern: RegExp }[] = [
 // off-mission content.
 const BLOCKED = /gaming|gameplay|crypto|apuestas|casino|mukbang|fast food challenge|borracher|alcohol tour|prank|drama|chisme|gossip/i;
 
+// Unsafe wellness content: extreme dieting, miracle cures, weight-loss
+// promises and self-harm adjacent material. Never recommended, rejected at
+// ingestion and filtered out of every feed.
+const UNSAFE =
+  /dieta milagro|miracle (diet|cure)|detox extremo|extreme (detox|fasting)|ayuno extremo|water fasting|pierde \d+\s?(kg|kilos|libras)|lose \d+\s?(kg|pounds|lbs)|adelgaza(r)? (r[aá]pido|urgente)|quema(r)? grasa (r[aá]pido|milagro)|pro[- ]?ana|pro[- ]?mia|thinspo|skinny fat fix|laxante|laxative (diet|cleanse)|self[- ]?harm|autolesi[oó]n|suicid/i;
+
 /**
  * True when the content matches a hard blocker (off-mission content that must
  * never enter the catalogue, even via curated-search category fallbacks).
  */
 export function isBlockedContent(title: string, extra: string[] = []): boolean {
-  return BLOCKED.test([title, ...extra].join(" "));
+  const text = [title, ...extra].join(" ");
+  return BLOCKED.test(text) || UNSAFE.test(text);
+}
+
+/**
+ * True when the content promotes unsafe wellness practices (extreme dieting,
+ * miracle cures, self-harm adjacent). Used to filter feeds defensively even
+ * for rows ingested before this rule existed.
+ */
+export function isUnsafeWellness(title: string, extra: string[] = []): boolean {
+  return UNSAFE.test([title, ...extra].join(" "));
 }
 
 /**
@@ -142,6 +158,18 @@ export const CATEGORY_SEARCH_QUERIES_EN: Record<HealthyCategory, string> = {
 
 /** Catalogue languages we actively stock via curated searches. */
 export type CatalogLang = "es" | "en";
+
+// Wellness goals the user can pick manually → the catalogue categories that
+// serve them. Used for ranking boosts and honest recommendation reasons.
+export const GOAL_CATEGORIES: Record<string, HealthyCategory[]> = {
+  sleep: ["Calma", "Meditación"],
+  stress: ["Meditación", "Calma", "Yoga"],
+  energy: ["Energía", "Ejercicios", "Motivacional"],
+  focus: ["Música", "Meditación", "Podcasts"],
+  movement: ["Yoga", "Pilates", "Ejercicios"],
+  nutrition: ["Nutrición", "PlanesDeComida"],
+  growth: ["Audiolibros", "Podcasts", "Motivacional"],
+};
 
 // Time-of-day → categories that fit that moment (used by contextual recs).
 export const TIME_OF_DAY_CATEGORIES: Record<string, HealthyCategory[]> = {

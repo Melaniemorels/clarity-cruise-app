@@ -199,6 +199,60 @@
       "title": "Continuar",
       "subtitle": "Retomá lo que abriste",
       "openedAgo": "Abierto {{when}}"
+    },
+    "refreshSection": "Actualizar sección",
+    "refreshAll": "Actualizar recomendaciones",
+    "reasons": {
+      "goal": "Por tu objetivo: {{goal}}",
+      "goals": {
+        "sleep": "dormir mejor",
+        "stress": "menos estrés",
+        "energy": "más energía",
+        "focus": "concentración",
+        "movement": "más movimiento",
+        "nutrition": "mejor nutrición",
+        "growth": "crecimiento personal"
+      },
+      "interest": "Porque te interesa {{category}}",
+      "similarSaved": "Parecido a lo que guardaste",
+      "moreLikeThis": "Pediste más como esto",
+      "fitsGap": "Cabe en tus {{minutes}} min libres",
+      "tod": {
+        "morning": "Ideal para tu mañana",
+        "midday": "Ideal para el mediodía",
+        "afternoon": "Ideal para tu tarde",
+        "evening": "Ideal para tu noche"
+      },
+      "curated": "Seleccionado por VYV",
+      "popular": "Popular en VYV",
+      "todGap": "{{tod}} · {{minutes}} min libres",
+      "todClear": "{{tod}} · agenda despejada"
+    },
+    "personalize": {
+      "button": "Personalizar",
+      "title": "Personaliza tu Explorador",
+      "description": "Elige tus objetivos, intereses y duración preferida para afinar tus recomendaciones.",
+      "goals": "Tus objetivos",
+      "interests": "Tus intereses",
+      "duration": "Duración preferida",
+      "durationAny": "Sin preferencia",
+      "durationMin": "~{{minutes}} min",
+      "save": "Guardar preferencias",
+      "saved": "Preferencias guardadas",
+      "goalLabels": {
+        "sleep": "Dormir mejor",
+        "stress": "Reducir estrés",
+        "energy": "Más energía",
+        "focus": "Concentración",
+        "movement": "Moverme más",
+        "nutrition": "Comer mejor",
+        "growth": "Crecimiento personal"
+      }
+    },
+    "connections": {
+      "title": "Mejora tus recomendaciones",
+      "subtitle": "Conecta tus servicios o cuéntanos tus gustos. Solo lectura, nunca publicamos nada.",
+      "manage": "Gestionar conexiones"
     }
   },
   "calendar": {

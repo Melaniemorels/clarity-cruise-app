@@ -269,6 +269,8 @@ export const userExplorePreferences = pgTable("user_explore_preferences", {
     .default(false),
   goals: text("goals").array().notNull().default([]),
   preferred_tags: text("preferred_tags").array().notNull().default([]),
+  // Preferred content length in minutes (null = no preference).
+  preferred_duration_min: integer("preferred_duration_min"),
   blocked_creators: text("blocked_creators").array().notNull().default([]),
   created_at: createdAt(),
   updated_at: updatedAt(),

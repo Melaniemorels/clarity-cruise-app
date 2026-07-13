@@ -7,6 +7,7 @@ import { useDevice } from "@/hooks/use-device";
 import { useHomeContextualRecs, type ContextualRec } from "@/hooks/use-contextual-recommendations";
 import { openContent } from "@/lib/open-content";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
+import { translateReason } from "@/lib/explore-reasons";
 import { ArrowUpRight, Brain, Calendar, Clock } from "lucide-react";
 
 const MOOD_COLORS: Record<string, string> = {
@@ -41,7 +42,7 @@ function QuickRecCard({ rec }: { rec: ContextualRec }) {
             {rec.title}
           </h4>
           <p className="text-[11px] text-muted-foreground line-clamp-2">
-            {rec.reason}
+            {translateReason(t, rec.reason)}
           </p>
           <div className="flex items-center gap-2 pt-0.5">
             <Badge variant="outline" className="text-[9px] capitalize px-1.5 py-0 font-normal">

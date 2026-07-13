@@ -199,6 +199,60 @@
     "languages": {
       "es": "Spanish",
       "en": "English"
+    },
+    "refreshSection": "Refresh section",
+    "refreshAll": "Refresh recommendations",
+    "reasons": {
+      "goal": "For your goal: {{goal}}",
+      "goals": {
+        "sleep": "better sleep",
+        "stress": "less stress",
+        "energy": "more energy",
+        "focus": "focus",
+        "movement": "more movement",
+        "nutrition": "better nutrition",
+        "growth": "personal growth"
+      },
+      "interest": "Because you're into {{category}}",
+      "similarSaved": "Similar to what you saved",
+      "moreLikeThis": "You asked for more like this",
+      "fitsGap": "Fits your {{minutes}} free min",
+      "tod": {
+        "morning": "Great for your morning",
+        "midday": "Great for midday",
+        "afternoon": "Great for your afternoon",
+        "evening": "Great for your evening"
+      },
+      "curated": "Curated by VYV",
+      "popular": "Popular on VYV",
+      "todGap": "{{tod}} · {{minutes}} free min",
+      "todClear": "{{tod}} · clear schedule"
+    },
+    "personalize": {
+      "button": "Personalize",
+      "title": "Personalize your Explorer",
+      "description": "Pick your goals, interests and preferred duration to fine-tune your recommendations.",
+      "goals": "Your goals",
+      "interests": "Your interests",
+      "duration": "Preferred duration",
+      "durationAny": "No preference",
+      "durationMin": "~{{minutes}} min",
+      "save": "Save preferences",
+      "saved": "Preferences saved",
+      "goalLabels": {
+        "sleep": "Sleep better",
+        "stress": "Reduce stress",
+        "energy": "More energy",
+        "focus": "Focus",
+        "movement": "Move more",
+        "nutrition": "Eat better",
+        "growth": "Personal growth"
+      }
+    },
+    "connections": {
+      "title": "Improve your recommendations",
+      "subtitle": "Connect your services or tell us what you like. Read-only, we never post anything.",
+      "manage": "Manage connections"
     }
   },
   "calendar": {

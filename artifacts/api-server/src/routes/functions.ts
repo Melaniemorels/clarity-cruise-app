@@ -1,11 +1,13 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, vyvTables } from "@workspace/db";
-import { and, eq, gte, lte, desc, inArray, lt, gt } from "drizzle-orm";
+import { and, eq, gte, lte, desc, inArray, lt, gt, isNotNull } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { requireUser } from "../lib/auth";
 import {
   HEALTHY_CATEGORY_SET,
   TIME_OF_DAY_CATEGORIES,
+  GOAL_CATEGORIES,
+  isUnsafeWellness,
   type HealthyCategory,
 } from "../lib/healthy";
 import { maybeSyncYouTubeHealthy } from "./media";
@@ -308,6 +310,7 @@ router.post(
 interface ExploreItemRow {
   id: string;
   title: string;
+  description?: string | null;
   source: string;
   url: string;
   duration_min: number | null;
@@ -325,21 +328,56 @@ interface Prefs {
   language: string | null;
   goals: string[];
   preferred_tags: string[];
+  preferred_duration_min: number | null;
   blocked_creators: string[];
+}
+
+// Structured, honest recommendation reason. The frontend localizes these via
+// i18next — every kind maps to a real signal, never invented.
+type FeedReason =
+  | { kind: "goal"; goal: string }
+  | { kind: "interest"; category: string }
+  | { kind: "similar_saved"; category: string }
+  | { kind: "more_like_this" }
+  | { kind: "fits_gap"; minutes: number }
+  | { kind: "time_of_day"; timeOfDay: string }
+  | { kind: "curated" }
+  | { kind: "popular" };
+
+interface RankSignals {
+  topTags: string[];
+  recentCategories: string[];
+  /** category → the user goal it serves (first matching goal wins) */
+  goalCategories: Map<string, string>;
+  /** categories the user manually picked as interests */
+  interestCategories: Set<string>;
+  savedCategories: Set<string>;
+  completedCategories: Set<string>;
+  dismissedCategories: Set<string>;
+  moreLikeCategories: Set<string>;
+  /** minutes of free time until the next calendar commitment */
+  gapMinutes: number;
+  timeOfDay: string;
+  timeOfDayCategories: Set<string>;
 }
 
 function scoreItem(
   item: ExploreItemRow,
   prefs: Prefs,
-  topTags: string[],
-  recentCategories: string[],
+  s: RankSignals,
 ): number {
   const preferred = prefs.preferred_tags ?? [];
   const tags = item.tags ?? [];
   const tagHits =
     tags.filter((t) => preferred.includes(t)).length * 3 +
-    tags.filter((t) => topTags.includes(t)).length * 2;
-  const catBoost = recentCategories.includes(item.category) ? 1.2 : 1.0;
+    tags.filter((t) => s.topTags.includes(t)).length * 2;
+  const catBoost = s.recentCategories.includes(item.category) ? 1.2 : 1.0;
+  const goalBoost = s.goalCategories.has(item.category) ? 1.35 : 1.0;
+  const interestBoost = s.interestCategories.has(item.category) ? 1.3 : 1.0;
+  const savedBoost = s.savedCategories.has(item.category) ? 1.15 : 1.0;
+  const completedBoost = s.completedCategories.has(item.category) ? 1.1 : 1.0;
+  const dismissedPenalty = s.dismissedCategories.has(item.category) ? 0.8 : 1.0;
+  const todBoost = s.timeOfDayCategories.has(item.category) ? 1.1 : 1.0;
   const verifiedBoost = item.is_verified ? 1.15 : 1.0;
   const langBoost =
     !prefs.language || !item.language
@@ -347,8 +385,63 @@ function scoreItem(
       : prefs.language === item.language
         ? 1.1
         : 0.9;
+  // Duration fit: prefer content that fits the free calendar gap and the
+  // user's preferred session length.
+  let durationBoost = 1.0;
+  if (item.duration_min != null) {
+    durationBoost *= item.duration_min <= s.gapMinutes ? 1.08 : 0.9;
+    const pref = prefs.preferred_duration_min;
+    if (pref != null && pref > 0) {
+      const ratio = item.duration_min / pref;
+      durationBoost *= ratio >= 0.5 && ratio <= 1.5 ? 1.12 : 0.95;
+    }
+  }
   const pop = item.popularity_score ?? 0.4;
-  return (tagHits + pop * 2) * catBoost * verifiedBoost * langBoost;
+  return (
+    (tagHits + pop * 2) *
+    catBoost *
+    goalBoost *
+    interestBoost *
+    savedBoost *
+    completedBoost *
+    dismissedPenalty *
+    todBoost *
+    verifiedBoost *
+    langBoost *
+    durationBoost
+  );
+}
+
+/** Pick the strongest real signal behind an item as its shown reason. */
+function buildReason(item: ExploreItemRow, s: RankSignals): FeedReason {
+  const goal = s.goalCategories.get(item.category);
+  if (goal) return { kind: "goal", goal };
+  if (s.interestCategories.has(item.category)) {
+    return { kind: "interest", category: item.category };
+  }
+  if (s.savedCategories.has(item.category)) {
+    return { kind: "similar_saved", category: item.category };
+  }
+  if (s.moreLikeCategories.has(item.category)) return { kind: "more_like_this" };
+  if (
+    item.duration_min != null &&
+    s.gapMinutes < 240 &&
+    item.duration_min <= s.gapMinutes
+  ) {
+    return { kind: "fits_gap", minutes: s.gapMinutes };
+  }
+  if (s.timeOfDayCategories.has(item.category)) {
+    return { kind: "time_of_day", timeOfDay: s.timeOfDay };
+  }
+  return item.is_verified ? { kind: "curated" } : { kind: "popular" };
+}
+
+/** Parse a client-sent exclude_ids list (refresh: "show me different items"). */
+function parseExcludeIds(raw: unknown): Set<string> {
+  if (!Array.isArray(raw)) return new Set();
+  return new Set(
+    raw.filter((x): x is string => typeof x === "string").slice(0, 100),
+  );
 }
 
 function diversify<T>(sorted: T[], rate = 0.18): T[] {
@@ -389,12 +482,13 @@ router.post(
       const category: string | null = body.category ?? null;
       const page: number = body.page ?? 0;
       const pageSize: number = Math.min(body.pageSize ?? 8, 50);
+      const requestExcluded = parseExcludeIds(body.exclude_ids);
       const uiLanguage: string | null =
         typeof body.language === "string"
           ? body.language.split("-")[0].toLowerCase()
           : null;
 
-      const [prefsRows, eventRows, itemRows, feedbackRows, savedRows] =
+      const [prefsRows, eventRows, itemRows, feedbackRows, savedRows, completedRows, recCtx] =
         await Promise.all([
           db
             .select()
@@ -434,6 +528,17 @@ router.post(
                 eq(vyvTables.explorer_saved_items.provider, "vyv"),
               ),
             ),
+          db
+            .select({ category: vyvTables.explorer_progress.category })
+            .from(vyvTables.explorer_progress)
+            .where(
+              and(
+                eq(vyvTables.explorer_progress.user_id, userId),
+                isNotNull(vyvTables.explorer_progress.completed_at),
+              ),
+            )
+            .limit(100),
+          loadRecContext(userId),
         ]);
 
       const prefsRow = prefsRows[0];
@@ -443,6 +548,7 @@ router.post(
         language: uiLanguage ?? prefsRow?.language ?? null,
         goals: prefsRow?.goals ?? [],
         preferred_tags: prefsRow?.preferred_tags ?? [],
+        preferred_duration_min: prefsRow?.preferred_duration_min ?? null,
         blocked_creators: prefsRow?.blocked_creators ?? [],
       };
 
@@ -457,9 +563,12 @@ router.post(
       );
 
       const events = eventRows;
-      // Healthy-only engine: the Explorer only ever serves wellness content.
-      const allItems = (itemRows as unknown as ExploreItemRow[]).filter((i) =>
-        HEALTHY_CATEGORY_SET.has(i.category),
+      // Healthy-only engine: the Explorer only ever serves wellness content,
+      // and never unsafe wellness (extreme diets, miracle cures…).
+      const allItems = (itemRows as unknown as ExploreItemRow[]).filter(
+        (i) =>
+          HEALTHY_CATEGORY_SET.has(i.category) &&
+          !isUnsafeWellness(i.title, [i.description ?? ""]),
       );
 
       let pool = category
@@ -532,7 +641,7 @@ router.post(
         return true;
       });
 
-      const candidates =
+      let candidates =
         filtered.length < pageSize
           ? pool.filter(
               (item) =>
@@ -541,10 +650,59 @@ router.post(
             )
           : filtered;
 
+      // Refresh support: the client sends the ids it is currently showing so
+      // a refresh yields different items — only honored when enough other
+      // eligible content remains.
+      if (requestExcluded.size > 0) {
+        const fresh = candidates.filter((i) => !requestExcluded.has(i.id));
+        if (fresh.length >= Math.min(pageSize, 4)) candidates = fresh;
+      }
+
+      // Real ranking signals: manual goals/interests, saved + completed
+      // history, negative feedback and the free calendar gap.
+      const gapMinutes = nextFreeGapMinutes(recCtx.rawEvents);
+      const goalCategories = new Map<string, string>();
+      for (const goal of prefs.goals) {
+        for (const cat of GOAL_CATEGORIES[goal] ?? []) {
+          if (!goalCategories.has(cat)) goalCategories.set(cat, goal);
+        }
+      }
+      const catOf = (id: string) =>
+        allItems.find((i) => i.id === id)?.category;
+      const signals: RankSignals = {
+        topTags,
+        recentCategories,
+        goalCategories,
+        interestCategories: new Set(
+          prefs.preferred_tags.filter((t) => HEALTHY_CATEGORY_SET.has(t)),
+        ),
+        savedCategories: new Set(
+          [...savedIds].map(catOf).filter(Boolean) as string[],
+        ),
+        completedCategories: new Set(
+          completedRows.map((r) => r.category).filter(Boolean) as string[],
+        ),
+        dismissedCategories: new Set(
+          events
+            .filter((e) => e.event === "dismiss")
+            .map((e) => catOf(e.item_id))
+            .filter(Boolean) as string[],
+        ),
+        moreLikeCategories: new Set(
+          [...moreLikeIds].map(catOf).filter(Boolean) as string[],
+        ),
+        gapMinutes,
+        timeOfDay: recCtx.timeOfDay,
+        timeOfDayCategories: new Set(
+          TIME_OF_DAY_CATEGORIES[recCtx.timeOfDay] ??
+            TIME_OF_DAY_CATEGORIES.morning,
+        ),
+      };
+
       const ranked = candidates
         .map((item) => ({
           item,
-          score: scoreItem(item, prefs, topTags, recentCategories),
+          score: scoreItem(item, prefs, signals),
         }))
         .sort((a, b) => b.score - a.score)
         .map((x) => x.item);
@@ -567,7 +725,10 @@ router.post(
       const hasMore = mode === "see_all" ? start + pageSize < mixed.length : false;
 
       res.json({
-        items: result,
+        items: result.map((item) => ({
+          ...item,
+          reason: buildReason(item, signals),
+        })),
         nextPage: hasMore ? page + 1 : null,
         total: mixed.length,
       });
@@ -800,30 +961,17 @@ const CATEGORY_MOOD: Record<string, string> = {
   Podcasts: "focused",
 };
 
-function recReason(
-  language: string,
-  category: string,
+// Structured contextual reason: the frontend localizes it via i18next.
+// gap_minutes is null when the schedule is clear (gap >= 3h).
+function contextualReason(
   gapMinutes: number,
   timeOfDay: string,
-): string {
-  const gapTxt =
-    gapMinutes >= 180
-      ? language === "es"
-        ? "tienes la agenda despejada"
-        : "your schedule is clear"
-      : language === "es"
-        ? `tienes ${gapMinutes} min libres antes de tu próximo compromiso`
-        : `you have ${gapMinutes} free min before your next commitment`;
-  const tod: Record<string, [string, string]> = {
-    morning: ["para empezar el día", "to start your day"],
-    midday: ["ideal a mitad del día", "great for midday"],
-    afternoon: ["perfecto para la tarde", "perfect for the afternoon"],
-    evening: ["para cerrar el día", "to wind down the day"],
+): { kind: string; timeOfDay: string; minutes: number | null } {
+  return {
+    kind: "gap_time_of_day",
+    timeOfDay,
+    minutes: gapMinutes >= 180 ? null : gapMinutes,
   };
-  const [es, en] = tod[timeOfDay] ?? tod.morning;
-  return language === "es"
-    ? `${category} ${es}: ${gapTxt}.`
-    : `${category} ${en}: ${gapTxt}.`;
 }
 
 router.post(
@@ -884,6 +1032,7 @@ router.post(
       const healthy = (itemRows as unknown as ExploreItemRow[]).filter(
         (i) =>
           HEALTHY_CATEGORY_SET.has(i.category) &&
+          !isUnsafeWellness(i.title, [i.description ?? ""]) &&
           !ctxBlockedCreators.has(i.creator ?? "") &&
           !ctxExcludedIds.has(i.id),
       );
@@ -902,7 +1051,15 @@ router.post(
       const fitting = base.filter(
         (i) => (i.duration_min ?? 20) <= Math.max(gapMinutes, 10),
       );
-      const pool = fitting.length >= 4 ? fitting : base;
+      let pool = fitting.length >= 4 ? fitting : base;
+
+      // Refresh support: exclude the items currently on screen so a refresh
+      // shows different eligible content (only when enough remains).
+      const ctxRequestExcluded = parseExcludeIds(req.body?.exclude_ids);
+      if (ctxRequestExcluded.size > 0) {
+        const fresh = pool.filter((i) => !ctxRequestExcluded.has(i.id));
+        if (fresh.length >= 4) pool = fresh;
+      }
 
       // Rank: time-of-day category match first, then language, then variety.
       const catRank = (c: string) => {
@@ -933,7 +1090,7 @@ router.post(
       const toRec = (i: ExploreItemRow) => ({
         title: i.title,
         category: i.category,
-        reason: recReason(language, i.category, gapMinutes, ctx.timeOfDay),
+        reason: contextualReason(gapMinutes, ctx.timeOfDay),
         duration_min: i.duration_min ?? 20,
         mood: CATEGORY_MOOD[i.category] ?? "calm",
         tags: i.tags ?? [],

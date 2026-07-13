@@ -4,9 +4,7 @@ import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { ContentPlayer } from "@/components/ContentPlayer";
-import { AIRecommendationsSection } from "@/components/explore/AIRecommendationsSection";
-import { ElevateSection } from "@/components/explore/ElevateSection";
-import { MediaConnectionBanner } from "@/components/explore/MediaConnectionBanner";
+import { ExploreConnectionsCard } from "@/components/explore/ExploreConnectionsCard";
 import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
 import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { useState } from "react";
@@ -21,7 +19,8 @@ import { SavedSection, ContinueSection } from "@/components/explore/SavedContinu
 import { ExplorerContextualRecs } from "@/components/explore/ContextualRecsCard";
 import { useDwellTracker } from "@/hooks/use-dwell-tracker";
 import { Switch } from "@/components/ui/switch";
-import { Languages } from "lucide-react";
+import { Languages, RefreshCw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useIncludeOtherLanguages,
   useSetIncludeOtherLanguages,
@@ -66,6 +65,13 @@ const Explore = () => {
 
   const exploreTracker = useModuleTimeTracker("EXPLORE");
   const dwellTracker = useDwellTracker("explore");
+  const queryClient = useQueryClient();
+
+  // Full-page refresh: re-rank every feed and the contextual recommendations.
+  const handleRefreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
+    queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
+  };
 
   useEffect(() => {
     exploreTracker.start();
@@ -83,43 +89,42 @@ const Explore = () => {
         device.isMobile ? "p-4" : device.isTablet ? "p-6" : "p-8 max-w-7xl mx-auto"
       )}>
         {/* Header — old money: understated, weighted */}
-        <div ref={exploreHeaderRef}>
-          <h1 className={cn(
-            "font-bold tracking-tight text-foreground",
-            device.isMobile ? "text-2xl" : "text-3xl"
-          )}>
-            {t('explore.title')}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {t('explore.subtitle')}
-          </p>
+        <div ref={exploreHeaderRef} className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className={cn(
+              "font-bold tracking-tight text-foreground",
+              device.isMobile ? "text-2xl" : "text-3xl"
+            )}>
+              {t('explore.title')}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              {t('explore.subtitle')}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 flex-shrink-0"
+            onClick={handleRefreshAll}
+            aria-label={t("explore.refreshAll")}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Language preference toggle */}
         <LanguageToggleRow />
 
-        {/* For You — main AI block + contextual sub-row, grouped under one heading */}
-        <section className="space-y-6">
-          <AIRecommendationsSection />
-          <ExplorerContextualRecs />
-        </section>
-
-        {/* Media Connection */}
-        <MediaConnectionBanner />
-
-        {/* Continue where you left off */}
+        {/* A. Continue where you left off */}
         <ContinueSection />
 
-        {/* Saved for later */}
+        {/* B. Right now — contextual recommendations (calendar + time of day) */}
+        <ExplorerContextualRecs />
+
+        {/* C. Saved for later */}
         <SavedSection />
 
-        {/* Elevate */}
-        <ElevateSection />
-
-        {/* Onboarding */}
-        <ExploreOnboardingDialog />
-
-        {/* Curated sections — AI-ranked per user */}
+        {/* D. Curated category sections — ranked per user */}
         <div className="space-y-8">
           {EXPLORE_SECTIONS.map((section) => (
             <ExploreSectionCarousel
@@ -130,6 +135,12 @@ const Explore = () => {
             />
           ))}
         </div>
+
+        {/* E. Connections + manual personalization */}
+        <ExploreConnectionsCard />
+
+        {/* Onboarding */}
+        <ExploreOnboardingDialog />
 
         {/* Perfect Day CTA — refined, old money */}
         <div
