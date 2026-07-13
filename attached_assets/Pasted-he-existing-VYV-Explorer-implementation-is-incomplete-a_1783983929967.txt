@@ -1,0 +1,572 @@
+he existing VYV Explorer implementation is incomplete and misleading.
+It currently shows content cards and connection buttons, but it does not reliably:
+authenticate Spotify or YouTube users;
+retrieve authorized user data;
+refresh recommendations;
+classify content correctly;
+preserve saved items;
+preserve connection state;
+respect the selected language;
+separate real API content from mock content.
+Do not make additional visual changes until the integration audit is complete.
+Do not pretend that Spotify or YouTube is connected when OAuth and data synchronization have not succeeded.
+Phase 0 — Audit before coding
+First inspect the entire existing codebase and produce a written report containing:
+Current frontend framework and routing.
+Current backend structure.
+Authentication provider currently used by VYV.
+Existing database and tables.
+Existing Spotify-related files, routes and environment variables.
+Existing YouTube-related files, routes and environment variables.
+Existing OAuth callback routes.
+Current Explorer components.
+Current recommendation logic.
+All mock, seeded or hardcoded Explorer content.
+All broken or placeholder buttons.
+Current deployment URL and expected callback URLs.
+Security problems.
+Missing credentials or developer-console setup that requires manual action by the owner.
+Clearly separate:
+code that already works;
+code that is incomplete;
+code that is only simulated;
+manual configuration that cannot be completed by the coding agent.
+Do not proceed until this audit is displayed.
+Critical truthfulness requirement
+VYV cannot access Spotify’s or YouTube’s private recommendation algorithm.
+Do not use language such as:
+“Read the user’s Spotify algorithm”;
+“Import the YouTube algorithm”;
+“Access complete viewing history”;
+“Healthy verified by AI” unless an actual verification system exists.
+VYV should create its own recommendation ranking from authorized provider data and explicit VYV preferences.
+Never fabricate:
+history;
+playback progress;
+personalization;
+connection status;
+health verification;
+recommendation reasons.
+Phase 1 — Remove misleading behavior
+Find and remove or clearly label all mock Explorer content.
+During development, mock records may remain only when:
+they have source_type = "mock";
+they are never mixed with live provider content;
+a visible development label identifies them;
+they are disabled in production.
+Until a provider connection is successful, show:
+“Connect Spotify or YouTube to personalize your Explorer, or choose your preferences manually.”
+Do not show content as personalized from a provider when the provider is not connected.
+Fix all mismatched categories.
+Examples:
+cooking content must not appear under Yoga;
+meditation content must not appear under Meal Plans;
+productivity content must not appear under Yoga;
+Spanish and English interface labels must not be mixed.
+Phase 2 — Create proper provider architecture
+Create a provider abstraction so Spotify and YouTube do not use duplicated UI logic.
+Suggested interface:
+interface ContentProvider {
+  provider: "spotify" | "youtube";
+  getAuthorizationUrl(userId: string): Promise<string>;
+  exchangeAuthorizationCode(code: string, state: string): Promise<void>;
+  refreshAccessToken(userId: string): Promise<void>;
+  getConnectionStatus(userId: string): Promise<ProviderConnectionStatus>;
+  disconnect(userId: string): Promise<void>;
+  syncUserSignals(userId: string): Promise<ProviderSyncResult>;
+  searchContent(query: ProviderSearchQuery): Promise<NormalizedContentItem[]>;
+}
+Create normalized content records independent of provider:
+interface NormalizedContentItem {
+  id: string;
+  provider: "spotify" | "youtube";
+  providerItemId: string;
+  contentType:
+    | "track"
+    | "playlist"
+    | "podcast"
+    | "episode"
+    | "video"
+    | "channel";
+  title: string;
+  description?: string;
+  creatorName?: string;
+  thumbnailUrl?: string;
+  externalUrl: string;
+  durationSeconds?: number;
+  originalLanguage?: string;
+  publishedAt?: string;
+  categories: string[];
+  sourceMetadata: Record<string, unknown>;
+}
+The Explorer frontend must render normalized content only.
+Do not place provider-specific API response objects directly in React components.
+Phase 3 — Secure database structure
+Use the existing project database. Do not introduce a second database without explaining why.
+Create or repair these tables:
+provider_connections
+id
+user_id
+provider
+provider_user_id
+status
+granted_scopes
+access_token_encrypted
+refresh_token_encrypted
+token_expires_at
+connected_at
+last_synced_at
+last_sync_status
+last_sync_error
+created_at
+updated_at
+Unique constraint:
+(user_id, provider)
+provider_user_signals
+id
+user_id
+provider
+signal_type
+provider_item_id
+value_json
+observed_at
+expires_at
+Possible signal types:
+top_artist
+top_track
+recent_track
+saved_show
+followed_playlist
+youtube_subscription
+youtube_liked_video
+youtube_playlist
+explorer_content
+id
+provider
+provider_item_id
+content_type
+title
+description
+creator_name
+thumbnail_url
+external_url
+duration_seconds
+original_language
+category
+metadata_json
+quality_status
+last_verified_at
+created_at
+updated_at
+Unique constraint:
+(provider, provider_item_id)
+explorer_recommendations
+id
+user_id
+content_id
+score
+recommendation_reason_key
+ranking_factors_json
+recommendation_batch_id
+shown_at
+opened_at
+dismissed_at
+created_at
+explorer_saved_items
+id
+user_id
+content_id
+saved_at
+Unique constraint:
+(user_id, content_id)
+explorer_activity
+id
+user_id
+content_id
+action
+progress_seconds
+occurred_at
+Possible actions:
+impression
+opened
+saved
+unsaved
+not_interested
+more_like_this
+completed
+external_playback_started
+Apply row-level authorization so users can access only their own connections, signals, recommendations, saved records and activity.
+Provider tokens must never be returned to the frontend.
+Phase 4 — Spotify OAuth
+Implement the official Spotify Authorization Code flow.
+For mobile or environments where a client secret cannot safely remain on the client, use PKCE.
+Required manual configuration must be documented clearly.
+Expected environment variables:
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
+SPOTIFY_REDIRECT_URI
+TOKEN_ENCRYPTION_KEY
+APP_BASE_URL
+The client secret and token encryption key must exist only in server-side secrets.
+Never expose them through:
+frontend environment variables;
+browser JavaScript;
+console logs;
+API responses;
+Git;
+static files.
+Use a cryptographically secure state parameter.
+Store the state server-side with:
+authenticated VYV user ID;
+provider;
+expiration;
+one-time-use status.
+Validate the state in the callback.
+The callback must:
+Validate state.
+Exchange the authorization code.
+Retrieve the Spotify user profile.
+Encrypt tokens.
+Save connection status.
+run an initial synchronization;
+redirect to an Explorer success or error state.
+Request only the scopes actually used.
+Potential read-only Spotify scopes:
+user-read-private
+user-top-read
+user-read-recently-played
+user-library-read
+playlist-read-private
+playlist-read-collaborative
+user-follow-read
+Before using any scope, verify that the corresponding endpoint is still available to this Spotify application and quota mode.
+Do not request write scopes for the first MVP.
+Do not modify Spotify playlists or user libraries.
+Spotify synchronization
+When connected, synchronize only data made available by authorized Spotify endpoints.
+Possible signals:
+top artists;
+top tracks;
+recently played tracks;
+saved shows or episodes, when supported;
+playlists available to the authenticated user;
+followed artists, when supported.
+Handle:
+pagination;
+401 token expiration;
+token refresh;
+403 insufficient permissions;
+429 rate limiting;
+partial synchronization;
+revoked authorization;
+empty accounts.
+Do not interpret Spotify data as medical or psychological information.
+Phase 5 — Google and YouTube OAuth
+Implement Google OAuth 2.0 for the YouTube Data API.
+This must be a separate connection from VYV’s normal Google login unless the existing authentication system already supports safely adding incremental YouTube scopes.
+Expected server-side variables:
+GOOGLE_YOUTUBE_CLIENT_ID
+GOOGLE_YOUTUBE_CLIENT_SECRET
+GOOGLE_YOUTUBE_REDIRECT_URI
+TOKEN_ENCRYPTION_KEY
+APP_BASE_URL
+Use secure OAuth state validation.
+Request only the minimum read-only YouTube scope required.
+The callback must:
+Validate state.
+Exchange the authorization code.
+retrieve the authorized YouTube channel when available;
+encrypt tokens;
+persist the connection;
+run the first synchronization;
+redirect to Explorer with an accurate result.
+YouTube synchronization limitations
+Use only data officially available through the YouTube Data API.
+Possible authorized data includes:
+user subscriptions;
+owned playlists;
+accessible playlist items;
+videos the user has rated as liked;
+channel metadata.
+Do not attempt to retrieve:
+full YouTube watch history;
+Watch Later items;
+YouTube’s private recommendation algorithm.
+The API does not expose those as normal retrievable user data.
+Show the user exactly what is and is not used.
+Handle YouTube quota consumption carefully.
+Do not call search.list repeatedly on every page render.
+Use:
+server-side caching;
+database persistence;
+scheduled or user-triggered synchronization;
+pagination;
+quota-aware retries.
+Phase 6 — Connection states
+Each provider must have explicit states:
+not_connected
+connecting
+connected
+syncing
+connected_with_warning
+token_expired
+permission_revoked
+error
+The frontend must never infer connection state from whether content cards exist.
+Display accurate messages:
+“Spotify connected”
+“Spotify needs to be reconnected”
+“YouTube synchronization failed”
+“Last updated 12 minutes ago”
+“No usable preferences were found”
+“Permission was not granted”
+Add actions:
+Connect
+Retry
+Sync now
+Reconnect
+Disconnect
+View permissions
+Disconnecting must:
+revoke provider authorization when supported;
+delete or invalidate stored tokens;
+mark the connection disconnected;
+allow the user to choose whether imported preference signals are deleted.
+Phase 7 — VYV recommendation engine
+Do not ask an LLM to randomly invent links.
+Build a deterministic candidate and ranking pipeline.
+Candidate generation
+Create candidates using:
+explicit VYV goals;
+selected content interests;
+selected language;
+preferred duration;
+available calendar time;
+provider signals;
+previously saved content;
+previously opened content;
+manually curated VYV sources;
+provider search results cached in the database.
+Filtering
+Remove candidates that:
+have a broken or missing external URL;
+have no identifiable provider item;
+duplicate another item;
+do not match the selected language, unless multilingual content is enabled;
+have been marked “Not interested”;
+come from a hidden creator;
+are assigned to the wrong category;
+fail the content safety rules;
+have already been shown too frequently.
+Ranking
+Create an explainable score.
+Example:
+score =
+  goalMatch * 0.25 +
+  interestMatch * 0.20 +
+  languageMatch * 0.15 +
+  durationFit * 0.15 +
+  providerPreferenceMatch * 0.10 +
+  calendarFit * 0.10 +
+  freshness * 0.05;
+The exact weights may be configured, but every recommendation must store the ranking factors.
+Create recommendation reasons from real ranking factors, such as:
+matches_sleep_goal
+matches_yoga_interest
+fits_available_time
+similar_to_saved_content
+based_on_spotify_preferences
+based_on_youtube_subscriptions
+continue_started_content
+Do not generate a reason that is unsupported by stored data.
+Phase 8 — Language rules
+The selected VYV language controls all interface text.
+Do not translate provider titles and pretend they are original titles.
+Store:
+original title;
+original description;
+detected or provider-supplied language.
+Prioritize content whose original language matches the user’s selected language.
+When the language cannot be determined:
+mark it as unknown;
+do not silently assume English.
+Add an optional setting:
+Include recommendations in other languages
+Default: false.
+Phase 9 — Refresh behavior
+The Refresh button must request a new recommendation batch.
+It must not merely rearrange the same frontend array.
+Implement a server endpoint such as:
+POST /api/explorer/recommendations/refresh
+The server must:
+authenticate the user;
+retrieve user preferences;
+retrieve valid provider signals;
+generate eligible candidates;
+exclude recently displayed items;
+rank candidates;
+store a new recommendation batch;
+return normalized records.
+Preserve:
+saved items;
+Continue state;
+provider connections;
+user preferences.
+Avoid repeating content from the last three recommendation batches unless there are insufficient eligible candidates.
+If there is not enough new content, tell the user honestly rather than returning duplicates as new recommendations.
+Phase 10 — Saved and Continue
+Saving must persist in the database and survive:
+refresh;
+logout;
+login;
+deployment restart.
+For externally opened content, do not claim to know the exact playback progress unless an official player integration provides it.
+When exact progress is unavailable, store:
+opened;
+last opened time;
+manually marked completed.
+Display:
+“Opened recently”
+rather than a fabricated percentage.
+For providers and content types where accurate progress is available, document exactly which API supplies it.
+Phase 11 — Content curation
+VYV’s curation layer should classify content using metadata and clear rules.
+An LLM may assist with classification only after the item has been retrieved from a real provider and stored with a real provider ID and URL.
+The LLM must never invent a provider item.
+Suggested outputs:
+{
+  "category": "yoga",
+  "topics": ["sleep", "relaxation"],
+  "language": "es",
+  "riskFlags": [],
+  "qualityConfidence": 0.83
+}
+Require structured JSON validation.
+Do not send provider access tokens to the LLM.
+Do not use Spotify content to train a machine-learning model.
+Use the wording:
+“Curated by VYV”
+“Seleccionado por VYV”
+Do not use “Healthy Verified” until a real verification protocol has been defined.
+Phase 12 — API endpoints
+Create or repair server-side routes:
+GET  /api/providers
+GET  /api/providers/spotify/connect
+GET  /api/providers/spotify/callback
+POST /api/providers/spotify/sync
+POST /api/providers/spotify/disconnect
+
+GET  /api/providers/youtube/connect
+GET  /api/providers/youtube/callback
+POST /api/providers/youtube/sync
+POST /api/providers/youtube/disconnect
+
+GET  /api/explorer/feed
+POST /api/explorer/recommendations/refresh
+POST /api/explorer/items/:id/save
+DELETE /api/explorer/items/:id/save
+POST /api/explorer/items/:id/feedback
+POST /api/explorer/items/:id/open
+All routes must authenticate the VYV user.
+OAuth callbacks must resolve the VYV user through a secure one-time state record, not through a user ID supplied by the browser.
+Phase 13 — Logging and debugging
+Add structured server-side logs for:
+OAuth initiated;
+OAuth callback received;
+state validation success or failure;
+token exchange success or failure;
+token refresh;
+provider API response status;
+synchronization start and finish;
+number of signals imported;
+recommendation batch creation;
+quota or rate-limit errors.
+Never log:
+access tokens;
+refresh tokens;
+authorization codes;
+client secrets;
+personally sensitive content.
+Create a development-only diagnostics screen showing:
+provider status;
+callback URI expected;
+callback URI currently configured;
+scopes granted;
+last sync;
+last sync error;
+number of imported signals;
+number of recommendation candidates;
+whether mock data is enabled.
+Do not expose this diagnostics screen in production.
+Phase 14 — Testing
+Add automated tests for:
+secure OAuth state generation;
+expired state rejection;
+callback error handling;
+encrypted token storage;
+token refresh;
+revoked permissions;
+empty provider results;
+duplicate prevention;
+language filtering;
+category filtering;
+recommendation refresh;
+saved-item persistence;
+per-user data isolation.
+Add integration tests with mocked provider API responses.
+Do not require real credentials for the automated test suite.
+Then perform a manual test with a real authorized test account for each provider.
+Phase 15 — Manual setup checklist
+At the end, give the owner an exact checklist for the Spotify Developer Dashboard and Google Cloud Console.
+For every provider include:
+app to create;
+API to enable;
+consent-screen settings;
+test users;
+redirect URI;
+required environment variables;
+scopes requested;
+how to verify the callback;
+how to move from testing/development access toward production;
+current provider limitations.
+Do not say the integration is finished until:
+the real OAuth consent screen appears;
+callback succeeds;
+encrypted tokens persist;
+user data is retrieved from the real provider;
+connection status survives logout and login;
+Refresh creates a new server-generated recommendation batch;
+saved content survives logout and login;
+mock content is disabled in production;
+no language mixing remains;
+provider limitations are communicated honestly.
+Implement Spotify first and verify it completely before implementing YouTube.
+Do not change unrelated Calendar, Feed, Focus, Profile or authentication functionality.
+Antes de que Replit programe
+Vos vas a tener que crear manualmente:
+Spotify
+una app en Spotify for Developers;
+el Client ID;
+el Client Secret;
+el callback exacto de VYV;
+usuarios de prueba si la aplicación permanece en modo de desarrollo.
+Spotify requiere OAuth y scopes específicos; para una aplicación web o móvil de larga duración utiliza Authorization Code, y en un cliente donde el secreto no pueda protegerse recomienda PKCE.
+YouTube
+un proyecto en Google Cloud;
+activar YouTube Data API v3;
+configurar la pantalla de consentimiento OAuth;
+crear credenciales;
+agregar el callback;
+declarar los scopes;
+posiblemente agregar usuarios de prueba mientras la app esté en modo Testing.
+YouTube también aplica cuotas, por lo que no se debe ejecutar una búsqueda nueva cada vez que una tarjeta aparece o que la pantalla se renderiza.
+Los secretos tienen que guardarse en Replit Secrets, no escritos dentro del código. Replit cifra esos valores y los presenta al servidor como variables de entorno.
+¿Seguir con Replit o cambiar?
+Replit sí puede hacerlo, pero no confiaría en que un único prompt construya esta integración completa de manera segura. Yo haría:
+Replit para publicar y probar rápidamente;
+GitHub privado como fuente principal del código;
+Supabase para usuarios, base de datos y Row Level Security;
+un entorno con mejor control del código, como Cursor o Codex, para auditar y reparar la integración archivo por archivo;
+Vercel o Replit para desplegar el frontend/backend web, según la estructura existente.
+No migraría toda VYV otra vez inmediatamente. Primero guardaría el proyecto en GitHub y le pediría al agente que implemente solo Spotify, con una cuenta de prueba. Cuando realmente conecte, importe datos y actualice recomendaciones, recién después agregaría YouTube.
+Mi recomendación más práctica para vos es: GitHub + Cursor/Codex para trabajar el código, Supabase para datos y Replit únicamente si te resulta cómodo para hosting y previews. El problema no se soluciona simplemente cambiando de herramienta; necesitás una implementación de backend y OAuth precisa. Spotify además exige atribución y enlaces de regreso cuando mostrás su metadata o imágenes, y prohíbe usar su contenido para entrenar modelos de IA.
