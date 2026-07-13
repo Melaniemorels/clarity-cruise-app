@@ -467,6 +467,8 @@ export const mediaIntegrations = pgTable(
       .notNull()
       .defaultNow(),
     last_sync_at: timestamp("last_sync_at", { withTimezone: true }),
+    last_sync_status: text("last_sync_status"),
+    last_sync_error: text("last_sync_error"),
     token_expires_at: timestamp("token_expires_at", { withTimezone: true }),
     created_at: createdAt(),
     updated_at: updatedAt(),

@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  useMediaConnections,
+  useMediaConnectionStatus,
   useDisconnectMedia,
+  useSyncMedia,
+  type MediaConnectionStatus,
 } from "@/hooks/use-media-connections";
+import { formatDistanceToNow } from "date-fns";
+import { es as esLocale, enUS as enLocale } from "date-fns/locale";
 import { useMediaConsent, useUpdateMediaConsent } from "@/hooks/use-recommendations";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -19,6 +23,8 @@ import {
   Calendar,
   Activity,
   CheckCircle2,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -40,9 +46,10 @@ const PROVIDER_META: Record<
 };
 
 export function MediaConnectionsSettings() {
-  const { t } = useTranslation();
-  const { data: connections = [], isLoading } = useMediaConnections();
+  const { t, i18n } = useTranslation();
+  const { data: statuses = [] } = useMediaConnectionStatus();
   const disconnectMutation = useDisconnectMedia();
+  const syncMutation = useSyncMedia();
   const { data: consent } = useMediaConsent();
   const updateConsent = useUpdateMediaConsent();
 
@@ -57,6 +64,13 @@ export function MediaConnectionsSettings() {
           })
         ),
       onError: () => toast.error(t("errors.generic")),
+    });
+  };
+
+  const handleSyncNow = (provider: string) => {
+    syncMutation.mutate(provider, {
+      onSuccess: () => toast.success(t("mediaConnections.syncDone")),
+      onError: () => toast.error(t("mediaConnections.syncError")),
     });
   };
 
@@ -89,17 +103,27 @@ export function MediaConnectionsSettings() {
           {/* Spotify */}
           <ConnectionRow
             provider="spotify"
-            isConnected={connections.some((c) => c.provider === "spotify")}
+            status={statuses.find((s) => s.provider === "spotify")}
             onDisconnect={() => handleDisconnect("spotify")}
+            onSyncNow={() => handleSyncNow("spotify")}
             isDisconnecting={disconnectMutation.isPending}
+            isSyncing={
+              syncMutation.isPending && syncMutation.variables === "spotify"
+            }
+            language={i18n.language}
             t={t}
           />
           {/* YouTube */}
           <ConnectionRow
             provider="youtube"
-            isConnected={connections.some((c) => c.provider === "youtube")}
+            status={statuses.find((s) => s.provider === "youtube")}
             onDisconnect={() => handleDisconnect("youtube")}
+            onSyncNow={() => handleSyncNow("youtube")}
             isDisconnecting={disconnectMutation.isPending}
+            isSyncing={
+              syncMutation.isPending && syncMutation.variables === "youtube"
+            }
+            language={i18n.language}
             t={t}
           />
         </CardContent>
@@ -198,20 +222,30 @@ export function MediaConnectionsSettings() {
 
 function ConnectionRow({
   provider,
-  isConnected,
+  status,
   onDisconnect,
+  onSyncNow,
   isDisconnecting,
+  isSyncing,
+  language,
   t,
 }: {
   provider: string;
-  isConnected: boolean;
+  status?: MediaConnectionStatus;
   onDisconnect: () => void;
+  onSyncNow: () => void;
   isDisconnecting: boolean;
-  t: (key: string) => string;
+  isSyncing: boolean;
+  language: string;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const meta = PROVIDER_META[provider];
   if (!meta) return null;
   const Icon = meta.icon;
+
+  const state = status?.status ?? "not_connected";
+  const isConnected = state === "connected" || state === "sync_error";
+  const needsReconnect = state === "token_expired";
 
   // OAuth is driven server-side (client_id/secret never reach the browser).
   // Top-level navigation carries the Clerk session cookie, so the API can
@@ -227,56 +261,97 @@ function ConnectionRow({
     window.location.href = path;
   };
 
+  const dateLocale = language?.startsWith("es") ? esLocale : enLocale;
+  const lastSyncLabel = status?.last_sync_at
+    ? t("mediaConnections.lastSync", {
+        time: formatDistanceToNow(new Date(status.last_sync_at), {
+          addSuffix: true,
+          locale: dateLocale,
+        }),
+      })
+    : t("mediaConnections.neverSynced");
+
+  const subtitle = needsReconnect
+    ? t("mediaConnections.reconnectNeeded")
+    : state === "sync_error"
+      ? t("mediaConnections.syncError")
+      : isConnected
+        ? lastSyncLabel
+        : t("mediaConnections.notConnected");
+
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-3 rounded-xl border",
+        "flex items-center justify-between gap-2 p-3 rounded-xl border",
         isConnected ? "bg-primary/5 border-primary/15" : "bg-muted/30 border-border/50"
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         <div className={cn("p-2 rounded-lg", isConnected ? "bg-primary/10" : "bg-muted")}>
           <Icon className={cn("h-4 w-4", isConnected ? "text-primary" : "text-muted-foreground")} />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium">{t(meta.nameKey)}</span>
-            {isConnected && (
+            {state === "connected" && (
               <Badge variant="success" className="text-[10px] px-1.5 py-0">
                 <CheckCircle2 className="h-3 w-3 mr-0.5" />
                 {t("mediaConnections.connected")}
               </Badge>
             )}
+            {(needsReconnect || state === "sync_error") && (
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                <AlertTriangle className="h-3 w-3 mr-0.5" />
+                {needsReconnect
+                  ? t("mediaConnections.reconnect")
+                  : t("mediaConnections.syncError")}
+              </Badge>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            {isConnected
-              ? t("mediaConnections.readOnlyAccess")
-              : t("mediaConnections.notConnected")}
-          </p>
+          <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
         </div>
       </div>
 
-      {isConnected ? (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs gap-1"
-          onClick={onDisconnect}
-          disabled={isDisconnecting}
-        >
-          <Unplug className="h-3 w-3" />
-          {t("mediaConnections.disconnect")}
-        </Button>
-      ) : (
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-xs gap-1 rounded-full border-primary/40 text-primary hover:bg-primary/10"
-          onClick={handleConnect}
-        >
-          {t("mediaConnections.connect")}
-        </Button>
-      )}
+      <div className="flex items-center gap-1 shrink-0">
+        {isConnected && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-xs gap-1"
+            onClick={onSyncNow}
+            disabled={isSyncing}
+          >
+            <RefreshCw className={cn("h-3 w-3", isSyncing && "animate-spin")} />
+            {isSyncing
+              ? t("mediaConnections.syncing")
+              : t("mediaConnections.syncNow")}
+          </Button>
+        )}
+        {isConnected && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs gap-1"
+            onClick={onDisconnect}
+            disabled={isDisconnecting}
+          >
+            <Unplug className="h-3 w-3" />
+            {t("mediaConnections.disconnect")}
+          </Button>
+        )}
+        {!isConnected && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs gap-1 rounded-full border-primary/40 text-primary hover:bg-primary/10"
+            onClick={handleConnect}
+          >
+            {needsReconnect
+              ? t("mediaConnections.reconnect")
+              : t("mediaConnections.connect")}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

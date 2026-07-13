@@ -1,0 +1,74 @@
+Simplify VYV to the focused MVP
+I want to simplify VYV and remove Explorer from the first public MVP.
+The first version must focus only on the strongest core experience:
+AI chat connected to the calendar
+Calendar and daily planning
+Friend availability and planning together
+Captures
+Profile, privacy and basic settings
+Do not delete working Explorer code permanently. Preserve it safely for a later phase, but remove it from the active user experience.
+Main objective
+The MVP should communicate one clear idea:
+VYV helps users organize their time, coordinate with friends and capture real moments.
+The app should no longer feel like a combination of a calendar, social app, content platform, Spotify, YouTube and wellness library.
+Prioritize clarity, reliability and a smooth user experience over feature quantity.
+Phase 1 — Audit before changing anything
+Before editing the code, inspect the current project and report:
+current navigation structure;
+Explorer routes and components;
+Explorer database tables;
+Spotify and YouTube code;
+Explorer-related environment variables;
+any shared components used by other sections;
+any dependencies that are used only by Explorer;
+existing feature flags;
+possible risks of removing Explorer;
+which working features could accidentally break.
+Clearly separate:
+code safe to hide;
+code safe to remove later;
+code shared with other features;
+unfinished or mock functionality.
+Do not start deleting files before completing this audit.
+Phase 2 — Preserve Explorer safely
+Do not permanently destroy the current Explorer work.
+Create one of these safe preservation methods:
+Preferred method
+Create a separate Git branch named:
+feature/explorer-future
+Commit the current Explorer implementation there before simplifying the MVP.
+Also add a feature flag
+Create:
+EXPLORER_ENABLED=false
+The production MVP must treat Explorer as disabled.
+Make sure Explorer can be restored later without rebuilding it from zero.
+Do not expose Spotify or YouTube credentials when preserving the code.
+Phase 3 — Remove Explorer from active navigation
+Remove Explorer from:
+bottom navigation;
+home shortcuts;
+onboarding;
+product tour;
+profile shortcuts;
+deep links;
+notifications;
+empty states;
+AI suggestions;
+any dashboard cards;
+any landing screen inside the authenticated app.
+Users should not reach Explorer accidentally.
+When EXPLORER_ENABLED=false:
+Explorer routes must redirect safely to the main app screen;
+no Spotify or YouTube authorization should be triggered;
+no Explorer API requests should run;
+no recommendation jobs should run;
+no Explorer content should load in the background.
+Do not leave broken navigation gaps.
+Rebalance the bottom navigation so it looks intentional.
+Recommended navigation:
+Home or Chat
+Calendar
+Capture
+Friends
+Profile
+If the app already has a better working navigation structure, preserve it while keeping the same five core areas.

@@ -11,6 +11,8 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
+import { encryptToken, decryptToken } from "../lib/tokenCrypto";
+import { refineCandidatesWithAI } from "../lib/itemClassifier";
 import {
   classifyHealthy,
   isBlockedContent,
@@ -146,8 +148,8 @@ router.get(
         .values({
           user_id: userId,
           provider: "youtube",
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token ?? null,
+          access_token: encryptToken(tokens.access_token),
+          refresh_token: encryptToken(tokens.refresh_token ?? null),
           is_active: true,
           scopes: [YT_SCOPE],
           connected_at: new Date(),
@@ -156,11 +158,11 @@ router.get(
         .onConflictDoUpdate({
           target: [mediaIntegrations.user_id, mediaIntegrations.provider],
           set: {
-            access_token: tokens.access_token,
+            access_token: encryptToken(tokens.access_token),
             // Google only re-sends the refresh_token with prompt=consent;
             // keep whatever we got (it is always present on first consent).
             ...(tokens.refresh_token
-              ? { refresh_token: tokens.refresh_token }
+              ? { refresh_token: encryptToken(tokens.refresh_token) }
               : {}),
             is_active: true,
             scopes: [YT_SCOPE],
@@ -205,14 +207,15 @@ export async function getYouTubeAccessToken(
   const expiresAt = row.token_expires_at
     ? new Date(row.token_expires_at).getTime()
     : 0;
-  if (expiresAt > Date.now() + 60_000) return row.access_token;
+  if (expiresAt > Date.now() + 60_000) return decryptToken(row.access_token);
 
-  if (!row.refresh_token) return null;
+  const refreshToken = decryptToken(row.refresh_token);
+  if (!refreshToken) return null;
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      refresh_token: row.refresh_token,
+      refresh_token: refreshToken,
       client_id: clientId(),
       client_secret: clientSecret(),
       grant_type: "refresh_token",
@@ -227,7 +230,7 @@ export async function getYouTubeAccessToken(
   await db
     .update(mediaIntegrations)
     .set({
-      access_token: tokens.access_token,
+      access_token: encryptToken(tokens.access_token),
       token_expires_at: new Date(
         Date.now() + (tokens.expires_in ?? 3600) * 1000,
       ),
@@ -377,6 +380,35 @@ export async function syncYouTubeHealthy(
   scanned: number;
   inserted: number;
 }> {
+  try {
+    return await syncYouTubeHealthyInner(userId, opts);
+  } catch (err) {
+    await db
+      .update(mediaIntegrations)
+      .set({
+        last_sync_status: "error",
+        last_sync_error:
+          err instanceof Error ? err.message.slice(0, 500) : "sync failed",
+        updated_at: new Date(),
+      })
+      .where(
+        and(
+          eq(mediaIntegrations.user_id, userId),
+          eq(mediaIntegrations.provider, "youtube"),
+        ),
+      )
+      .catch(() => {});
+    throw err;
+  }
+}
+
+async function syncYouTubeHealthyInner(
+  userId: string,
+  opts: { includePersonal?: boolean } = {},
+): Promise<{
+  scanned: number;
+  inserted: number;
+}> {
   // Personal data (liked videos) may only feed the shared catalogue when
   // the sync runs on behalf of the account owner themself.
   const includePersonal = opts.includePersonal ?? true;
@@ -462,22 +494,27 @@ export async function syncYouTubeHealthy(
     .where(inArray(exploreItems.url, urls));
   const existingUrls = new Set(existing.map((r) => r.url));
 
-  const fresh = urls
+  const freshCandidates = urls
     .filter((u) => !existingUrls.has(u))
-    .map((u) => byUrl.get(u)!)
-    .map((c) => ({
-      title: c.title,
-      source: "youtube",
-      url: c.url,
-      duration_min: c.duration_min,
-      category: c.category,
-      tags: c.tags,
-      language: c.language,
-      creator: c.creator,
-      thumbnail: c.thumbnail,
-      is_verified: true,
-      popularity_score: 0.6,
-    }));
+    .map((u) => byUrl.get(u)!);
+
+  // AI pass refines category + language on the NEW items only (best-effort:
+  // rules-based values survive any AI failure; no items are added or dropped).
+  const refined = await refineCandidatesWithAI(freshCandidates);
+
+  const fresh = refined.map((c) => ({
+    title: c.title,
+    source: "youtube",
+    url: c.url,
+    duration_min: c.duration_min,
+    category: c.category,
+    tags: [c.category.toLowerCase(), "youtube", "bienestar"],
+    language: c.language,
+    creator: c.creator,
+    thumbnail: c.thumbnail,
+    is_verified: true,
+    popularity_score: 0.6,
+  }));
 
   // Idempotent under concurrent syncs: explore_items.url is unique.
   if (fresh.length > 0)
@@ -488,7 +525,12 @@ export async function syncYouTubeHealthy(
 
   await db
     .update(mediaIntegrations)
-    .set({ last_sync_at: new Date(), updated_at: new Date() })
+    .set({
+      last_sync_at: new Date(),
+      last_sync_status: "ok",
+      last_sync_error: null,
+      updated_at: new Date(),
+    })
     .where(
       and(
         eq(mediaIntegrations.user_id, userId),
@@ -559,6 +601,65 @@ router.post(
       req.log?.error({ err }, "youtube healthy sync failed");
       res.status(502).json({ error: "Sync failed" });
     }
+  },
+);
+
+// -- Honest per-provider connection status ------------------------------------
+// Derived server-side from the stored row — never from whether content cards
+// happen to exist. Tokens are never included in the response.
+
+export type ProviderStatus =
+  | "not_connected"
+  | "connected"
+  | "token_expired"
+  | "sync_error";
+
+router.get(
+  "/media/connections/status",
+  requireUser,
+  async (req: Request, res: Response) => {
+    const userId = req.authUser!.id;
+    const rows = await db
+      .select({
+        provider: mediaIntegrations.provider,
+        is_active: mediaIntegrations.is_active,
+        refresh_token: mediaIntegrations.refresh_token,
+        token_expires_at: mediaIntegrations.token_expires_at,
+        connected_at: mediaIntegrations.connected_at,
+        last_sync_at: mediaIntegrations.last_sync_at,
+        last_sync_status: mediaIntegrations.last_sync_status,
+        last_sync_error: mediaIntegrations.last_sync_error,
+      })
+      .from(mediaIntegrations)
+      .where(eq(mediaIntegrations.user_id, userId));
+
+    const byProvider = new Map(rows.map((r) => [r.provider, r]));
+    const result = ["spotify", "youtube"].map((provider) => {
+      const row = byProvider.get(provider);
+      if (!row || !row.is_active) {
+        return { provider, status: "not_connected" as ProviderStatus };
+      }
+      const expMs = row.token_expires_at
+        ? new Date(row.token_expires_at).getTime()
+        : 0;
+      let status: ProviderStatus = "connected";
+      if (!row.refresh_token && expMs > 0 && expMs < Date.now()) {
+        // Access token expired and there is no refresh token to renew it —
+        // the user must reconnect.
+        status = "token_expired";
+      } else if (row.last_sync_status === "error") {
+        status = "sync_error";
+      }
+      return {
+        provider,
+        status,
+        connected_at: row.connected_at,
+        last_sync_at: row.last_sync_at,
+        last_sync_error:
+          status === "sync_error" ? (row.last_sync_error ?? null) : null,
+      };
+    });
+    res.json(result);
   },
 );
 

@@ -845,7 +845,15 @@
     "dataAccessDescription": "Control what information AI can use to personalize.",
     "mediaDataDesc": "Genres, artists, and playlists from your connected services",
     "connectionsSettings": "Media Connections",
-    "connectionsSettingsDesc": "Spotify, YouTube and privacy controls"
+    "connectionsSettingsDesc": "Spotify, YouTube and privacy controls",
+    "reconnect": "Reconnect",
+    "reconnectNeeded": "The connection expired. Reconnect to keep syncing.",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…",
+    "syncError": "The last sync failed",
+    "syncDone": "Sync complete",
+    "lastSync": "Last synced: {{time}}",
+    "neverSynced": "Not synced yet"
   },
   "privacy": {
     "sectionVisibility": {

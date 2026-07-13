@@ -11,6 +11,8 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
+import { encryptToken, decryptToken } from "../lib/tokenCrypto";
+import { refineCandidatesWithAI } from "../lib/itemClassifier";
 import {
   classifyHealthy,
   isBlockedContent,
@@ -148,8 +150,8 @@ router.get(
         .values({
           user_id: userId,
           provider: "spotify",
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token ?? null,
+          access_token: encryptToken(tokens.access_token),
+          refresh_token: encryptToken(tokens.refresh_token ?? null),
           is_active: true,
           scopes: SPOTIFY_SCOPE.split(" "),
           connected_at: new Date(),
@@ -158,9 +160,9 @@ router.get(
         .onConflictDoUpdate({
           target: [mediaIntegrations.user_id, mediaIntegrations.provider],
           set: {
-            access_token: tokens.access_token,
+            access_token: encryptToken(tokens.access_token),
             ...(tokens.refresh_token
-              ? { refresh_token: tokens.refresh_token }
+              ? { refresh_token: encryptToken(tokens.refresh_token) }
               : {}),
             is_active: true,
             scopes: SPOTIFY_SCOPE.split(" "),
@@ -204,9 +206,10 @@ export async function getSpotifyAccessToken(
   const expiresAt = row.token_expires_at
     ? new Date(row.token_expires_at).getTime()
     : 0;
-  if (expiresAt > Date.now() + 60_000) return row.access_token;
+  if (expiresAt > Date.now() + 60_000) return decryptToken(row.access_token);
 
-  if (!row.refresh_token) return null;
+  const refreshToken = decryptToken(row.refresh_token);
+  if (!refreshToken) return null;
   const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -214,7 +217,7 @@ export async function getSpotifyAccessToken(
       Authorization: `Basic ${basicAuth()}`,
     },
     body: new URLSearchParams({
-      refresh_token: row.refresh_token,
+      refresh_token: refreshToken,
       grant_type: "refresh_token",
     }),
   });
@@ -228,9 +231,11 @@ export async function getSpotifyAccessToken(
   await db
     .update(mediaIntegrations)
     .set({
-      access_token: tokens.access_token,
+      access_token: encryptToken(tokens.access_token),
       // Spotify occasionally rotates the refresh token — keep the new one.
-      ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
+      ...(tokens.refresh_token
+        ? { refresh_token: encryptToken(tokens.refresh_token) }
+        : {}),
       token_expires_at: new Date(
         Date.now() + (tokens.expires_in ?? 3600) * 1000,
       ),
@@ -433,22 +438,27 @@ async function insertSpotifyCandidates(
     .where(inArray(exploreItems.url, urls));
   const existingUrls = new Set(existing.map((r) => r.url));
 
-  const fresh = urls
+  const freshCandidates = urls
     .filter((u) => !existingUrls.has(u))
-    .map((u) => byUrl.get(u)!)
-    .map((c) => ({
-      title: c.title,
-      source: "spotify",
-      url: c.url,
-      duration_min: c.duration_min,
-      category: c.category,
-      tags: c.tags,
-      language: c.language,
-      creator: c.creator,
-      thumbnail: c.thumbnail,
-      is_verified: true,
-      popularity_score: 0.6,
-    }));
+    .map((u) => byUrl.get(u)!);
+
+  // AI pass refines category + language on the NEW items only (best-effort:
+  // rules-based values survive any AI failure; no items are added or dropped).
+  const refined = await refineCandidatesWithAI(freshCandidates);
+
+  const fresh = refined.map((c) => ({
+    title: c.title,
+    source: "spotify",
+    url: c.url,
+    duration_min: c.duration_min,
+    category: c.category,
+    tags: [c.category.toLowerCase(), "spotify", "bienestar"],
+    language: c.language,
+    creator: c.creator,
+    thumbnail: c.thumbnail,
+    is_verified: true,
+    popularity_score: 0.6,
+  }));
 
   // Idempotent under concurrent syncs: explore_items.url is unique.
   if (fresh.length > 0)
@@ -528,6 +538,35 @@ export async function syncSpotifyHealthy(
   scanned: number;
   inserted: number;
 }> {
+  try {
+    return await syncSpotifyHealthyInner(userId, opts);
+  } catch (err) {
+    await db
+      .update(mediaIntegrations)
+      .set({
+        last_sync_status: "error",
+        last_sync_error:
+          err instanceof Error ? err.message.slice(0, 500) : "sync failed",
+        updated_at: new Date(),
+      })
+      .where(
+        and(
+          eq(mediaIntegrations.user_id, userId),
+          eq(mediaIntegrations.provider, "spotify"),
+        ),
+      )
+      .catch(() => {});
+    throw err;
+  }
+}
+
+async function syncSpotifyHealthyInner(
+  userId: string,
+  opts: { includePersonal?: boolean } = {},
+): Promise<{
+  scanned: number;
+  inserted: number;
+}> {
   // Personal library (saved shows) may only feed the shared catalogue when
   // the sync runs on behalf of the account owner themself.
   const includePersonal = opts.includePersonal ?? true;
@@ -598,7 +637,12 @@ export async function syncSpotifyHealthy(
 
   await db
     .update(mediaIntegrations)
-    .set({ last_sync_at: new Date(), updated_at: new Date() })
+    .set({
+      last_sync_at: new Date(),
+      last_sync_status: "ok",
+      last_sync_error: null,
+      updated_at: new Date(),
+    })
     .where(
       and(
         eq(mediaIntegrations.user_id, userId),

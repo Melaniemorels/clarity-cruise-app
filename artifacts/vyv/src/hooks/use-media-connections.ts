@@ -38,6 +38,59 @@ export function useMediaConnections() {
   });
 }
 
+export type ProviderStatus =
+  | "not_connected"
+  | "connected"
+  | "token_expired"
+  | "sync_error";
+
+export interface MediaConnectionStatus {
+  provider: string;
+  status: ProviderStatus;
+  connected_at?: string | null;
+  last_sync_at?: string | null;
+  last_sync_error?: string | null;
+}
+
+// Honest per-provider state derived server-side (never inferred from whether
+// content cards exist). Tokens are never part of this payload.
+export function useMediaConnectionStatus() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["media-connection-status", user?.id],
+    queryFn: async (): Promise<MediaConnectionStatus[]> => {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/media/connections/status`,
+        { credentials: "include" }
+      );
+      if (!response.ok) throw new Error("Failed to fetch connection status");
+      return response.json();
+    },
+    enabled: !!user,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useSyncMedia() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (provider: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/media/${provider}/sync`,
+        { method: "POST", credentials: "include" }
+      );
+      if (!response.ok) throw new Error("Sync failed");
+      return response.json() as Promise<{ scanned: number; inserted: number }>;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["media-connection-status"] });
+      queryClient.invalidateQueries({ queryKey: ["media-connections"] });
+    },
+  });
+}
+
 export function useDisconnectMedia() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

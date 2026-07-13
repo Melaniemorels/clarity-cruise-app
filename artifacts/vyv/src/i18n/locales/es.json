@@ -845,7 +845,15 @@
     "dataAccessDescription": "Controla qué información puede usar la IA para personalizar.",
     "mediaDataDesc": "Géneros, artistas y playlists de tus servicios conectados",
     "connectionsSettings": "Conexiones de Media",
-    "connectionsSettingsDesc": "Spotify, YouTube y controles de privacidad"
+    "connectionsSettingsDesc": "Spotify, YouTube y controles de privacidad",
+    "reconnect": "Reconectar",
+    "reconnectNeeded": "La conexión venció. Reconecta para seguir sincronizando.",
+    "syncNow": "Sincronizar ahora",
+    "syncing": "Sincronizando…",
+    "syncError": "La última sincronización falló",
+    "syncDone": "Sincronización completada",
+    "lastSync": "Última sincronización: {{time}}",
+    "neverSynced": "Aún sin sincronizar"
   },
   "privacy": {
     "sectionVisibility": {
