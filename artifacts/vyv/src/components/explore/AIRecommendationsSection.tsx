@@ -26,7 +26,7 @@ import {
   Brain,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ExplorerContentCard } from "./ExplorerContentCard";
+import { ExplorerContentCard, type ExplorerCardIcon } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
 
 const GOALS: {
@@ -42,7 +42,7 @@ const GOALS: {
   { value: "sleep", labelKey: "recommendations.goals.sleep", icon: <Moon className="h-3.5 w-3.5" /> },
 ];
 
-const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+const TYPE_ICONS: Record<string, ExplorerCardIcon> = {
   playlist: Music,
   podcast: Podcast,
   ambient: Wind,
@@ -78,7 +78,7 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
       durationLabel={recommendation.duration}
       categoryLabelKey={`recommendations.types.${recommendation.type}`}
       gradient={gradient}
-      icon={Icon as any}
+      icon={Icon}
       comingSoon={showComingSoon}
       layout="carousel"
       onOpen={handleClick}

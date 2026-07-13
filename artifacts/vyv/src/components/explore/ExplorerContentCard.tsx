@@ -1,8 +1,19 @@
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, Bookmark, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { explorerText, explorerCard } from "./explorer-tokens";
+
+export type ExplorerCardIcon = React.ComponentType<{
+  className?: string;
+  strokeWidth?: number | string;
+}>;
+
+/** Language codes with a translated label; other codes are not shown. */
+const LANGUAGE_LABEL_KEYS: Record<string, string> = {
+  es: "explore.languages.es",
+  en: "explore.languages.en",
+};
 
 export interface ExplorerContentCardProps {
   title: string;
@@ -10,10 +21,12 @@ export interface ExplorerContentCardProps {
   /** i18n key for the source/provider chip (e.g. explore.providers.youtube) */
   providerLabelKey?: string | null;
   durationMin?: number | null;
-  /** Preformatted duration (e.g. "12 min") — used when durationMin is absent */
+  /** Preformatted duration (already localized) — used when durationMin is absent */
   durationLabel?: string | null;
   /** i18n key for the category chip */
   categoryLabelKey?: string | null;
+  /** Content language code (e.g. "es" | "en") — shown as a chip when it has a known label */
+  language?: string | null;
   /** Recommendation explanation (already localized by the backend) */
   reason?: string | null;
   /** Shows the "Curated by VYV" chip */
@@ -23,9 +36,11 @@ export interface ExplorerContentCardProps {
   progress?: number | null;
   /** Shows the "integration coming soon" caption */
   comingSoon?: boolean;
-  /** Artwork: gradient classes + centered icon */
+  /** Artwork image URL — preferred over gradient/icon when present */
+  thumbnail?: string | null;
+  /** Artwork fallback: gradient classes + centered icon */
   gradient?: string;
-  icon?: LucideIcon;
+  icon?: ExplorerCardIcon;
   /** carousel = fixed width; grid = fills its cell */
   layout?: "carousel" | "grid";
   onOpen: () => void;
@@ -39,11 +54,13 @@ export function ExplorerContentCard({
   durationMin,
   durationLabel,
   categoryLabelKey: catKey,
+  language,
   reason,
   curated,
   saved,
   progress,
   comingSoon,
+  thumbnail,
   gradient,
   icon: Icon,
   layout = "carousel",
@@ -65,7 +82,13 @@ export function ExplorerContentCard({
     ? explorerCard.artworkHeight.mobile
     : explorerCard.artworkHeight.desktop;
   const duration =
-    durationMin != null ? `${durationMin} min` : durationLabel ?? null;
+    durationMin != null
+      ? t("explore.durationMin", { count: durationMin })
+      : durationLabel ?? null;
+  const languageLabelKey = language
+    ? LANGUAGE_LABEL_KEYS[language.split("-")[0].toLowerCase()]
+    : undefined;
+  const hasArtwork = !!thumbnail || !!gradient;
 
   return (
     <div
@@ -78,17 +101,27 @@ export function ExplorerContentCard({
       onClick={onOpen}
     >
       {/* Artwork */}
-      {gradient && (
+      {hasArtwork && (
         <div
           className={cn(
-            "relative flex items-center justify-center",
-            `bg-gradient-to-br ${gradient}`,
+            "relative flex items-center justify-center overflow-hidden",
+            gradient ? `bg-gradient-to-br ${gradient}` : "bg-muted/40",
             artworkHeight,
           )}
         >
-          {Icon && (
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : Icon ? (
             <Icon className="h-10 w-10 text-foreground/40" strokeWidth={1.5} />
-          )}
+          ) : null}
           {duration && (
             <span className="absolute top-2.5 right-2.5 text-[10px] font-medium tracking-wide text-muted-foreground bg-card/70 backdrop-blur-sm rounded-full px-2 py-0.5">
               {duration}
@@ -131,12 +164,17 @@ export function ExplorerContentCard({
           {catKey && (
             <span className={explorerText.sourceChip}>{t(catKey)}</span>
           )}
+          {languageLabelKey && (
+            <span className={explorerText.sourceChip}>
+              {t(languageLabelKey)}
+            </span>
+          )}
           {curated && (
             <span className={explorerText.curatedChip}>
               {t("explore.curatedByVyv")}
             </span>
           )}
-          {duration && !gradient && (
+          {duration && !hasArtwork && (
             <span className={explorerText.cardMeta}>{duration}</span>
           )}
         </div>

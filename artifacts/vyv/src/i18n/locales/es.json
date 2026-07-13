@@ -160,7 +160,12 @@
     "curatedByVyv": "Seleccionado por VYV",
     "includeOtherLanguages": "Incluir contenido en otros idiomas",
     "saveLabel": "Guardar",
-    "savedLabel": "Guardado"
+    "savedLabel": "Guardado",
+    "durationMin": "{{count}} min",
+    "languages": {
+      "es": "Español",
+      "en": "English"
+    }
   },
   "calendar": {
     "title": "Calendario",

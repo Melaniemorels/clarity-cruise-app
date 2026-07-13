@@ -11,7 +11,7 @@ import { openContent } from "@/lib/open-content";
 import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
-import { ExplorerContentCard } from "./ExplorerContentCard";
+import { ExplorerContentCard, type ExplorerCardIcon } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
 
 export interface SectionConfig {
@@ -89,7 +89,7 @@ const SECTION_GRADIENTS: Record<string, string[]> = {
   ],
 };
 
-const SECTION_ICONS: Record<string, React.ElementType> = {
+const SECTION_ICONS: Record<string, ExplorerCardIcon> = {
   Música: Music,
   Audiolibros: Headphones,
   Yoga: Dumbbell,
@@ -225,9 +225,11 @@ export function ExploreSectionCarousel({
               description={item.description}
               providerLabelKey={PROVIDER_LABEL_KEYS[detectProvider(item.url)]}
               durationMin={item.duration_min}
+              language={item.language}
               curated={item.is_verified}
+              thumbnail={item.thumbnail}
               gradient={gradients[idx % gradients.length]}
-              icon={IconComponent as React.ComponentType<any>}
+              icon={IconComponent}
               layout="carousel"
               onOpen={() => handleClick(item)}
               onSave={() => logEvent.mutate({ itemId: item.id, event: "save" })}

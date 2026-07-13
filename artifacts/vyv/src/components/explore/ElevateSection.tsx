@@ -13,20 +13,20 @@ import { explorerText, sectionTitleSize } from "./explorer-tokens";
 export interface ElevateItem {
   titleKey: string;
   descKey: string;
-  duration: string;
+  durationMin: number;
   color: string;
   url: string;
 }
 
 export const ELEVATE_ITEMS: ElevateItem[] = [
-  { titleKey: "elevate.items.deepWork", descKey: "elevate.descs.deepWork", duration: "12 min", color: "from-violet-900/50 to-indigo-900/40", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
-  { titleKey: "elevate.items.weekStructure", descKey: "elevate.descs.weekStructure", duration: "8 min", color: "from-blue-900/50 to-cyan-900/40", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
-  { titleKey: "elevate.items.digitalDistraction", descKey: "elevate.descs.digitalDistraction", duration: "15 min", color: "from-emerald-900/50 to-teal-900/40", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
-  { titleKey: "elevate.items.idealMorning", descKey: "elevate.descs.idealMorning", duration: "10 min", color: "from-amber-900/50 to-orange-900/40", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
-  { titleKey: "elevate.items.energyManagement", descKey: "elevate.descs.energyManagement", duration: "12 min", color: "from-rose-900/50 to-pink-900/40", url: "https://www.youtube.com/watch?v=n3kNlFMXslo" },
-  { titleKey: "elevate.items.mentalClarity", descKey: "elevate.descs.mentalClarity", duration: "5 min", color: "from-sky-900/50 to-blue-900/40", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
-  { titleKey: "elevate.items.focusPsychology", descKey: "elevate.descs.focusPsychology", duration: "25 min", color: "from-purple-900/50 to-violet-900/40", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
-  { titleKey: "elevate.items.travelProductivity", descKey: "elevate.descs.travelProductivity", duration: "6 min", color: "from-cyan-900/50 to-teal-900/40", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
+  { titleKey: "elevate.items.deepWork", descKey: "elevate.descs.deepWork", durationMin: 12, color: "from-violet-900/50 to-indigo-900/40", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
+  { titleKey: "elevate.items.weekStructure", descKey: "elevate.descs.weekStructure", durationMin: 8, color: "from-blue-900/50 to-cyan-900/40", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
+  { titleKey: "elevate.items.digitalDistraction", descKey: "elevate.descs.digitalDistraction", durationMin: 15, color: "from-emerald-900/50 to-teal-900/40", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
+  { titleKey: "elevate.items.idealMorning", descKey: "elevate.descs.idealMorning", durationMin: 10, color: "from-amber-900/50 to-orange-900/40", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
+  { titleKey: "elevate.items.energyManagement", descKey: "elevate.descs.energyManagement", durationMin: 12, color: "from-rose-900/50 to-pink-900/40", url: "https://www.youtube.com/watch?v=n3kNlFMXslo" },
+  { titleKey: "elevate.items.mentalClarity", descKey: "elevate.descs.mentalClarity", durationMin: 5, color: "from-sky-900/50 to-blue-900/40", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
+  { titleKey: "elevate.items.focusPsychology", descKey: "elevate.descs.focusPsychology", durationMin: 25, color: "from-purple-900/50 to-violet-900/40", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
+  { titleKey: "elevate.items.travelProductivity", descKey: "elevate.descs.travelProductivity", durationMin: 6, color: "from-cyan-900/50 to-teal-900/40", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
 ];
 
 export function ElevateSection() {
@@ -68,7 +68,7 @@ export function ElevateSection() {
                 title={t(item.titleKey)}
                 description={t(item.descKey)}
                 providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
-                durationLabel={item.duration}
+                durationMin={item.durationMin}
                 gradient={item.color}
                 icon={Hexagon}
                 comingSoon={showComingSoon}

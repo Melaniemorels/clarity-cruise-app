@@ -265,7 +265,7 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
 function ElevateGrid({ items, onOpen, t, searchQuery }: { items: ElevateItem[]; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
   const filtered = items.filter((item) =>
-    matchesSearch(searchQuery, t(item.titleKey), t(item.descKey), item.duration, detectProvider(item.url))
+    matchesSearch(searchQuery, t(item.titleKey), t(item.descKey), String(item.durationMin), detectProvider(item.url))
   );
 
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
@@ -279,7 +279,7 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: ElevateItem[]; 
         title={t(item.titleKey)}
         description={t(item.descKey)}
         providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
-        durationLabel={item.duration}
+        durationMin={item.durationMin}
         layout="grid"
         onOpen={() => onOpen({ url: item.url, title: t(item.titleKey) })}
       />
@@ -335,7 +335,9 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
         description={item.description}
         providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
         durationMin={item.duration_min}
+        language={item.language}
         curated={item.is_verified}
+        thumbnail={item.thumbnail}
         layout="grid"
         onOpen={() => {
           logEvent.mutate({ itemId: item.id, event: "open" });
