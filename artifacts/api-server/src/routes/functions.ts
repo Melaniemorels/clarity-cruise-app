@@ -879,6 +879,28 @@ router.post(
     const userId = req.authUser!.id;
     const action: string = req.body?.action;
     const payload = req.body?.payload ?? {};
+    const prompt: string | null =
+      typeof req.body?.prompt === "string" ? req.body.prompt.slice(0, 2000) : null;
+
+    const writeAudit = async (entry: {
+      action: string;
+      event_id?: string | null;
+      before?: unknown;
+      after?: unknown;
+    }) => {
+      try {
+        await db.insert(vyvTables.ai_calendar_audit).values({
+          user_id: userId,
+          action: entry.action,
+          event_id: entry.event_id ?? null,
+          before: entry.before ?? null,
+          after: entry.after ?? null,
+          prompt,
+        });
+      } catch (auditErr) {
+        req.log?.error({ err: auditErr }, "ai_calendar_audit write failed");
+      }
+    };
 
     try {
       if (action === "create") {
@@ -902,6 +924,7 @@ router.post(
             source: "ai",
           })
           .returning();
+        await writeAudit({ action: "create", event_id: row?.id, after: row });
         res.json({ ok: true, event: row });
         return;
       }
@@ -919,6 +942,16 @@ router.post(
         if (payload.ends_at !== undefined)
           updates.ends_at = new Date(payload.ends_at);
         if (payload.notes !== undefined) updates.notes = payload.notes;
+        const beforeRows = await db
+          .select()
+          .from(vyvTables.calendar_events)
+          .where(
+            and(
+              eq(vyvTables.calendar_events.id, payload.event_id),
+              eq(vyvTables.calendar_events.user_id, userId),
+            ),
+          )
+          .limit(1);
         const rows = await db
           .update(vyvTables.calendar_events)
           .set(updates)
@@ -933,6 +966,12 @@ router.post(
           res.status(404).json({ error: "Event not found" });
           return;
         }
+        await writeAudit({
+          action: "update",
+          event_id: payload.event_id,
+          before: beforeRows[0] ?? null,
+          after: rows[0],
+        });
         res.json({ ok: true, event: rows[0] });
         return;
       }
@@ -955,6 +994,11 @@ router.post(
           res.status(404).json({ error: "Event not found" });
           return;
         }
+        await writeAudit({
+          action: "delete",
+          event_id: payload.event_id,
+          before: rows[0],
+        });
         res.json({ ok: true });
         return;
       }
@@ -990,6 +1034,31 @@ router.post(
     }
 
     try {
+      const [profileRows, memoryRows] = await Promise.all([
+        db
+          .select({ ai_memory_enabled: vyvTables.profiles.ai_memory_enabled })
+          .from(vyvTables.profiles)
+          .where(eq(vyvTables.profiles.user_id, userId))
+          .limit(1),
+        db
+          .select()
+          .from(vyvTables.ai_memories)
+          .where(eq(vyvTables.ai_memories.user_id, userId))
+          .orderBy(desc(vyvTables.ai_memories.importance_score))
+          .limit(20),
+      ]);
+      const memoryEnabled = profileRows[0]?.ai_memory_enabled === true;
+
+      let memoryBlock = "";
+      if (memoryEnabled && memoryRows.length > 0) {
+        const lines = memoryRows
+          .map((m) => `- (${m.memory_type}) ${String(m.content).slice(0, 200)}`)
+          .join("\n");
+        memoryBlock = `
+Things you remember about this user from past conversations (use them naturally, never list them back verbatim):
+${lines}`;
+      }
+
       let calendarBlock = "";
       if (calendarAccess) {
         const context = await loadRecContext(userId);
@@ -1015,6 +1084,7 @@ Rules:
 - ALWAYS reply in the same language the user writes in (Spanish or English).
 - Be brief and supportive: 2-5 sentences, or a short numbered list (1. 2. 3.) when suggesting concrete steps.
 - Focus on intentional living: movement, rest, meals, focus, small wins. No medical advice.
+${memoryBlock}
 ${calendarBlock}`;
 
       const contents = messages.slice(-20).map((m) => ({
@@ -1050,6 +1120,12 @@ ${calendarBlock}`;
 
       res.write("data: [DONE]\n\n");
       res.end();
+
+      if (memoryEnabled) {
+        extractAndStoreMemories(userId, messages, memoryRows).catch((memErr) =>
+          req.log?.error({ err: memErr }, "ai memory extraction failed"),
+        );
+      }
     } catch (err) {
       req.log?.error({ err }, "vyv-assistant failed");
       if (!res.headersSent) {
@@ -1060,6 +1136,112 @@ ${calendarBlock}`;
     }
   },
 );
+
+// Fire-and-forget after each assistant exchange: ask Gemini whether the last
+// user messages contain durable personal facts worth remembering, and store
+// up to 2 new ones. Existing memories are passed so it only outputs NEW facts.
+const MEMORY_TYPES = new Set([
+  "preference",
+  "goal",
+  "routine",
+  "relationship",
+  "health",
+  "work",
+  "calendar",
+  "interest",
+  "other",
+]);
+const MAX_MEMORIES_PER_USER = 60;
+
+async function extractAndStoreMemories(
+  userId: string,
+  messages: { role: "user" | "assistant"; content: string }[],
+  existing: { content: string }[],
+): Promise<void> {
+  const userText = messages
+    .filter((m) => m.role === "user")
+    .slice(-3)
+    .map((m) => String(m.content ?? "").slice(0, 500))
+    .join("\n");
+  if (userText.trim().length < 15) return;
+
+  const known =
+    existing.map((m) => `- ${String(m.content).slice(0, 200)}`).join("\n") ||
+    "(none)";
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            text: `Recent user messages in a wellness-companion chat:
+"""
+${userText}
+"""
+
+Already-known facts about this user:
+${known}
+
+Extract at most 2 NEW durable personal facts worth remembering long-term (stable preferences, goals, routines, relationships, health habits, work context, interests). Ignore transient moods, one-off events, small talk, and anything already known. Write each fact in the user's own language, third person, under 120 characters.
+
+Reply with ONLY a JSON array (possibly empty), no prose:
+[{"content":"...","memory_type":"preference|goal|routine|relationship|health|work|calendar|interest|other","importance_score":0.1-1.0}]`,
+          },
+        ],
+      },
+    ],
+    config: {
+      maxOutputTokens: 512,
+      thinkingConfig: { thinkingBudget: 0 },
+      responseMimeType: "application/json",
+    },
+  });
+
+  const raw = (response.text ?? "").trim();
+  if (!raw) return;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+  const existingNorm = new Set(
+    existing.map((m) => m.content.trim().toLowerCase()),
+  );
+  const rows = parsed
+    .slice(0, 2)
+    .map((item) => {
+      const content = String((item as any)?.content ?? "").trim().slice(0, 200);
+      const type = String((item as any)?.memory_type ?? "other");
+      const score = Number((item as any)?.importance_score);
+      return {
+        user_id: userId,
+        content,
+        memory_type: MEMORY_TYPES.has(type) ? type : "other",
+        importance_score:
+          Number.isFinite(score) && score > 0 && score <= 1 ? score : 0.5,
+      };
+    })
+    .filter(
+      (r) =>
+        r.content.length >= 8 &&
+        !existingNorm.has(r.content.trim().toLowerCase()),
+    );
+  if (!rows.length) return;
+
+  const countRows = await db
+    .select({ id: vyvTables.ai_memories.id })
+    .from(vyvTables.ai_memories)
+    .where(eq(vyvTables.ai_memories.user_id, userId));
+  const remaining = MAX_MEMORIES_PER_USER - countRows.length;
+  if (remaining <= 0) return;
+
+  await db.insert(vyvTables.ai_memories).values(rows.slice(0, remaining));
+}
 
 // ---------------------------------------------------------------------------
 // analyze-image — quick capture labeling (emoji + short label + category).
