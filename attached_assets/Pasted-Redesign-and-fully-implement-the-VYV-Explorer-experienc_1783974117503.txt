@@ -1,0 +1,317 @@
+Redesign and fully implement the VYV Explorer experience. Do not only modify the visual appearance. Make the data, language, categories, recommendations, saved content and playback progress functional.
+1. Fix the current UI inconsistencies
+The current Explorer screen has inconsistent typography, spacing, card sizes and language.
+Create one reusable design system for all Explorer sections and cards:
+Use the same font family throughout the entire application.
+Create consistent typography tokens for:
+page titles;
+section titles;
+card titles;
+descriptions;
+metadata;
+buttons and labels.
+Keep card title sizes, line heights and font weights consistent.
+Limit titles to two lines with an ellipsis.
+Limit descriptions to two lines.
+Use equal card heights within each horizontal carousel.
+Use consistent padding, border radius, icons and spacing.
+Keep VYV’s dark, elegant visual identity.
+Use subtle navy, forest green and muted blue tones.
+Avoid oversized text, random emojis and inconsistent icons.
+Do not change the bottom navigation structure.
+Create one reusable component such as:
+ExplorerContentCard
+It must support:
+thumbnail or category artwork;
+title;
+short description;
+source;
+duration;
+category;
+language;
+progress;
+saved state;
+recommendation reason;
+open/play action.
+2. Enforce the selected app language
+The application must never mix English and Spanish.
+Use the language selected during onboarding or in Profile Settings as the single source of truth.
+All interface text must use the translation system, including:
+Explore / Explorar;
+Right now / Para ahora;
+View all / Ver todo;
+Open / Abrir;
+Connect / Conectar;
+Save / Guardar;
+Saved / Guardados;
+Continue / Continuar;
+Refresh / Actualizar;
+Recommended for you / Recomendado para ti;
+Direct integration coming soon / Integración directa próximamente;
+no-result messages;
+errors;
+connection messages;
+recommendation explanations.
+Do not hardcode interface strings directly inside components.
+Content recommendations should primarily be shown in the language selected by the user. Do not automatically translate the original title of a Spotify podcast or YouTube video. Instead, filter and prioritize content originally available in the user’s selected language.
+If there is insufficient content in the selected language, show a clear optional control:
+“Include content in other languages.”
+This setting must be off by default.
+3. Connect Spotify and YouTube correctly
+Allow users to connect:
+Spotify only;
+YouTube only;
+both services;
+neither service.
+Use secure OAuth authorization. Never request or expose the user’s password.
+Store:
+connection status;
+provider user ID;
+granted scopes;
+access token securely on the server;
+refresh token securely on the server;
+token expiration;
+last synchronization date.
+Never expose provider secrets or tokens in the frontend.
+After connection, use only data made available by the provider and explicitly authorized by the user.
+Possible Spotify signals:
+followed artists and shows;
+saved episodes;
+playlists;
+top genres or artists when available;
+recently played content when permission and API access allow it.
+Possible YouTube signals:
+subscriptions;
+playlists;
+liked videos;
+activity or history only when the API and granted permissions allow it.
+Do not pretend that VYV has access to data that the provider does not supply.
+4. Build VYV’s recommendation engine
+VYV must not simply reproduce Spotify or YouTube recommendations.
+Create a VYV recommendation layer that combines:
+selected goals;
+interests selected during onboarding;
+connected platform preferences;
+saved VYV content;
+opened content;
+completed content;
+skipped content;
+user feedback;
+available time before the next calendar event;
+selected language;
+preferred content type;
+preferred duration;
+current time of day.
+Example goals:
+focus;
+sleep;
+reduce stress;
+movement;
+healthy eating;
+motivation;
+organization;
+personal development;
+social connection.
+Every recommendation must include a transparent reason, for example:
+“Recommended because you selected better sleep.”
+“Fits the 18 minutes before your next event.”
+“Similar to content you saved.”
+“Based on your interest in yoga.”
+“Continue where you stopped.”
+Never create invented health statistics or unsupported medical claims.
+5. Healthy-content curation
+Create a moderation and quality-scoring system before content becomes eligible for recommendations.
+The system should prioritize:
+credible creators;
+educational value;
+realistic wellness advice;
+non-extreme fitness;
+healthy meal preparation;
+guided yoga or meditation;
+evidence-informed productivity;
+safe personal development content.
+Exclude or heavily downrank:
+eating-disorder promotion;
+extreme dieting;
+dangerous fasting;
+medical misinformation;
+self-harm content;
+hate or harassment;
+sexual content;
+drug promotion;
+dangerous fitness challenges;
+manipulative or misleading wellness claims.
+Do not label content “Healthy Verified” unless it has genuinely passed a defined verification process.
+Until that verification system exists, use the title:
+“Curated by VYV”
+or in Spanish:
+“Seleccionado por VYV”
+6. Reorganize the Explorer screen
+Use this order:
+A. Continue
+Show content that the user previously opened but did not finish.
+Each item should include:
+progress percentage or progress bar;
+remaining duration;
+Continue button;
+option to remove from history.
+Only show this section when progress exists.
+B. Right now
+Personalized recommendations based on:
+calendar availability;
+time of day;
+user goals;
+current preferences;
+available duration.
+Allow the user to refresh only this section.
+The refresh button must return a different eligible set and avoid immediately repeating the same content.
+C. Saved
+Show a preview of the user’s saved items and a “View all” action.
+Create a complete Saved screen with:
+All;
+Spotify;
+YouTube;
+Yoga;
+Focus;
+Meals;
+Podcasts;
+Meditation;
+Recently saved.
+Allow unsaving from both the cards and the Saved screen.
+D. Personalized categories
+Examples:
+Focus;
+Elevate;
+Meal Plans;
+Yoga;
+Meditation;
+Podcasts;
+Move;
+Sleep.
+Do not place unrelated content inside a category.
+For example:
+cooking content must not appear in Yoga;
+meditation content must not appear in Meal Plans;
+productivity content must not appear in Yoga unless it is genuinely a yoga-related item.
+E. Connected services
+Do not place the large Spotify and YouTube connection panel in the middle of the feed after the user has already connected them.
+Before connection, show one compact setup card.
+After connection, replace it with a small status row:
+Spotify connected;
+YouTube connected;
+Manage connections.
+Connection management should also exist in Settings.
+7. Refresh behavior
+Add a refresh control for:
+Right now;
+each content category;
+the full personalized feed.
+Refreshing must:
+fetch or select new eligible recommendations;
+avoid duplicates;
+retain saved items;
+retain progress;
+not erase user preferences;
+not reset the feed to mock data.
+Show loading skeletons while refreshing.
+8. Saved-content functionality
+The bookmark icon must work.
+When a user saves an item:
+persist it in the database;
+update the card immediately;
+make it available in the Saved screen;
+preserve the source URL;
+preserve metadata;
+avoid duplicate records.
+Suggested database table:
+explorer_saved_items
+Fields:
+id
+user_id
+content_id
+provider
+provider_item_id
+title
+description
+thumbnail_url
+external_url
+category
+language
+duration_seconds
+saved_at
+Use proper user-level authorization and row-level security.
+9. Continue-watching/listening functionality
+Track content progress when technically possible.
+Suggested table:
+explorer_progress
+Fields:
+id
+user_id
+content_id
+provider
+progress_seconds
+duration_seconds
+progress_percent
+last_opened_at
+completed_at
+If precise playback tracking is unavailable because the content opens in an external app, still record:
+that the item was opened;
+last opened date;
+an optional user action such as “Mark as completed.”
+Do not fake exact progress if VYV cannot receive real playback data.
+10. Recommendation feedback
+Add a small overflow menu to every recommendation:
+Save;
+Not interested;
+Show me more like this;
+Hide this creator;
+Report;
+Mark as completed.
+Use this feedback to improve future recommendations.
+11. Empty and disconnected states
+When no service is connected, do not show fake personalized recommendations as if they came from the user’s accounts.
+Show:
+“Connect Spotify or YouTube to personalize your Explorer, or choose your interests manually.”
+The user must still be able to use Explorer without connecting an external account by selecting:
+goals;
+categories;
+preferred language;
+preferred duration;
+favorite topics.
+12. Remove mock and mismatched content
+Audit all existing Explorer content.
+Remove:
+invented statistics;
+incorrect metadata;
+broken links;
+duplicated items;
+mismatched categories;
+placeholder titles;
+content that claims to be personalized but is static.
+Do not use random demo items in production.
+Seed content may be used during development only, and it must be clearly separated from real provider content.
+13. Acceptance criteria
+This task is complete only when:
+The entire Explorer respects the selected language.
+No English and Spanish interface text appears together.
+Content is assigned to the correct category.
+Spotify and YouTube connection statuses persist.
+Saved items remain after refreshing or logging in again.
+Continue content remains after refreshing or logging in again.
+Refresh provides different eligible content.
+No duplicate recommendations appear in the same feed.
+Recommendations explain why they were selected.
+The design is visually consistent on mobile.
+No fake health claims or invented metrics are shown.
+The screen works with Spotify only, YouTube only, both, or neither.
+All external links open the correct content.
+User data is isolated and protected.
+No existing Calendar, Feed, Focus or Profile functionality is broken.
+Before changing the code, audit the current implementation and list:
+current Explorer components;
+current database tables;
+existing mock data;
+existing Spotify or YouTube implementation;
+missing environment variables;
+security concerns.
+Then implement the work in phases and test each phase. Do not replace working functionality with static UI.
