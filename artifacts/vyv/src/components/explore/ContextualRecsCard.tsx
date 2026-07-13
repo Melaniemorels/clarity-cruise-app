@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +77,12 @@ function ContextualCard({ rec }: { rec: ContextualRec }) {
   );
 }
 
-export function ExplorerContextualRecs() {
+export function ExplorerContextualRecs({
+  refreshSignal,
+}: {
+  /** Bump this counter to force a refresh excluding the items on screen. */
+  refreshSignal?: number;
+} = {}) {
   const { t } = useTranslation();
   const device = useDevice();
   const { data, isLoading, error } = useExplorerContextualRecs();
@@ -98,6 +104,21 @@ export function ExplorerContextualRecs() {
       },
     );
   };
+
+  // Full-page refresh: when the signal bumps, refresh excluding what's shown.
+  const recsRef = useRef(recs);
+  recsRef.current = recs;
+  useEffect(() => {
+    if (!refreshSignal || refreshSignal <= 0) return;
+    const excludeIds = recsRef.current
+      .map((r) => (r as { item_id?: string }).item_id)
+      .filter((id): id is string => !!id);
+    refreshMutation.mutate(
+      { target: "explorer", excludeIds },
+      { onError: (err) => toast.error(err.message) },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshSignal]);
 
   if (!isLoading && recs.length === 0 && !error) return null;
 

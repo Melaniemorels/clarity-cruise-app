@@ -29,6 +29,54 @@ export function ExploreConnectionsCard() {
     connectedProviders.includes(p.id),
   );
 
+  // After connection: never a large panel mid-feed — just a small status row.
+  if (allConnected) {
+    return (
+      <>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-card/50 px-4 py-2.5 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
+            {PROVIDERS.map((p) => {
+              const Icon = p.icon;
+              return (
+                <span
+                  key={p.id}
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] text-primary"
+                >
+                  <Icon className="h-3 w-3" />
+                  {t(p.nameKey)}
+                  <CheckCircle2 className="h-3 w-3" />
+                </span>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-xs h-7 px-2 text-muted-foreground"
+              onClick={() => navigate("/media-connections")}
+            >
+              {t("explore.connections.manage")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-xs h-7 px-2 gap-1 text-muted-foreground"
+              onClick={() => setPersonalizeOpen(true)}
+            >
+              <SlidersHorizontal className="h-3 w-3" />
+              {t("explore.personalize.button")}
+            </Button>
+          </div>
+        </div>
+        <ExplorePersonalizeDialog
+          open={personalizeOpen}
+          onOpenChange={setPersonalizeOpen}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <Card className="border-border/50 bg-card/50">

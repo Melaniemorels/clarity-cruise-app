@@ -20,7 +20,6 @@ import { ExplorerContextualRecs } from "@/components/explore/ContextualRecsCard"
 import { useDwellTracker } from "@/hooks/use-dwell-tracker";
 import { Switch } from "@/components/ui/switch";
 import { Languages, RefreshCw } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   useIncludeOtherLanguages,
   useSetIncludeOtherLanguages,
@@ -65,13 +64,13 @@ const Explore = () => {
 
   const exploreTracker = useModuleTimeTracker("EXPLORE");
   const dwellTracker = useDwellTracker("explore");
-  const queryClient = useQueryClient();
 
-  // Full-page refresh: re-rank every feed and the contextual recommendations.
-  const handleRefreshAll = () => {
-    queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
-    queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
-  };
+  // Full-page refresh: bump a counter that each section listens to. Every
+  // section then re-requests excluding the items it currently shows, so the
+  // whole feed returns different eligible content (no duplicate refetch of
+  // identical results).
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const handleRefreshAll = () => setRefreshNonce((n) => n + 1);
 
   useEffect(() => {
     exploreTracker.start();
@@ -119,7 +118,7 @@ const Explore = () => {
         <ContinueSection />
 
         {/* B. Right now — contextual recommendations (calendar + time of day) */}
-        <ExplorerContextualRecs />
+        <ExplorerContextualRecs refreshSignal={refreshNonce} />
 
         {/* C. Saved for later */}
         <SavedSection />
@@ -132,6 +131,7 @@ const Explore = () => {
               section={section}
               onSectionVisible={dwellTracker.onCategoryVisible}
               onSectionHidden={dwellTracker.onCategoryHidden}
+              refreshSignal={refreshNonce}
             />
           ))}
         </div>

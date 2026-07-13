@@ -1061,17 +1061,64 @@ router.post(
         if (fresh.length >= 4) pool = fresh;
       }
 
-      // Rank: time-of-day category match first, then language, then variety.
+      // Manual personalization signals: goals, interests, preferred duration.
+      const ctxGoalCategories = new Map<string, string>();
+      for (const goal of ctxPrefsRows[0]?.goals ?? []) {
+        for (const cat of GOAL_CATEGORIES[goal] ?? []) {
+          if (!ctxGoalCategories.has(cat)) ctxGoalCategories.set(cat, goal);
+        }
+      }
+      const ctxInterests = new Set(
+        (ctxPrefsRows[0]?.preferred_tags ?? []).filter((t) =>
+          HEALTHY_CATEGORY_SET.has(t),
+        ),
+      );
+      const ctxPreferredDuration =
+        ctxPrefsRows[0]?.preferred_duration_min ?? null;
+
+      // Rank: time-of-day fit + goals + manual interests + duration fit
+      // (calendar gap and preferred session length) + language, with a small
+      // random jitter for variety.
       const catRank = (c: string) => {
         const idx = preferredCats.indexOf(c as HealthyCategory);
         return idx === -1 ? preferredCats.length : idx;
       };
-      const ranked = [...pool].sort(
-        (a, b) =>
-          catRank(a.category) - catRank(b.category) ||
-          (b.language === uiLang ? 1 : 0) - (a.language === uiLang ? 1 : 0) ||
-          Math.random() - 0.5,
-      );
+      const ctxScore = (i: ExploreItemRow): number => {
+        let score = (preferredCats.length - catRank(i.category)) * 1.0;
+        if (ctxGoalCategories.has(i.category)) score += 2.5;
+        if (ctxInterests.has(i.category)) score += 2.0;
+        if (i.language === uiLang) score += 0.5;
+        if (i.duration_min != null) {
+          if (i.duration_min <= Math.max(gapMinutes, 10)) score += 0.75;
+          if (ctxPreferredDuration != null && ctxPreferredDuration > 0) {
+            const ratio = i.duration_min / ctxPreferredDuration;
+            score += ratio >= 0.5 && ratio <= 1.5 ? 1.0 : -0.5;
+          }
+        }
+        return score + Math.random() * 0.5;
+      };
+      const ranked = pool
+        .map((i) => ({ i, s: ctxScore(i) }))
+        .sort((a, b) => b.s - a.s)
+        .map((x) => x.i);
+
+      // Per-item reason: strongest real signal wins (goal > interest > gap
+      // fit), falling back to the shared gap/time-of-day context.
+      const ctxItemReason = (i: ExploreItemRow) => {
+        const goal = ctxGoalCategories.get(i.category);
+        if (goal) return { kind: "goal", goal };
+        if (ctxInterests.has(i.category)) {
+          return { kind: "interest", category: i.category };
+        }
+        if (
+          i.duration_min != null &&
+          gapMinutes < 240 &&
+          i.duration_min <= gapMinutes
+        ) {
+          return { kind: "fits_gap", minutes: gapMinutes };
+        }
+        return contextualReason(gapMinutes, ctx.timeOfDay);
+      };
 
       // One item per creator, max 2 per category, for variety.
       const usedCreators = new Set<string>();
@@ -1090,7 +1137,7 @@ router.post(
       const toRec = (i: ExploreItemRow) => ({
         title: i.title,
         category: i.category,
-        reason: contextualReason(gapMinutes, ctx.timeOfDay),
+        reason: ctxItemReason(i),
         duration_min: i.duration_min ?? 20,
         mood: CATEGORY_MOOD[i.category] ?? "calm",
         tags: i.tags ?? [],

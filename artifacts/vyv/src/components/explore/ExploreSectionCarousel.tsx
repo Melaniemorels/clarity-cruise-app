@@ -121,10 +121,13 @@ export function ExploreSectionCarousel({
   section,
   onSectionVisible,
   onSectionHidden,
+  refreshSignal,
 }: {
   section: SectionConfig;
   onSectionVisible?: (category: string) => void;
   onSectionHidden?: (category: string) => void;
+  /** Bump this counter to force a refresh excluding the items on screen. */
+  refreshSignal?: number;
 }) {
   const { t } = useTranslation();
   const device = useDevice();
@@ -134,6 +137,16 @@ export function ExploreSectionCarousel({
   const [excludeIds, setExcludeIds] = useState<string[]>([]);
   const { data, isLoading, isFetching } = useForYouFeed(section.key, excludeIds);
   const { buildMenu, recordOpen } = useExplorerCardActions();
+
+  // Full-page refresh: when the signal bumps, exclude the ids currently on
+  // screen so this section also returns different eligible items.
+  const latestIdsRef = useRef<string[]>([]);
+  latestIdsRef.current = (data?.items ?? []).map((i) => i.id);
+  useEffect(() => {
+    if (refreshSignal && refreshSignal > 0 && latestIdsRef.current.length > 0) {
+      setExcludeIds(latestIdsRef.current);
+    }
+  }, [refreshSignal]);
 
   // Track section visibility for dwell time
   const { ref: sectionRef, inView } = useInView({ threshold: 0.3 });
