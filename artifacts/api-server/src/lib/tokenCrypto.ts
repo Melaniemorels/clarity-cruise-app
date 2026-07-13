@@ -9,16 +9,15 @@ const PREFIX = "enc:v1:";
 
 function getKey(): Buffer {
   const raw = process.env.TOKEN_ENCRYPTION_KEY;
-  if (!raw) {
+  if (!raw || raw.length < 16) {
     throw new Error(
-      "TOKEN_ENCRYPTION_KEY is not set — cannot encrypt/decrypt provider tokens",
+      "TOKEN_ENCRYPTION_KEY is not set (or too short) — cannot encrypt/decrypt provider tokens",
     );
   }
-  const key = Buffer.from(raw, "base64");
-  if (key.length !== 32) {
-    throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes (base64-encoded)");
-  }
-  return key;
+  // Derive a 256-bit AES key from the secret. Accepting any sufficiently long
+  // secret string (rather than requiring exact 32-byte base64) lets the key
+  // live in Replit Secrets and be rotated without format constraints.
+  return crypto.createHash("sha256").update(raw, "utf8").digest();
 }
 
 export function encryptToken(plain: string): string;
