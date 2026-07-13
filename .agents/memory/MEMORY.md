@@ -7,3 +7,4 @@
 - [VYV Clerk auth bridge](vyv-clerk-auth.md) — Clerk id→stable internal UUID (JIT link by email); cookies only, a stray Bearer header makes Clerk getAuth 401 even with a valid cookie; Tailwind v3 = no cssLayerName.
 - [VYV migration architecture](vyv-migration.md) — imported Lovable/Supabase app onto pnpm-workspace via a Supabase compatibility shim routing to an Express API.
 - [Schema drift breaks auth silently](vyv-schema-drift.md) — blanket 401s with valid Clerk cookie = live-DB column drift; post-merge drizzle push silently skips renames (TTY prompt), apply DDL via psql.
+- [api-server test bundling](api-server-test-bundling.md) — esbuild test bundles need an alias per workspace lib AND that lib's npm deps as api-server devDeps (pnpm doesn't hoist).

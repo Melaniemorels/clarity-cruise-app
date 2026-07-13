@@ -126,32 +126,35 @@ export function isoDurationToMinutes(iso: string | null | undefined): number | n
 // Per-category YouTube search queries used to keep the catalogue stocked with
 // real, current wellness content. One query set per catalogue language so
 // Spanish and English users both get content in their own language.
+// Bias: evidence-based, practical content that genuinely helps ("respaldado
+// por la ciencia"). Practice categories (yoga, meditation…) stay guided-
+// session queries; knowledge/habit categories carry the science framing.
 export const CATEGORY_SEARCH_QUERIES: Record<HealthyCategory, string> = {
-  Yoga: "yoga en casa para principiantes",
-  Pilates: "pilates en casa rutina completa",
-  Ejercicios: "estiramientos y movilidad guiados",
+  Yoga: "yoga en casa para principiantes clase guiada",
+  Pilates: "pilates en casa rutina completa guiada",
+  Ejercicios: "ejercicio y movilidad en casa basado en ciencia",
   Meditación: "meditación guiada en español",
   Calma: "ejercicios de respiración para relajarse",
-  Energía: "rutina de la mañana energía",
-  Nutrición: "recetas saludables fáciles",
-  PlanesDeComida: "meal prep semanal saludable",
-  Motivacional: "audio motivacional hábitos disciplina",
-  Podcasts: "podcast bienestar y salud mental",
+  Energía: "rutina de mañana con energía hábitos respaldados por la ciencia",
+  Nutrición: "recetas saludables fáciles nutrición basada en ciencia",
+  PlanesDeComida: "batch cooking saludable ideas fáciles para cocinar toda la semana",
+  Motivacional: "hábitos y disciplina respaldados por la ciencia",
+  Podcasts: "podcast ciencia del bienestar y salud mental",
   Música: "música para concentrarse y estudiar",
   Audiolibros: "audiolibro desarrollo personal completo",
 };
 
 export const CATEGORY_SEARCH_QUERIES_EN: Record<HealthyCategory, string> = {
-  Yoga: "beginner yoga at home full class",
-  Pilates: "pilates at home full body routine",
-  Ejercicios: "guided stretching and mobility routine",
+  Yoga: "beginner yoga at home full guided class",
+  Pilates: "pilates at home full body guided routine",
+  Ejercicios: "science based home exercise and mobility routine",
   Meditación: "guided meditation mindfulness",
   Calma: "breathing exercises to relax and sleep",
-  Energía: "energizing morning routine",
-  Nutrición: "easy healthy recipes",
-  PlanesDeComida: "healthy weekly meal prep",
-  Motivacional: "motivational audio habits discipline",
-  Podcasts: "wellness and mental health podcast",
+  Energía: "science backed morning routine energy habits",
+  Nutrición: "easy healthy recipes science based nutrition",
+  PlanesDeComida: "healthy weekly meal prep easy batch cooking ideas",
+  Motivacional: "science backed habits and discipline",
+  Podcasts: "science of wellbeing and mental health podcast",
   Música: "focus music for studying and working",
   Audiolibros: "personal development audiobook full",
 };

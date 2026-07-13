@@ -307,12 +307,12 @@ router.get(
 const EPISODE_SEARCH_QUERIES: Partial<Record<HealthyCategory, string>> = {
   "Meditación": "meditación guiada",
   Calma: "relajación para dormir",
-  Motivacional: "motivación personal podcast",
-  Podcasts: "podcast bienestar salud",
-  "Nutrición": "nutrición alimentación saludable",
-  "Energía": "hábitos energía mañana",
+  Motivacional: "hábitos y motivación respaldados por la ciencia",
+  Podcasts: "podcast ciencia del bienestar salud",
+  "Nutrición": "nutrición basada en evidencia alimentación saludable",
+  "Energía": "hábitos de energía por la mañana ciencia",
   Yoga: "yoga nidra relajación guiada",
-  PlanesDeComida: "meal prep planificación comidas saludables",
+  PlanesDeComida: "batch cooking comidas saludables para la semana",
   "Música": "música relajante para dormir y concentrarse",
   Audiolibros: "audiolibro desarrollo personal completo",
 };
@@ -321,12 +321,12 @@ const EPISODE_SEARCH_QUERIES: Partial<Record<HealthyCategory, string>> = {
 const EPISODE_SEARCH_QUERIES_EN: Partial<Record<HealthyCategory, string>> = {
   "Meditación": "guided meditation",
   Calma: "relaxation for sleep",
-  Motivacional: "personal motivation podcast",
-  Podcasts: "wellness health podcast",
-  "Nutrición": "nutrition healthy eating",
-  "Energía": "morning energy habits",
+  Motivacional: "science based habits motivation podcast",
+  Podcasts: "science of wellbeing health podcast",
+  "Nutrición": "evidence based nutrition healthy eating",
+  "Energía": "morning energy habits science",
   Yoga: "yoga nidra guided relaxation",
-  PlanesDeComida: "meal prep healthy weekly plan",
+  PlanesDeComida: "healthy meal prep for the week batch cooking",
   "Música": "relaxing music for sleep and focus",
   Audiolibros: "personal development audiobook",
 };
@@ -339,7 +339,7 @@ const EXTRA_EPISODE_QUERIES: [HealthyCategory, string][] = [
   ["Podcasts", "podcast psicología positiva"],
   ["Música", "playlist sonidos para concentración estudio"],
   ["Música", "música instrumental bienestar"],
-  ["PlanesDeComida", "plan semanal de comidas batch cooking"],
+  ["PlanesDeComida", "ideas fáciles para cocinar sano toda la semana"],
   ["Audiolibros", "audiolibro hábitos español"],
 ];
 
@@ -348,7 +348,7 @@ const EXTRA_EPISODE_QUERIES_EN: [HealthyCategory, string][] = [
   ["Podcasts", "positive psychology podcast"],
   ["Música", "focus sounds study playlist"],
   ["Música", "instrumental wellness music"],
-  ["PlanesDeComida", "weekly meal plan batch cooking"],
+  ["PlanesDeComida", "easy healthy cooking ideas for the week"],
   ["Audiolibros", "habits audiobook"],
 ];
 
