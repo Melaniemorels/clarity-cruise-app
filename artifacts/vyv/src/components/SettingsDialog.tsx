@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/ThemeProvider";
-import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
+import { HEALTH_PHASE2_ENABLED, EXPLORER_ENABLED } from "@/lib/feature-flags";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
@@ -526,13 +526,15 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                 />
               )}
 
-              {/* Media Connections */}
-              <LinkButton
-                icon={Music}
-                label={t("mediaConnections.connectionsSettings")}
-                description={t("mediaConnections.connectionsSettingsDesc")}
-                onClick={() => handleNavigate("/media-connections")}
-              />
+              {/* Media Connections — part of the Explorer surface */}
+              {EXPLORER_ENABLED && (
+                <LinkButton
+                  icon={Music}
+                  label={t("mediaConnections.connectionsSettings")}
+                  description={t("mediaConnections.connectionsSettingsDesc")}
+                  onClick={() => handleNavigate("/media-connections")}
+                />
+              )}
 
               <Separator />
 

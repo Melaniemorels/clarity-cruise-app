@@ -11,6 +11,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, mediaIntegrations, exploreItems } from "@workspace/db";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
+import { explorerEnabled } from "../lib/featureFlags";
 import { encryptToken, decryptToken } from "../lib/tokenCrypto";
 import { refineCandidatesWithAI } from "../lib/itemClassifier";
 import {
@@ -81,6 +82,10 @@ router.get(
   "/media/spotify/connect",
   requireUser,
   (req: Request, res: Response) => {
+    if (!explorerEnabled()) {
+      res.status(403).json({ error: "Explorer is disabled" });
+      return;
+    }
     if (!clientId() || !clientSecret()) {
       res.status(503).json({ error: "Spotify OAuth is not configured" });
       return;
@@ -105,6 +110,10 @@ router.get(
   "/media/spotify/callback",
   async (req: Request, res: Response) => {
     const back = (q: string) => res.redirect(`/media-connections?${q}`);
+    if (!explorerEnabled()) {
+      back("error=explorer_disabled");
+      return;
+    }
     const { code, state, error } = req.query as Record<string, string>;
 
     if (error) {
@@ -732,6 +741,10 @@ router.post(
   "/media/spotify/sync",
   requireUser,
   async (req: Request, res: Response) => {
+    if (!explorerEnabled()) {
+      res.status(403).json({ error: "Explorer is disabled" });
+      return;
+    }
     try {
       const result = await syncSpotifyHealthy(req.authUser!.id);
       res.json(result);

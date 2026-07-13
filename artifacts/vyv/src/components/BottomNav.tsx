@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Home, Compass, Lock, Calendar, User } from "lucide-react";
+import { Home, Compass, Lock, Calendar, User, Users } from "lucide-react";
 import { NavLink } from "./NavLink";
 import { QuickCamera } from "./QuickCamera";
 import { FocusIntroModal } from "./FocusIntroModal";
 import { useTranslation } from "react-i18next";
 import { useGuideAnchor, useGuide } from "@/contexts/GuideContext";
 import { useDevice } from "@/hooks/use-device";
+import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
 export const BottomNav = () => {
@@ -71,10 +72,17 @@ export const BottomNav = () => {
             {!isLandscape && <span className="text-xs font-medium">{t("nav.feed")}</span>}
           </NavLink>
 
-          <NavLink to="/explore" id="tab-explore" className={linkClass} activeClassName={activeClass} ref={exploreAnchor}>
-            <Compass className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
-            {!isLandscape && <span className="text-xs font-medium">{t("nav.explore")}</span>}
-          </NavLink>
+          {EXPLORER_ENABLED ? (
+            <NavLink to="/explore" id="tab-explore" className={linkClass} activeClassName={activeClass} ref={exploreAnchor}>
+              <Compass className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
+              {!isLandscape && <span className="text-xs font-medium">{t("nav.explore")}</span>}
+            </NavLink>
+          ) : (
+            <NavLink to="/calendar" id="tab-calendar" className={linkClass} activeClassName={activeClass} ref={calendarAnchor}>
+              <Calendar className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
+              {!isLandscape && <span className="text-xs font-medium">{t("nav.calendar")}</span>}
+            </NavLink>
+          )}
 
           <button
             id="tab-focus"
@@ -86,10 +94,17 @@ export const BottomNav = () => {
             {!isLandscape && <span className="text-xs font-medium">{t("nav.focus")}</span>}
           </button>
 
-          <NavLink to="/calendar" id="tab-calendar" className={linkClass} activeClassName={activeClass} ref={calendarAnchor}>
-            <Calendar className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
-            {!isLandscape && <span className="text-xs font-medium">{t("nav.calendar")}</span>}
-          </NavLink>
+          {EXPLORER_ENABLED ? (
+            <NavLink to="/calendar" id="tab-calendar" className={linkClass} activeClassName={activeClass} ref={calendarAnchor}>
+              <Calendar className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
+              {!isLandscape && <span className="text-xs font-medium">{t("nav.calendar")}</span>}
+            </NavLink>
+          ) : (
+            <NavLink to="/find-friends" id="tab-friends" className={linkClass} activeClassName={activeClass}>
+              <Users className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
+              {!isLandscape && <span className="text-xs font-medium">{t("nav.friends")}</span>}
+            </NavLink>
+          )}
 
           <NavLink to="/profile" id="tab-profile" className={linkClass} activeClassName={activeClass} ref={profileAnchor}>
             <User className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />

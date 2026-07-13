@@ -19,6 +19,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { QueryErrorBoundary } from "./components/QueryErrorBoundary";
 import { NetworkProvider } from "./contexts/NetworkContext";
 import { NetworkStatusBanner } from "./components/NetworkStatusBanner";
+import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 import { Loader2 } from "lucide-react";
 
 // Lazy-loaded pages — each route loads its own JS chunk on demand (like Instagram)
@@ -288,22 +289,37 @@ const App = () => (
                   <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
                   <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
                   <Route path="/entries" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                  <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-                  <Route path="/explore/section/:sectionKey" element={<ProtectedRoute><ExploreSection /></ProtectedRoute>} />
-                  <Route path="/explore/saved" element={<ProtectedRoute><ExploreSaved /></ProtectedRoute>} />
+                  {/* Explorer is feature-flagged off for the MVP — old links land on Home */}
+                  {EXPLORER_ENABLED ? (
+                    <>
+                      <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+                      <Route path="/explore/section/:sectionKey" element={<ProtectedRoute><ExploreSection /></ProtectedRoute>} />
+                      <Route path="/explore/saved" element={<ProtectedRoute><ExploreSaved /></ProtectedRoute>} />
+                    </>
+                  ) : (
+                    <Route path="/explore/*" element={<Navigate to="/" replace />} />
+                  )}
                   <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                  <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/profile/:userId" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-                  <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
-                  {/* Perfect Day deferred to phase 2 — old links land on Explore */}
-                  <Route path="/perfect-day" element={<Navigate to="/explore" replace />} />
+                  {EXPLORER_ENABLED ? (
+                    <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
+                  ) : (
+                    <Route path="/recommendations" element={<Navigate to="/" replace />} />
+                  )}
+                  {/* Perfect Day deferred to phase 2 — old links land on Explore (or Calendar with Explorer off) */}
+                  <Route path="/perfect-day" element={<Navigate to={EXPLORER_ENABLED ? "/explore" : "/calendar"} replace />} />
                   <Route path="/device-settings" element={<ProtectedRoute skipOnboardingCheck><DeviceSettings /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute skipOnboardingCheck><DeviceOnboarding /></ProtectedRoute>} />
                   <Route path="/security-onboarding" element={<ProtectedRoute skipOnboardingCheck><SecurityOnboarding /></ProtectedRoute>} />
                   <Route path="/profile-setup" element={<ProtectedRoute skipOnboardingCheck><ProfileSetup /></ProtectedRoute>} />
                   <Route path="/personalization" element={<ProtectedRoute skipOnboardingCheck><Personalization /></ProtectedRoute>} />
-                  <Route path="/media-connections" element={<ProtectedRoute><MediaConnections /></ProtectedRoute>} />
+                  {EXPLORER_ENABLED ? (
+                    <Route path="/media-connections" element={<ProtectedRoute><MediaConnections /></ProtectedRoute>} />
+                  ) : (
+                    <Route path="/media-connections" element={<Navigate to="/" replace />} />
+                  )}
                   <Route path="/find-friends" element={<ProtectedRoute><FindFriends /></ProtectedRoute>} />
                   <Route path="/u/:username" element={<PublicProfile />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />

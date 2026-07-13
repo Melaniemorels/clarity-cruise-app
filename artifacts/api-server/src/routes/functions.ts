@@ -12,6 +12,7 @@ import {
 } from "../lib/healthy";
 import { maybeSyncYouTubeHealthy } from "./media";
 import { maybeSyncSpotifyHealthy } from "./spotify";
+import { explorerEnabled } from "../lib/featureFlags";
 
 const router: IRouter = Router();
 
@@ -554,13 +555,16 @@ router.post(
 
       // Keep the catalogue stocked with real wellness content: if the user
       // has YouTube/Spotify connected and the last sync is stale, refresh in
-      // the background (never blocks the feed response).
-      maybeSyncYouTubeHealthy(userId).catch((err) =>
-        req.log?.error({ err }, "background youtube healthy sync failed"),
-      );
-      maybeSyncSpotifyHealthy(userId).catch((err) =>
-        req.log?.error({ err }, "background spotify healthy sync failed"),
-      );
+      // the background (never blocks the feed response). Skipped entirely
+      // while the Explorer is feature-flagged off.
+      if (explorerEnabled()) {
+        maybeSyncYouTubeHealthy(userId).catch((err) =>
+          req.log?.error({ err }, "background youtube healthy sync failed"),
+        );
+        maybeSyncSpotifyHealthy(userId).catch((err) =>
+          req.log?.error({ err }, "background spotify healthy sync failed"),
+        );
+      }
 
       const events = eventRows;
       // Healthy-only engine: the Explorer only ever serves wellness content,
@@ -984,12 +988,15 @@ router.post(
 
     try {
       // Refresh the catalogue in the background if YouTube/Spotify connected.
-      maybeSyncYouTubeHealthy(userId).catch((err) =>
-        req.log?.error({ err }, "background youtube healthy sync failed"),
-      );
-      maybeSyncSpotifyHealthy(userId).catch((err) =>
-        req.log?.error({ err }, "background spotify healthy sync failed"),
-      );
+      // Skipped entirely while the Explorer is feature-flagged off.
+      if (explorerEnabled()) {
+        maybeSyncYouTubeHealthy(userId).catch((err) =>
+          req.log?.error({ err }, "background youtube healthy sync failed"),
+        );
+        maybeSyncSpotifyHealthy(userId).catch((err) =>
+          req.log?.error({ err }, "background spotify healthy sync failed"),
+        );
+      }
 
       const [ctx, ctxPrefsRows, ctxFeedbackRows] = await Promise.all([
         loadRecContext(userId),

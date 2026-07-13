@@ -31,6 +31,7 @@ const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
 
 import { useAppTour } from "@/hooks/use-app-tour";
+import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 
 const getTourSteps = (t: (key: string) => string) => [
   {
@@ -47,20 +48,25 @@ const getTourSteps = (t: (key: string) => string) => [
     selector: "#tab-home",
     placement: "top" as const,
   },
-  {
-    id: "explore",
-    title: t('guide.tour.exploreTitle'),
-    body: t('guide.tour.exploreBody'),
-    selector: "#tab-explore",
-    placement: "top" as const,
-  },
-  {
-    id: "elevate",
-    title: t('guide.tour.elevateTitle'),
-    body: t('guide.tour.elevateBody'),
-    selector: "#explore-elevate-section",
-    placement: "top" as const,
-  },
+  // Explorer tour steps only exist while the Explorer surface is enabled.
+  ...(EXPLORER_ENABLED
+    ? [
+        {
+          id: "explore",
+          title: t('guide.tour.exploreTitle'),
+          body: t('guide.tour.exploreBody'),
+          selector: "#tab-explore",
+          placement: "top" as const,
+        },
+        {
+          id: "elevate",
+          title: t('guide.tour.elevateTitle'),
+          body: t('guide.tour.elevateBody'),
+          selector: "#explore-elevate-section",
+          placement: "top" as const,
+        },
+      ]
+    : []),
   {
     id: "focus",
     title: t('guide.tour.focusTitle'),

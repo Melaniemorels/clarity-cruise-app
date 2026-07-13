@@ -26,7 +26,7 @@ import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
 import { useFriendAvailability } from "@/hooks/use-friend-availability";
 import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
 import { NotesSummaryCard } from "@/components/NotesSummaryCard";
-import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
+import { HEALTH_PHASE2_ENABLED, EXPLORER_ENABLED } from "@/lib/feature-flags";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -865,15 +865,17 @@ const Calendar = () => {
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{t('nav.explore')}</span>
-                  <span className="text-sm text-muted-foreground">{exploreMetrics.usedMinutes}/{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
-                </div>
-                <Progress value={exploreMetrics.progress * 100} className="h-2" />
-              </CardContent>
-            </Card>
+            {EXPLORER_ENABLED && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">{t('nav.explore')}</span>
+                    <span className="text-sm text-muted-foreground">{exploreMetrics.usedMinutes}/{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
+                  </div>
+                  <Progress value={exploreMetrics.progress * 100} className="h-2" />
+                </CardContent>
+              </Card>
+            )}
             
             <Card className="bg-muted/30">
               <CardContent className="p-4">
@@ -945,10 +947,12 @@ const Calendar = () => {
                   <span>{t('calendar.feedCap')}</span>
                   <span className="text-muted-foreground">{feedMetrics.limitMinutes} {t('calendar.minShort')}</span>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span>{t('calendar.exploreCap')}</span>
-                  <span className="text-muted-foreground">{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
-                </div>
+                {EXPLORER_ENABLED && (
+                  <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <span>{t('calendar.exploreCap')}</span>
+                    <span className="text-muted-foreground">{exploreMetrics.limitMinutes} {t('calendar.minShort')}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

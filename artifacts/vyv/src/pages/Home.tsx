@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { HomeContextualRecs } from "@/components/HomeContextualRecs";
 import { useNavStyle } from "@/components/ResponsiveNav";
+import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -44,8 +45,8 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Contextual AI recommendations — quick cards */}
-        <HomeContextualRecs />
+        {/* Contextual AI recommendations — quick cards (Explorer surface) */}
+        {EXPLORER_ENABLED && <HomeContextualRecs />}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

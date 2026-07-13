@@ -9,6 +9,7 @@ import React, {
   useState,
 } from "react";
 import i18n from "@/i18n";
+import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 
 /* ────────────────────────────────
  * Types
@@ -62,12 +63,17 @@ function getTourSteps(): TourStep[] {
       anchor: "nav_feed",
       route: "/",
     },
-    {
-      title: t("guide.tour.exploreTitle"),
-      body: t("guide.tour.exploreBody"),
-      anchor: "nav_explore",
-      route: "/explore",
-    },
+    // Explorer step only exists while the Explorer surface is enabled.
+    ...(EXPLORER_ENABLED
+      ? [
+          {
+            title: t("guide.tour.exploreTitle"),
+            body: t("guide.tour.exploreBody"),
+            anchor: "nav_explore" as const,
+            route: "/explore",
+          },
+        ]
+      : []),
     {
       title: t("guide.tour.focusTitle"),
       body: t("guide.tour.focusBody"),

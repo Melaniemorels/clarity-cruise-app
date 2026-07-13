@@ -44,6 +44,7 @@ A social wellness app for planning your day intentionally: a calendar, an AI "pe
 - **AI via Replit Gemini proxy.** The Lovable AI gateway calls were replaced with the Replit Gemini integration (no external key).
 - **AI memories + calendar audit are wired.** `vyv-assistant` injects the user's top `ai_memories` into the system prompt (only when `profiles.ai_memory_enabled` is true) and fire-and-forget extracts up to 2 new durable facts per exchange (deduped, 60/user cap). `vyv-calendar-action` writes `ai_calendar_audit` rows (before/after snapshots + prompt) on every create/update/delete, best-effort so audit failures never break the action.
 - **Explorer catalogue never depends on a single user.** `explore_items` is a global catalogue. It fills from: (1) the requesting user's own YouTube/Spotify connection, (2) any active connection (public searches only — never other users' likes/saved shows), or (3) an app-level Spotify client-credentials sync (no user connection needed; `market` param required, episode-search `limit` capped at 8). All paths are throttled to 12h and triggered fire-and-forget from `explore-feed`.
+- **Explorer is feature-flagged OFF (simplified MVP).** Frontend: `EXPLORER_ENABLED = false` in `artifacts/vyv/src/lib/feature-flags.ts` hides the Explorer tab (nav becomes Home / Calendar / Capture / Friends / Profile), redirects `/explore/*`, `/recommendations`, `/media-connections` → home and `/perfect-day` → `/calendar`, filters Explorer tour/onboarding steps, and hides Home contextual recs, the Settings media-connections link, and the Calendar explore screen-time rows. Backend: env var `EXPLORER_ENABLED` (currently `"false"`, shared) gates catalogue syncs in `explore-feed`/`contextual-recommendations` and returns 403/redirect-error on `/media/{youtube,spotify}/{connect,sync,callback}` (`artifacts/api-server/src/lib/featureFlags.ts`). Nothing deleted — re-enable by flipping the frontend const to `true` and setting the env var to `"true"`.
 - **Catalogue is bilingual (es + en).** Sync query sets exist per language (YouTube `CATEGORY_SEARCH_QUERIES[_EN]`, Spotify `EPISODE_SEARCH_QUERIES[_EN]`), items are tagged with `explore_items.language`, and `explore-feed` / `contextual-recommendations` filter to the app's UI language (sent by the frontend; unknown-language items pass; falls back to the full pool if the slice is too thin). The UI language also overrides `user_preferences.language` for ranking.
 
 ## Product
@@ -52,7 +53,7 @@ Phase-1 MVP (the features made to work):
 1. **Calendar** — view/manage scheduled events and blocks.
 2. **AI day planner** — generates a "perfect day" via Gemini and writes it into the calendar.
 3. **Friend availability** — see friends' availability and find overlapping free time.
-4. **Explorer** — ranked content discovery feed.
+4. **Explorer** — ranked content discovery feed. *Currently hidden behind the `EXPLORER_ENABLED` feature flag (off) as part of the MVP simplification.*
 
 Capture / Feed / Likes exist but are kept simple and secondary. DMs, comments, health/watch integrations, points/streaks, and monetization are intentionally not migrated.
 
