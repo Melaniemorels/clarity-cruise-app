@@ -446,14 +446,14 @@ router.post(
         ? allItems.filter((i) => i.category === category)
         : allItems;
 
-      // Language-aware catalogue: serve content in the app's UI language
-      // (items with unknown language pass through). Fall back to the full
-      // pool only when the language-matched slice is too thin to fill a page.
-      if (uiLanguage) {
-        const langPool = pool.filter(
-          (i) => !i.language || i.language === uiLanguage,
-        );
-        if (langPool.length >= Math.min(pageSize, 4)) pool = langPool;
+      // Strict language filtering: only serve content in the app's UI
+      // language (items with unknown language pass through). The user can
+      // opt in to widening the pool via the persisted
+      // include_other_languages preference (off by default).
+      const includeOtherLanguages =
+        prefsRow?.include_other_languages === true;
+      if (uiLanguage && !includeOtherLanguages) {
+        pool = pool.filter((i) => !i.language || i.language === uiLanguage);
       }
 
       const seenIds = new Set(
@@ -795,7 +795,14 @@ router.post(
         req.log?.error({ err }, "background spotify healthy sync failed"),
       );
 
-      const ctx = await loadRecContext(userId);
+      const [ctx, ctxPrefsRows] = await Promise.all([
+        loadRecContext(userId),
+        db
+          .select()
+          .from(vyvTables.user_explore_preferences)
+          .where(eq(vyvTables.user_explore_preferences.user_id, userId))
+          .limit(1),
+      ]);
       const wantHome = target === "home" || target === "both";
       const wantExplorer = target === "explorer" || target === "both";
 
@@ -813,14 +820,15 @@ router.post(
         HEALTHY_CATEGORY_SET.has(i.category),
       );
 
-      // Language-aware: only recommend content in the app's UI language
-      // (items with unknown language pass through), unless that slice is
-      // too thin to build recommendations from.
+      // Strict language filtering: only recommend content in the app's UI
+      // language (items with unknown language pass through), unless the
+      // user opted in to include other languages.
       const uiLang = language.split("-")[0].toLowerCase();
-      const langHealthy = healthy.filter(
-        (i) => !i.language || i.language === uiLang,
-      );
-      const base = langHealthy.length >= 4 ? langHealthy : healthy;
+      const includeOtherLanguages =
+        ctxPrefsRows[0]?.include_other_languages === true;
+      const base = includeOtherLanguages
+        ? healthy
+        : healthy.filter((i) => !i.language || i.language === uiLang);
 
       // Fits the free gap (unknown duration → assume a short 20-min session).
       const fitting = base.filter(
@@ -836,7 +844,7 @@ router.post(
       const ranked = [...pool].sort(
         (a, b) =>
           catRank(a.category) - catRank(b.category) ||
-          (b.language === language ? 1 : 0) - (a.language === language ? 1 : 0) ||
+          (b.language === uiLang ? 1 : 0) - (a.language === uiLang ? 1 : 0) ||
           Math.random() - 0.5,
       );
 

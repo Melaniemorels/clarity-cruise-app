@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Music, Youtube, Sparkles, ArrowRight, Shield } from "lucide-react";
+import { Music, Youtube, Sparkles, ArrowRight, Shield, Calendar, Activity, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,7 +19,7 @@ const ONBOARDING_KEY = "vyv_explore_onboarding_seen";
 const PROVIDERS = [
   {
     id: "spotify",
-    name: "Spotify",
+    nameKey: "explore.providers.spotify",
     icon: Music,
     gradient: "from-[hsl(141,73%,42%)]/15 to-[hsl(141,73%,42%)]/5",
     iconColor: "text-[hsl(141,73%,42%)]",
@@ -27,7 +27,7 @@ const PROVIDERS = [
   },
   {
     id: "youtube",
-    name: "YouTube",
+    nameKey: "explore.providers.youtube",
     icon: Youtube,
     gradient: "from-[hsl(0,100%,50%)]/10 to-[hsl(0,100%,50%)]/5",
     iconColor: "text-[hsl(0,100%,50%)]",
@@ -105,15 +105,15 @@ export function ExploreOnboardingDialog() {
             </p>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
               <li className="flex items-center gap-2">
-                <span className="text-primary">📅</span>
+                <Calendar className="h-3.5 w-3.5 text-primary flex-shrink-0" strokeWidth={1.5} />
                 {t("exploreOnboarding.calendarSignal")}
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-primary">🏃</span>
+                <Activity className="h-3.5 w-3.5 text-primary flex-shrink-0" strokeWidth={1.5} />
                 {t("exploreOnboarding.activitySignal")}
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-primary">🎯</span>
+                <Target className="h-3.5 w-3.5 text-primary flex-shrink-0" strokeWidth={1.5} />
                 {t("exploreOnboarding.goalsSignal")}
               </li>
             </ul>
@@ -143,7 +143,7 @@ export function ExploreOnboardingDialog() {
                     <Icon className={cn("h-4 w-4", provider.iconColor)} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium">{provider.name}</span>
+                    <span className="text-sm font-medium">{t(provider.nameKey)}</span>
                     <p className="text-[11px] text-muted-foreground">
                       {t(provider.description)}
                     </p>

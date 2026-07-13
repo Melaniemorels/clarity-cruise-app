@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bookmark, ArrowUpRight, Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, Megaphone } from "lucide-react";
+import { Music, Headphones, Salad, ClipboardList, Dumbbell, Brain, Flame, Wind, Hexagon, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
@@ -11,12 +11,13 @@ import { openContent } from "@/lib/open-content";
 import { useForYouFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
+import { ExplorerContentCard } from "./ExplorerContentCard";
+import { explorerText, sectionTitleSize } from "./explorer-tokens";
 
 export interface SectionConfig {
   key: string;
   titleKey: string;
   icon: string;
-  emoji: string;
 }
 
 // Gradient palettes per section for the old-money colored cards
@@ -104,14 +105,14 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   Motivacional: Megaphone,
 };
 
-// Curated sections only — each backed by real, verified content in the DB.
+// Curated sections only — each backed by real content in the DB.
 export const EXPLORE_SECTIONS: SectionConfig[] = [
-  { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard", emoji: "📋" },
-  { key: "Yoga", titleKey: "yoga", icon: "dumbbell", emoji: "🧘" },
-  { key: "Motivacional", titleKey: "motivational", icon: "megaphone", emoji: "🔥" },
-  { key: "Podcasts", titleKey: "podcasts", icon: "headphones", emoji: "🎙️" },
-  { key: "Música", titleKey: "music", icon: "music", emoji: "🎵" },
-  { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones", emoji: "🎧" },
+  { key: "PlanesDeComida", titleKey: "mealPlans", icon: "clipboard" },
+  { key: "Yoga", titleKey: "yoga", icon: "dumbbell" },
+  { key: "Motivacional", titleKey: "motivational", icon: "megaphone" },
+  { key: "Podcasts", titleKey: "podcasts", icon: "headphones" },
+  { key: "Música", titleKey: "music", icon: "music" },
+  { key: "Audiolibros", titleKey: "audiobooks", icon: "headphones" },
 ];
 
 export function ExploreSectionCarousel({
@@ -155,6 +156,15 @@ export function ExploreSectionCarousel({
     await openContent({ url: item.url, provider: detectProvider(item.url).toString(), title: item.title }, t);
   };
 
+  const header = (
+    <div className="flex items-center gap-2.5">
+      <IconComponent className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+      <h2 className={cn(explorerText.sectionTitle, sectionTitleSize(device.isMobile))}>
+        {t(`explore.categories.${section.titleKey}`)}
+      </h2>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -184,17 +194,7 @@ export function ExploreSectionCarousel({
   if (items.length === 0) {
     return (
       <div ref={sectionRef} className="space-y-3">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xl">{section.emoji}</span>
-          <h2
-            className={cn(
-              "font-bold tracking-tight text-foreground",
-              device.isMobile ? "text-lg" : "text-xl"
-            )}
-          >
-            {t(`explore.categories.${section.titleKey}`)}
-          </h2>
-        </div>
+        {header}
         <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-5 text-center">
           <p className="text-sm text-muted-foreground">{t("explore.sectionEmpty")}</p>
         </div>
@@ -204,19 +204,8 @@ export function ExploreSectionCarousel({
 
   return (
     <div ref={sectionRef} className="space-y-4">
-      {/* Section header with emoji — old money */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xl">{section.emoji}</span>
-          <h2
-            className={cn(
-              "font-bold tracking-tight text-foreground",
-              device.isMobile ? "text-lg" : "text-xl"
-            )}
-          >
-            {t(`explore.categories.${section.titleKey}`)}
-          </h2>
-        </div>
+        {header}
         <Button
           variant="ghost"
           size="sm"
@@ -228,93 +217,22 @@ export function ExploreSectionCarousel({
       </div>
 
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className={cn("flex pb-4", device.isMobile ? "gap-3" : "gap-4")}>
-          {items.map((item, idx) => {
-            const provider = detectProvider(item.url);
-            const gradient = gradients[idx % gradients.length];
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  "group flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer",
-                  "bg-card border border-border/30",
-                  "transition-all duration-300 hover:border-border/60 hover:shadow-lg",
-                  device.isMobile ? "w-[180px]" : device.isTablet ? "w-[220px]" : "w-[260px]"
-                )}
-                onClick={() => handleClick(item)}
-              >
-                {/* Colored gradient with centered icon */}
-                <div
-                  className={cn(
-                    "relative flex items-center justify-center",
-                    `bg-gradient-to-br ${gradient}`,
-                    device.isMobile ? "h-[120px]" : "h-[140px]"
-                  )}
-                >
-                  <IconComponent className="h-10 w-10 text-foreground/40" strokeWidth={1.5} />
-                  {/* Duration pill */}
-                  {item.duration_min && (
-                    <span className="absolute top-2.5 right-2.5 text-[10px] font-medium tracking-wide text-muted-foreground bg-card/70 backdrop-blur-sm rounded-full px-2 py-0.5">
-                      {item.duration_min} min
-                    </span>
-                  )}
-                </div>
-
-                {/* Card body */}
-                <div className="p-3 space-y-1.5">
-                  <h3
-                    className={cn(
-                      "font-semibold text-foreground leading-snug line-clamp-2 whitespace-normal",
-                      device.isMobile ? "text-[13px]" : "text-sm"
-                    )}
-                  >
-                    {item.title}
-                  </h3>
-
-                  {item.description && (
-                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 whitespace-normal">
-                      {item.description}
-                    </p>
-                  )}
-
-                  {/* Provider badge + duration */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium tracking-wide bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
-                      {t(PROVIDER_LABEL_KEYS[provider])}
-                    </span>
-                    {item.duration_min && (
-                      <span className="text-[11px] text-muted-foreground">
-                        {item.duration_min} min
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex items-center justify-between pt-0.5">
-                    <button
-                      className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClick(item);
-                      }}
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                      {t("explore.open")}
-                    </button>
-                    <button
-                      className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        logEvent.mutate({ itemId: item.id, event: "save" });
-                      }}
-                    >
-                      <Bookmark className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className={cn("flex items-stretch pb-4", device.isMobile ? "gap-3" : "gap-4")}>
+          {items.map((item, idx) => (
+            <ExplorerContentCard
+              key={item.id}
+              title={item.title}
+              description={item.description}
+              providerLabelKey={PROVIDER_LABEL_KEYS[detectProvider(item.url)]}
+              durationMin={item.duration_min}
+              curated={item.is_verified}
+              gradient={gradients[idx % gradients.length]}
+              icon={IconComponent as React.ComponentType<any>}
+              layout="carousel"
+              onOpen={() => handleClick(item)}
+              onSave={() => logEvent.mutate({ itemId: item.id, event: "save" })}
+            />
+          ))}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

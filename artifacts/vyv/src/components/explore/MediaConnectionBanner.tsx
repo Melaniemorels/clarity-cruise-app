@@ -11,7 +11,7 @@ import { Music, Youtube, CheckCircle2, ExternalLink, Shield } from "lucide-react
 const PROVIDERS = [
   {
     id: "spotify",
-    name: "Spotify",
+    nameKey: "explore.providers.spotify",
     icon: Music,
     color: "from-[hsl(141,73%,42%)]/20 to-[hsl(141,73%,42%)]/5",
     borderColor: "border-[hsl(141,73%,42%)]/30",
@@ -21,7 +21,7 @@ const PROVIDERS = [
   },
   {
     id: "youtube",
-    name: "YouTube",
+    nameKey: "explore.providers.youtube",
     icon: Youtube,
     color: "from-[hsl(0,100%,50%)]/15 to-[hsl(0,100%,50%)]/5",
     borderColor: "border-[hsl(0,100%,50%)]/20",
@@ -96,7 +96,7 @@ export function MediaConnectionBanner() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{provider.name}</span>
+                      <span className="text-sm font-medium">{t(provider.nameKey)}</span>
                       {isConnected && (
                         <Badge variant="success" className="text-[10px] px-1.5 py-0">
                           <CheckCircle2 className="h-3 w-3 mr-0.5" />

@@ -19,6 +19,35 @@ import { useGuide } from "@/contexts/GuideContext";
 import { ExploreSectionCarousel, EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
 import { ExplorerContextualRecs } from "@/components/explore/ContextualRecsCard";
 import { useDwellTracker } from "@/hooks/use-dwell-tracker";
+import { Switch } from "@/components/ui/switch";
+import { Languages } from "lucide-react";
+import {
+  useIncludeOtherLanguages,
+  useSetIncludeOtherLanguages,
+} from "@/hooks/use-explore-language-pref";
+
+function LanguageToggleRow() {
+  const { t } = useTranslation();
+  const { data: includeOther = false, isLoading } = useIncludeOtherLanguages();
+  const setIncludeOther = useSetIncludeOtherLanguages();
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-card/50 px-4 py-3">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Languages className="h-4 w-4 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
+        <span className="text-xs text-muted-foreground truncate">
+          {t("explore.includeOtherLanguages")}
+        </span>
+      </div>
+      <Switch
+        checked={includeOther}
+        disabled={isLoading || setIncludeOther.isPending}
+        onCheckedChange={(checked) => setIncludeOther.mutate(checked)}
+        aria-label={t("explore.includeOtherLanguages")}
+      />
+    </div>
+  );
+}
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -64,6 +93,9 @@ const Explore = () => {
             {t('explore.subtitle')}
           </p>
         </div>
+
+        {/* Language preference toggle */}
+        <LanguageToggleRow />
 
         {/* For You — main AI block + contextual sub-row, grouped under one heading */}
         <section className="space-y-6">

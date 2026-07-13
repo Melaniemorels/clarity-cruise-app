@@ -156,7 +156,11 @@
       "maybeInterest": "Tal vez te interese"
     },
     "searchSection": "Buscar en esta sección…",
-    "sectionEmpty": "Todavía estamos curando contenido para esta colección. Vuelve pronto."
+    "sectionEmpty": "Todavía estamos curando contenido para esta colección. Vuelve pronto.",
+    "curatedByVyv": "Seleccionado por VYV",
+    "includeOtherLanguages": "Incluir contenido en otros idiomas",
+    "saveLabel": "Guardar",
+    "savedLabel": "Guardado"
   },
   "calendar": {
     "title": "Calendario",
@@ -720,7 +724,7 @@
     }
   },
   "mediaConnections": {
-    "bannerTitle": "Recomendaciones Verificadas con IA",
+    "bannerTitle": "Recomendaciones con IA seleccionadas por VYV",
     "bannerDescription": "Conecta tus servicios de música para obtener recomendaciones personalizadas y saludables.",
     "connect": "Conectar",
     "connected": "Conectado",
@@ -735,8 +739,8 @@
     "spotifyDataAccess": "Artistas top, géneros, playlists guardadas",
     "youtubeDataAccess": "Videos que te gustaron, suscripciones",
     "aiRecommendations": "Para Ti",
-    "healthyVerified": "Modo Verificado Saludable",
-    "healthyVerifiedDesc": "Filtra contenido dañino y prioriza fuentes verificadas",
+    "healthyVerified": "Seleccionado por VYV",
+    "healthyVerifiedDesc": "Filtra contenido dañino y prioriza contenido seleccionado por VYV",
     "like": "Me gusta",
     "save": "Guardar",
     "liked": "¡Te gusta!",

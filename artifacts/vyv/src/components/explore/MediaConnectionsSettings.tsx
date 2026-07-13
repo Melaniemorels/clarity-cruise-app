@@ -25,15 +25,15 @@ import { cn } from "@/lib/utils";
 
 const PROVIDER_META: Record<
   string,
-  { name: string; icon: React.ElementType; dataAccessKey: string }
+  { nameKey: string; icon: React.ElementType; dataAccessKey: string }
 > = {
   spotify: {
-    name: "Spotify",
+    nameKey: "explore.providers.spotify",
     icon: Music,
     dataAccessKey: "mediaConnections.spotifyDataAccess",
   },
   youtube: {
-    name: "YouTube",
+    nameKey: "explore.providers.youtube",
     icon: Youtube,
     dataAccessKey: "mediaConnections.youtubeDataAccess",
   },
@@ -51,7 +51,9 @@ export function MediaConnectionsSettings() {
       onSuccess: () =>
         toast.success(
           t("mediaConnections.disconnected", {
-            provider: PROVIDER_META[provider]?.name || provider,
+            provider: PROVIDER_META[provider]
+              ? t(PROVIDER_META[provider].nameKey)
+              : provider,
           })
         ),
       onError: () => toast.error(t("errors.generic")),
@@ -238,7 +240,7 @@ function ConnectionRow({
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{meta.name}</span>
+            <span className="text-sm font-medium">{t(meta.nameKey)}</span>
             {isConnected && (
               <Badge variant="success" className="text-[10px] px-1.5 py-0">
                 <CheckCircle2 className="h-3 w-3 mr-0.5" />

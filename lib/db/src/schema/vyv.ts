@@ -262,6 +262,11 @@ export const userExplorePreferences = pgTable("user_explore_preferences", {
   id: id(),
   user_id: uuid("user_id").notNull().unique(),
   language: text("language"),
+  // Off by default: the Explorer strictly serves content in the app's UI
+  // language unless the user opts in to widening the pool.
+  include_other_languages: boolean("include_other_languages")
+    .notNull()
+    .default(false),
   goals: text("goals").array().notNull().default([]),
   preferred_tags: text("preferred_tags").array().notNull().default([]),
   blocked_creators: text("blocked_creators").array().notNull().default([]),

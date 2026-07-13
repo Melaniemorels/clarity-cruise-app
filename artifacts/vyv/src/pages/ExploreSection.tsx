@@ -4,14 +4,17 @@ import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bookmark, ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { useSeeAllFeed, useLogItemEvent, type ExploreItem } from "@/hooks/use-explore-feed";
 import { useRecommendations, type RecommendationGoal, type Recommendation } from "@/hooks/use-recommendations";
 import { openContent } from "@/lib/open-content";
 import { detectProvider, PROVIDER_LABEL_KEYS } from "@/lib/external-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { ELEVATE_ITEMS, type ElevateItem } from "@/components/explore/ElevateSection";
+import { ExplorerContentCard } from "@/components/explore/ExplorerContentCard";
+import { explorerText, pageTitleSize } from "@/components/explore/explorer-tokens";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { useInView } from "react-intersection-observer";
@@ -30,18 +33,6 @@ function useDebouncedValue(value: string, delay = 250): string {
   }, [value, delay]);
   return debounced;
 }
-
-// Elevate static items — same data as ElevateSection
-const ELEVATE_ITEMS = [
-  { title: "Deep Work", duration: "12 min", url: "https://www.youtube.com/watch?v=ZD7dXfdDPfg" },
-  { title: "Week Structure", duration: "8 min", url: "https://www.youtube.com/watch?v=o7w5r5PfBKo" },
-  { title: "Digital Distraction", duration: "15 min", url: "https://www.youtube.com/watch?v=Hu4Yvq-g7_Y" },
-  { title: "Ideal Morning", duration: "10 min", url: "https://www.youtube.com/watch?v=WtKJrB5rOKs" },
-  { title: "Time Management", duration: "12 min", url: "https://www.youtube.com/watch?v=n3kNlFMXslo" },
-  { title: "Mental Clarity", duration: "5 min", url: "https://www.youtube.com/watch?v=lACf4O_eSt0" },
-  { title: "Focus Psychology", duration: "25 min", url: "https://www.hubermanlab.com/episode/how-to-focus-to-change-your-brain" },
-  { title: "Travel Productivity", duration: "6 min", url: "https://www.youtube.com/watch?v=2paoNvG5Nmo" },
-];
 
 const GOAL_FILTERS: { value: RecommendationGoal; labelKey: string }[] = [
   { value: "auto", labelKey: "recommendations.goals.auto" },
@@ -108,10 +99,7 @@ export default function ExploreSection() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className={cn(
-            "font-bold tracking-tight text-foreground",
-            device.isMobile ? "text-xl" : "text-2xl"
-          )}>
+          <h1 className={cn(explorerText.pageTitle, device.isMobile ? "text-xl" : "text-2xl")}>
             {sectionTitle}
           </h1>
         </div>
@@ -227,6 +215,10 @@ function LoadingIndicator() {
   );
 }
 
+function gridCols(device: ReturnType<typeof useDevice>): string {
+  return device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4";
+}
+
 /* ---------- Sub-grids ---------- */
 
 function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { recommendations: Recommendation[]; isLoading: boolean; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
@@ -245,83 +237,52 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
     const url = rec.externalUrl || rec.spotifyUri;
     const provider = url ? detectProvider(url) : "other";
     return (
-      <div key={`sug-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => onOpen({ url, provider, title: rec.title })}>
-        <div className="p-4 space-y-2">
-          <h3 className="font-semibold text-foreground text-sm line-clamp-2">{rec.title}</h3>
-          <p className="text-xs text-muted-foreground line-clamp-2">{rec.description}</p>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
-            <span className="text-[11px] text-muted-foreground">{rec.duration}</span>
-          </div>
-        </div>
-      </div>
+      <ExplorerContentCard
+        key={`rec-${i}`}
+        title={rec.title}
+        description={rec.description}
+        providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
+        durationLabel={rec.duration}
+        layout="grid"
+        onOpen={() => onOpen({ url, provider, title: rec.title })}
+      />
     );
-  }, [onOpen, t]);
+  }, [onOpen]);
 
   if (isLoading) return <GridSkeleton />;
   if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} query={searchQuery} suggestedItems={recommendations.slice(0, 6)} renderCard={renderRecCard} />;
 
   return (
     <>
-      <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-        {visible.map((rec, i) => {
-          const url = rec.externalUrl || rec.spotifyUri;
-          const provider = url ? detectProvider(url) : "other";
-          return (
-            <div
-              key={i}
-              className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all"
-              onClick={() => onOpen({ url, provider, title: rec.title })}
-            >
-              <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-foreground text-sm line-clamp-2">{rec.title}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">{rec.description}</p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
-                    {t(PROVIDER_LABEL_KEYS[provider])}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{rec.duration}</span>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <button
-                    className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={(e) => { e.stopPropagation(); onOpen({ url, provider, title: rec.title }); }}
-                  >
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t("explore.open")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className={cn("grid gap-4 items-stretch", gridCols(device))}>
+        {visible.map((rec, i) => renderRecCard(rec, i))}
       </div>
       {hasMore && <ScrollSentinel onLoadMore={loadMore} />}
     </>
   );
 }
 
-function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_ITEMS; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
+function ElevateGrid({ items, onOpen, t, searchQuery }: { items: ElevateItem[]; onOpen: (item: any) => void; t: (k: string) => string; searchQuery: string }) {
   const device = useDevice();
   const filtered = items.filter((item) =>
-    matchesSearch(searchQuery, item.title, item.duration, detectProvider(item.url))
+    matchesSearch(searchQuery, t(item.titleKey), t(item.descKey), item.duration, detectProvider(item.url))
   );
 
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
   const visible = filtered.slice(0, visibleCount);
 
-  const renderElevateCard = useCallback((item: typeof ELEVATE_ITEMS[0], i: number) => {
+  const renderElevateCard = useCallback((item: ElevateItem, i: number) => {
     const provider = detectProvider(item.url);
     return (
-      <div key={`sug-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => onOpen(item)}>
-        <div className="p-4 space-y-2">
-          <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
-            <span className="text-[11px] text-muted-foreground">{item.duration}</span>
-          </div>
-        </div>
-      </div>
+      <ExplorerContentCard
+        key={`elevate-${i}`}
+        title={t(item.titleKey)}
+        description={t(item.descKey)}
+        providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
+        durationLabel={item.duration}
+        layout="grid"
+        onOpen={() => onOpen({ url: item.url, title: t(item.titleKey) })}
+      />
     );
   }, [onOpen, t]);
 
@@ -329,36 +290,8 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: typeof ELEVATE_
 
   return (
     <>
-      <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-        {visible.map((item, i) => {
-          const provider = detectProvider(item.url);
-          return (
-            <div
-              key={i}
-              className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all"
-              onClick={() => onOpen(item)}
-            >
-              <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
-                    {t(PROVIDER_LABEL_KEYS[provider])}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{item.duration}</span>
-                </div>
-                <div className="flex items-center pt-1">
-                  <button
-                    className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={(e) => { e.stopPropagation(); onOpen(item); }}
-                  >
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t("explore.open")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className={cn("grid gap-4 items-stretch", gridCols(device))}>
+        {visible.map((item, i) => renderElevateCard(item, i))}
       </div>
       {hasMore && <ScrollSentinel onLoadMore={loadMore} />}
     </>
@@ -396,71 +329,30 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
   const renderSectionCard = useCallback((item: ExploreItem, i: number) => {
     const provider = detectProvider(item.url);
     return (
-      <div key={`sug-${item.id}`} className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all" onClick={() => { logEvent.mutate({ itemId: item.id, event: "open" }); onOpen(item); }}>
-        <div className="p-4 space-y-2">
-          <h3 className="font-semibold text-foreground text-sm line-clamp-2">{item.title}</h3>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">{t(PROVIDER_LABEL_KEYS[provider])}</span>
-            {item.duration_min && <span className="text-[11px] text-muted-foreground">{item.duration_min} min</span>}
-          </div>
-        </div>
-      </div>
+      <ExplorerContentCard
+        key={item.id ?? `item-${i}`}
+        title={item.title}
+        description={item.description}
+        providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
+        durationMin={item.duration_min}
+        curated={item.is_verified}
+        layout="grid"
+        onOpen={() => {
+          logEvent.mutate({ itemId: item.id, event: "open" });
+          onOpen(item);
+        }}
+        onSave={() => logEvent.mutate({ itemId: item.id, event: "save" })}
+      />
     );
-  }, [logEvent, onOpen, t]);
+  }, [logEvent, onOpen]);
 
   if (feedQuery.isLoading) return <GridSkeleton />;
   if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && deduped.length > 0} query={searchQuery} suggestedItems={deduped.slice(0, 6)} renderCard={renderSectionCard} />;
 
   return (
     <>
-      <div className={cn("grid gap-4", device.isMobile ? "grid-cols-2" : device.isTablet ? "grid-cols-3" : "grid-cols-4")}>
-        {filtered.map((item) => {
-          const provider = detectProvider(item.url);
-          return (
-            <div
-              key={item.id}
-              className="rounded-2xl overflow-hidden bg-card border border-border/30 cursor-pointer hover:border-border/60 transition-all"
-              onClick={() => {
-                logEvent.mutate({ itemId: item.id, event: "open" });
-                onOpen(item);
-              }}
-            >
-              <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-foreground text-sm line-clamp-2">{item.title}</h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-medium bg-foreground/10 text-foreground/70 rounded px-1.5 py-0.5">
-                    {t(PROVIDER_LABEL_KEYS[provider])}
-                  </span>
-                  {item.duration_min && (
-                    <span className="text-[11px] text-muted-foreground">{item.duration_min} min</span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <button
-                    className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      logEvent.mutate({ itemId: item.id, event: "open" });
-                      onOpen(item);
-                    }}
-                  >
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t("explore.open")}
-                  </button>
-                  <button
-                    className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      logEvent.mutate({ itemId: item.id, event: "save" });
-                    }}
-                  >
-                    <Bookmark className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className={cn("grid gap-4 items-stretch", gridCols(device))}>
+        {filtered.map((item, i) => renderSectionCard(item, i))}
       </div>
       {feedQuery.hasNextPage && (
         <ScrollSentinel onLoadMore={handleLoadMore} isLoading={feedQuery.isFetchingNextPage} />
@@ -509,7 +401,7 @@ function EmptyState({ t, noResults, query, suggestedItems, renderCard }: {
       {noResults && suggestedItems && suggestedItems.length > 0 && renderCard && (
         <div className="space-y-3">
           <p className="text-sm font-medium text-muted-foreground">{t("explore.empty.maybeInterest")}</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 items-stretch">
             {suggestedItems.slice(0, 6).map((item, i) => renderCard(item, i))}
           </div>
         </div>
