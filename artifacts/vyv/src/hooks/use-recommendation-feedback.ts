@@ -2,7 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type FeedbackAction = "like" | "save" | "skip" | "not_interested";
+export type FeedbackAction =
+  | "like"
+  | "save"
+  | "skip"
+  | "not_interested"
+  | "more_like_this"
+  | "report";
 
 export function useRecommendationFeedback() {
   const { user } = useAuth();
@@ -46,6 +52,45 @@ export function useRecommendationFeedback() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
+    },
+  });
+}
+
+/**
+ * Hide a creator everywhere: appends the creator to
+ * user_explore_preferences.blocked_creators (deduped) and refreshes feeds.
+ */
+export function useHideCreator() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (creator: string) => {
+      const trimmed = creator.trim();
+      if (!trimmed) throw new Error("No creator");
+
+      const { data: existing, error: readError } = await supabase
+        .from("user_explore_preferences")
+        .select("blocked_creators")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (readError) throw new Error(readError.message);
+
+      const current: string[] = existing?.blocked_creators ?? [];
+      if (current.includes(trimmed)) return;
+
+      const { error } = await supabase.from("user_explore_preferences").upsert(
+        { blocked_creators: [...current, trimmed] },
+        { onConflict: "user_id" },
+      );
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["contextual-recs"] });
     },
   });
 }

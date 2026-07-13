@@ -17,6 +17,7 @@ import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { useGuide } from "@/contexts/GuideContext";
 import { ExploreSectionCarousel, EXPLORE_SECTIONS } from "@/components/explore/ExploreSectionCarousel";
+import { SavedSection, ContinueSection } from "@/components/explore/SavedContinueSections";
 import { ExplorerContextualRecs } from "@/components/explore/ContextualRecsCard";
 import { useDwellTracker } from "@/hooks/use-dwell-tracker";
 import { Switch } from "@/components/ui/switch";
@@ -105,6 +106,12 @@ const Explore = () => {
 
         {/* Media Connection */}
         <MediaConnectionBanner />
+
+        {/* Continue where you left off */}
+        <ContinueSection />
+
+        {/* Saved for later */}
+        <SavedSection />
 
         {/* Elevate */}
         <ElevateSection />

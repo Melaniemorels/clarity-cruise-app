@@ -161,6 +161,40 @@
     "includeOtherLanguages": "Include content in other languages",
     "saveLabel": "Save",
     "savedLabel": "Saved",
+    "menu": {
+      "label": "More options",
+      "save": "Save",
+      "unsave": "Remove from saved",
+      "moreLikeThis": "More like this",
+      "markCompleted": "Mark as completed",
+      "removeFromHistory": "Remove from continue",
+      "notInterested": "Not interested",
+      "hideCreator": "Hide this creator",
+      "report": "Report content",
+      "savedToast": "Saved to your list",
+      "removedFromSaved": "Removed from saved",
+      "moreLikeThisToast": "Got it! You'll see more content like this",
+      "notInterestedToast": "Got it, you'll see less content like this",
+      "hideCreatorToast": "You won't see more content from {{creator}}",
+      "reportToast": "Thanks for letting us know. You won't see this content again",
+      "completedToast": "Marked as completed",
+      "errorGeneric": "Couldn't save the change. Please try again."
+    },
+    "saved": {
+      "title": "Saved",
+      "subtitle": "Your content saved for later",
+      "empty": "Nothing saved yet",
+      "emptyHint": "Tap the save icon on any card to see it here.",
+      "tabs": {
+        "all": "All",
+        "recent": "Recent"
+      }
+    },
+    "continueSection": {
+      "title": "Continue",
+      "subtitle": "Pick up what you opened",
+      "openedAgo": "Opened {{when}}"
+    },
     "durationMin": "{{count}} min",
     "languages": {
       "es": "Spanish",

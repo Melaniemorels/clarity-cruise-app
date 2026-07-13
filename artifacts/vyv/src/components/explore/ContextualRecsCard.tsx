@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { ExplorerContentCard } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
 import { categoryLabelKey } from "@/lib/explore-categories";
+import { useExplorerCardActions, urlRef } from "./use-explorer-card-actions";
+import type { ExplorerItemRef } from "@/hooks/use-saved-items";
 
 const MOOD_GRADIENTS: Record<string, string> = {
   calm: "from-green-900/50 to-teal-900/40",
@@ -25,12 +27,34 @@ const MOOD_GRADIENTS: Record<string, string> = {
 
 function ContextualCard({ rec }: { rec: ContextualRec }) {
   const { t } = useTranslation();
+  const { buildMenu, recordOpen } = useExplorerCardActions();
 
   const gradient = MOOD_GRADIENTS[rec.mood] ?? "from-muted/80 to-secondary/60";
   const provider = rec.url ? detectProvider(rec.url) : "other";
 
+  // Contextual recs are real catalogue items — item_id points at explore_items.
+  const itemRef: ExplorerItemRef | null = (rec as any).item_id
+    ? {
+        provider: "vyv",
+        providerItemId: (rec as any).item_id,
+        title: rec.title,
+        url: rec.url ?? null,
+        category: rec.category ?? null,
+        durationMin: rec.duration_min ?? null,
+      }
+    : rec.url
+      ? urlRef({
+          url: rec.url,
+          provider,
+          title: rec.title,
+          category: rec.category ?? null,
+          durationMin: rec.duration_min ?? null,
+        })
+      : null;
+
   const handleClick = async () => {
     if (rec.url) {
+      if (itemRef) recordOpen(itemRef);
       await openContent({ url: rec.url, provider, title: rec.title }, t);
     }
   };
@@ -46,6 +70,7 @@ function ContextualCard({ rec }: { rec: ContextualRec }) {
       icon={Brain}
       layout="carousel"
       onOpen={handleClick}
+      menu={itemRef ? buildMenu(itemRef) : undefined}
     />
   );
 }

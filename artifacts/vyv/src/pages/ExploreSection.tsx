@@ -18,6 +18,11 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { useInView } from "react-intersection-observer";
+import {
+  useExplorerCardActions,
+  catalogueRef,
+  urlRef,
+} from "@/components/explore/use-explorer-card-actions";
 
 /** Normalize text: lowercase, trim, strip diacritics */
 function normalize(text: string): string {
@@ -233,9 +238,14 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
   const visible = filtered.slice(0, visibleCount);
 
+  const { buildMenu, recordOpen } = useExplorerCardActions();
+
   const renderRecCard = useCallback((rec: Recommendation, i: number) => {
     const url = rec.externalUrl || rec.spotifyUri;
     const provider = url ? detectProvider(url) : "other";
+    const itemRef = url
+      ? urlRef({ url, provider: provider.toString(), title: rec.title, description: rec.description })
+      : null;
     return (
       <ExplorerContentCard
         key={`rec-${i}`}
@@ -244,10 +254,14 @@ function ParaTiGrid({ recommendations, isLoading, onOpen, t, searchQuery }: { re
         providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
         durationLabel={rec.duration}
         layout="grid"
-        onOpen={() => onOpen({ url, provider, title: rec.title })}
+        onOpen={() => {
+          if (itemRef) recordOpen(itemRef);
+          onOpen({ url, provider, title: rec.title });
+        }}
+        menu={itemRef ? buildMenu(itemRef) : undefined}
       />
     );
-  }, [onOpen]);
+  }, [onOpen, buildMenu, recordOpen]);
 
   if (isLoading) return <GridSkeleton />;
   if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} query={searchQuery} suggestedItems={recommendations.slice(0, 6)} renderCard={renderRecCard} />;
@@ -271,8 +285,17 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: ElevateItem[]; 
   const { visibleCount, hasMore, loadMore } = useProgressiveReveal(filtered.length, !!searchQuery);
   const visible = filtered.slice(0, visibleCount);
 
+  const { buildMenu, recordOpen } = useExplorerCardActions();
+
   const renderElevateCard = useCallback((item: ElevateItem, i: number) => {
     const provider = detectProvider(item.url);
+    const itemRef = urlRef({
+      url: item.url,
+      provider: provider.toString(),
+      title: t(item.titleKey),
+      description: t(item.descKey),
+      durationMin: item.durationMin,
+    });
     return (
       <ExplorerContentCard
         key={`elevate-${i}`}
@@ -281,10 +304,14 @@ function ElevateGrid({ items, onOpen, t, searchQuery }: { items: ElevateItem[]; 
         providerLabelKey={PROVIDER_LABEL_KEYS[provider]}
         durationMin={item.durationMin}
         layout="grid"
-        onOpen={() => onOpen({ url: item.url, title: t(item.titleKey) })}
+        onOpen={() => {
+          recordOpen(itemRef);
+          onOpen({ url: item.url, title: t(item.titleKey) });
+        }}
+        menu={buildMenu(itemRef)}
       />
     );
-  }, [onOpen, t]);
+  }, [onOpen, t, buildMenu, recordOpen]);
 
   if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery} query={searchQuery} suggestedItems={items.slice(0, 6)} renderCard={renderElevateCard} />;
 
@@ -326,6 +353,8 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
     }
   }, [feedQuery.hasNextPage, feedQuery.isFetchingNextPage, feedQuery.fetchNextPage, searchQuery]);
 
+  const { buildMenu, recordOpen } = useExplorerCardActions();
+
   const renderSectionCard = useCallback((item: ExploreItem, i: number) => {
     const provider = detectProvider(item.url);
     return (
@@ -341,12 +370,13 @@ function SectionGrid({ feedQuery, logEvent, onOpen, t, searchQuery }: { feedQuer
         layout="grid"
         onOpen={() => {
           logEvent.mutate({ itemId: item.id, event: "open" });
+          recordOpen(catalogueRef(item));
           onOpen(item);
         }}
-        onSave={() => logEvent.mutate({ itemId: item.id, event: "save" })}
+        menu={buildMenu(catalogueRef(item))}
       />
     );
-  }, [logEvent, onOpen]);
+  }, [logEvent, onOpen, buildMenu, recordOpen]);
 
   if (feedQuery.isLoading) return <GridSkeleton />;
   if (filtered.length === 0) return <EmptyState t={t} noResults={!!searchQuery && deduped.length > 0} query={searchQuery} suggestedItems={deduped.slice(0, 6)} renderCard={renderSectionCard} />;

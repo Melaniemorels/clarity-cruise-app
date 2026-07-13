@@ -88,6 +88,10 @@ const PRIVATE_READ_TABLES = new Set<string>([
   "workout_sessions",
   "device_connections",
   "media_integrations",
+  "recommendation_feedback",
+  "seen_items",
+  "explorer_saved_items",
+  "explorer_progress",
 ]);
 
 // Columns that must NEVER be returned to the browser (server-only secrets).

@@ -86,6 +86,18 @@ before(async () => {
     starts_at: new Date(),
     ends_at: new Date(Date.now() + 60 * 60 * 1000),
   });
+  await db.insert(vyvTables.explorer_saved_items).values({
+    user_id: a.id,
+    provider: "vyv",
+    provider_item_id: `saved-${marker}`,
+    title: `SECRETSAVED-${marker}`,
+  });
+  await db.insert(vyvTables.explorer_progress).values({
+    user_id: a.id,
+    provider: "vyv",
+    provider_item_id: `progress-${marker}`,
+    title: `SECRETPROGRESS-${marker}`,
+  });
 
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
@@ -124,6 +136,12 @@ after(async () => {
     await db
       .delete(vyvTables.media_integrations)
       .where(inArray(vyvTables.media_integrations.user_id, ids));
+    await db
+      .delete(vyvTables.explorer_saved_items)
+      .where(inArray(vyvTables.explorer_saved_items.user_id, ids));
+    await db
+      .delete(vyvTables.explorer_progress)
+      .where(inArray(vyvTables.explorer_progress.user_id, ids));
     for (const id of ids) {
       await db.delete(appUsers).where(eq(appUsers.id, id));
     }
@@ -135,6 +153,8 @@ const PRIVATE_TABLES = [
   "entries",
   "feed_settings",
   "calendar_events",
+  "explorer_saved_items",
+  "explorer_progress",
 ] as const;
 
 test("owner sees their own private rows (sanity)", async () => {
@@ -389,6 +409,72 @@ test("update cannot reassign a row to another user (owner columns stripped)", as
   const updated = (res.data ?? [])[0];
   assert.equal(updated.user_id, users.a.id, "user_id must not be reassignable");
   assert.equal(updated.title, `OWNNOTE2-${marker}`);
+});
+
+test("explorer_saved_items: insert cannot spoof user_id; upsert stays owner-scoped", async () => {
+  // B inserts, attempting to spoof A as owner — forced to caller.
+  const res = await query("b", {
+    table: "explorer_saved_items",
+    action: "insert",
+    values: {
+      user_id: users.a.id,
+      provider: "vyv",
+      provider_item_id: `spoof-${marker}`,
+      title: "spoofed save",
+    },
+  });
+  assert.equal(res.error, null);
+  const row = (res.data ?? [])[0];
+  assert.equal(row.user_id, users.b.id, "saved item owner must be the caller");
+
+  // B cannot delete A's saved row by filtering for it.
+  const foreignDelete = await query("b", {
+    table: "explorer_saved_items",
+    action: "delete",
+    filters: [{ col: "provider_item_id", op: "eq", val: `saved-${marker}` }],
+  });
+  assert.equal(
+    (foreignDelete.data ?? []).length,
+    0,
+    "B must not delete A's saved item",
+  );
+  const still = await db
+    .select()
+    .from(vyvTables.explorer_saved_items)
+    .where(eq(vyvTables.explorer_saved_items.user_id, users.a.id));
+  assert.ok(
+    still.some((r) => r.provider_item_id === `saved-${marker}`),
+    "A's saved item must survive",
+  );
+});
+
+test("explorer_progress: upsert is owner-scoped and cannot touch another user's row", async () => {
+  // B upserts progress on the same provider_item_id A already has — must
+  // create B's own row, not update A's.
+  const res = await query("b", {
+    table: "explorer_progress",
+    action: "upsert",
+    values: {
+      provider: "vyv",
+      provider_item_id: `progress-${marker}`,
+      title: "b's own progress",
+    },
+    onConflict: "user_id,provider,provider_item_id",
+  });
+  assert.equal(res.error, null);
+  const row = (res.data ?? [])[0];
+  assert.equal(row.user_id, users.b.id, "progress row must belong to caller");
+
+  const aRows = await db
+    .select()
+    .from(vyvTables.explorer_progress)
+    .where(eq(vyvTables.explorer_progress.user_id, users.a.id));
+  const aRow = aRows.find((r) => r.provider_item_id === `progress-${marker}`);
+  assert.equal(
+    aRow?.title,
+    `SECRETPROGRESS-${marker}`,
+    "A's progress row must be untouched",
+  );
 });
 
 test("global reference tables are read-only for clients", async () => {

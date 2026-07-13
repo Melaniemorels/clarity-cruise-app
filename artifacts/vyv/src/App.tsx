@@ -28,6 +28,7 @@ const Feed = lazy(() => import("./pages/Feed"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Explore = lazy(() => import("./pages/Explore"));
 const ExploreSection = lazy(() => import("./pages/ExploreSection"));
+const ExploreSaved = lazy(() => import("./pages/ExploreSaved"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
@@ -289,6 +290,7 @@ const App = () => (
                   <Route path="/entries" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                   <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
                   <Route path="/explore/section/:sectionKey" element={<ProtectedRoute><ExploreSection /></ProtectedRoute>} />
+                  <Route path="/explore/saved" element={<ProtectedRoute><ExploreSaved /></ProtectedRoute>} />
                   <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                  <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

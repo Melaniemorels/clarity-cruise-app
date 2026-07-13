@@ -501,6 +501,65 @@ export const seenItems = pgTable(
   (t) => [unique().on(t.user_id, t.item_id, t.provider)],
 );
 
+// ---------------------------------------------------------------------------
+// Explorer: saved items & open/continue tracking
+// ---------------------------------------------------------------------------
+
+// Persistent saved ("bookmarked") content. Metadata is denormalized so a
+// saved item survives even if the catalogue row churns. provider_item_id is
+// the explore_items uuid for provider "vyv", or the content URL for external
+// (AI/elevate) cards without a stable catalogue id.
+export const explorerSavedItems = pgTable(
+  "explorer_saved_items",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    provider: text("provider").notNull().default("vyv"),
+    provider_item_id: text("provider_item_id").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    url: text("url"),
+    category: text("category"),
+    language: text("language"),
+    duration_min: integer("duration_min"),
+    thumbnail: text("thumbnail"),
+    creator: text("creator"),
+    saved_at: timestamp("saved_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique().on(t.user_id, t.provider, t.provider_item_id)],
+);
+
+// Open/continue tracking. Content plays in external apps, so exact playback
+// progress cannot be tracked: we record opens (last_opened_at) and an honest
+// user-driven completed_at. "Continue" = opened, not completed.
+export const explorerProgress = pgTable(
+  "explorer_progress",
+  {
+    id: id(),
+    user_id: uuid("user_id").notNull(),
+    provider: text("provider").notNull().default("vyv"),
+    provider_item_id: text("provider_item_id").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    url: text("url"),
+    category: text("category"),
+    language: text("language"),
+    duration_min: integer("duration_min"),
+    thumbnail: text("thumbnail"),
+    creator: text("creator"),
+    first_opened_at: timestamp("first_opened_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    last_opened_at: timestamp("last_opened_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completed_at: timestamp("completed_at", { withTimezone: true }),
+  },
+  (t) => [unique().on(t.user_id, t.provider, t.provider_item_id)],
+);
+
 export const vyvTables = {
   profiles,
   media_consent: mediaConsent,
@@ -535,6 +594,8 @@ export const vyvTables = {
   media_integrations: mediaIntegrations,
   recommendation_feedback: recommendationFeedback,
   seen_items: seenItems,
+  explorer_saved_items: explorerSavedItems,
+  explorer_progress: explorerProgress,
 } as const;
 
 export type VyvTableName = keyof typeof vyvTables;

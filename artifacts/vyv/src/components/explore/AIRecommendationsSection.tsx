@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { ExplorerContentCard, type ExplorerCardIcon } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
+import { useExplorerCardActions, urlRef } from "./use-explorer-card-actions";
 
 const GOALS: {
   value: RecommendationGoal;
@@ -59,6 +60,7 @@ const MOOD_GRADIENTS: Record<string, string> = {
 
 function RecommendationCard({ recommendation }: { recommendation: Recommendation }) {
   const { t } = useTranslation();
+  const { buildMenu, recordOpen } = useExplorerCardActions();
 
   const gradient = MOOD_GRADIENTS[recommendation.mood] ?? "from-muted/80 to-secondary/60";
   const Icon = TYPE_ICONS[recommendation.type] ?? Music;
@@ -66,7 +68,17 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
   const provider = externalLink ? detectProvider(externalLink) : "other";
   const showComingSoon = externalLink ? COMING_SOON_PROVIDERS.includes(provider) : false;
 
+  const itemRef = externalLink
+    ? urlRef({
+        url: externalLink,
+        provider: provider.toString(),
+        title: recommendation.title,
+        description: recommendation.description,
+      })
+    : null;
+
   const handleClick = async () => {
+    if (itemRef) recordOpen(itemRef);
     await openContent({ url: externalLink, provider, title: recommendation.title }, t);
   };
 
@@ -82,6 +94,7 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
       comingSoon={showComingSoon}
       layout="carousel"
       onOpen={handleClick}
+      menu={itemRef ? buildMenu(itemRef) : undefined}
     />
   );
 }

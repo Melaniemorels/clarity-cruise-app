@@ -9,6 +9,7 @@ import { openContent } from "@/lib/open-content";
 import { useNavigate } from "react-router-dom";
 import { ExplorerContentCard } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
+import { useExplorerCardActions, urlRef } from "./use-explorer-card-actions";
 
 export interface ElevateItem {
   titleKey: string;
@@ -33,8 +34,19 @@ export function ElevateSection() {
   const { t } = useTranslation();
   const device = useDevice();
   const navigate = useNavigate();
+  const { buildMenu, recordOpen } = useExplorerCardActions();
+
+  const elevateRef = (item: ElevateItem) =>
+    urlRef({
+      url: item.url,
+      provider: detectProvider(item.url).toString(),
+      title: t(item.titleKey),
+      description: t(item.descKey),
+      durationMin: item.durationMin,
+    });
 
   const handleClick = async (item: ElevateItem) => {
+    recordOpen(elevateRef(item));
     await openContent({ url: item.url, title: t(item.titleKey) }, t);
   };
 
@@ -74,6 +86,7 @@ export function ElevateSection() {
                 comingSoon={showComingSoon}
                 layout="carousel"
                 onOpen={() => handleClick(item)}
+                menu={buildMenu(elevateRef(item))}
               />
             );
           })}

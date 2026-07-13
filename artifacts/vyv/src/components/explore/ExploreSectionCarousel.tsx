@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 import { ExplorerContentCard, type ExplorerCardIcon } from "./ExplorerContentCard";
 import { explorerText, sectionTitleSize } from "./explorer-tokens";
+import { useExplorerCardActions, catalogueRef } from "./use-explorer-card-actions";
 
 export interface SectionConfig {
   key: string;
@@ -129,6 +130,7 @@ export function ExploreSectionCarousel({
   const logEvent = useLogItemEvent();
   const navigate = useNavigate();
   const { data, isLoading } = useForYouFeed(section.key);
+  const { buildMenu, recordOpen } = useExplorerCardActions();
 
   // Track section visibility for dwell time
   const { ref: sectionRef, inView } = useInView({ threshold: 0.3 });
@@ -153,6 +155,7 @@ export function ExploreSectionCarousel({
 
   const handleClick = async (item: ExploreItem) => {
     logEvent.mutate({ itemId: item.id, event: "open" });
+    recordOpen(catalogueRef(item));
     await openContent({ url: item.url, provider: detectProvider(item.url).toString(), title: item.title }, t);
   };
 
@@ -232,7 +235,7 @@ export function ExploreSectionCarousel({
               icon={IconComponent}
               layout="carousel"
               onOpen={() => handleClick(item)}
-              onSave={() => logEvent.mutate({ itemId: item.id, event: "save" })}
+              menu={buildMenu(catalogueRef(item))}
             />
           ))}
         </div>

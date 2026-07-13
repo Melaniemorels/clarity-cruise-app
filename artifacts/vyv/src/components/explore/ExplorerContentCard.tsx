@@ -1,8 +1,51 @@
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, Bookmark } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bookmark,
+  MoreVertical,
+  ThumbsDown,
+  Sparkles,
+  UserX,
+  Flag,
+  CheckCircle2,
+  Trash2,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useDevice } from "@/hooks/use-device";
 import { explorerText, explorerCard } from "./explorer-tokens";
+
+/** Overflow-menu actions; only the provided handlers are rendered. */
+export interface ExplorerCardMenuActions {
+  saved?: boolean;
+  onToggleSave?: () => void;
+  onNotInterested?: () => void;
+  onMoreLikeThis?: () => void;
+  /** Only meaningful when the content has a known creator */
+  onHideCreator?: () => void;
+  onReport?: () => void;
+  completed?: boolean;
+  onMarkCompleted?: () => void;
+  /** Shown in the Continue rail: drop the item from history */
+  onRemoveFromHistory?: () => void;
+}
+
+function hasMenuItems(menu: ExplorerCardMenuActions): boolean {
+  return !!(
+    menu.onToggleSave ||
+    menu.onNotInterested ||
+    menu.onMoreLikeThis ||
+    menu.onHideCreator ||
+    menu.onReport ||
+    menu.onMarkCompleted ||
+    menu.onRemoveFromHistory
+  );
+}
 
 export type ExplorerCardIcon = React.ComponentType<{
   className?: string;
@@ -45,6 +88,8 @@ export interface ExplorerContentCardProps {
   layout?: "carousel" | "grid";
   onOpen: () => void;
   onSave?: () => void;
+  /** Overflow menu (⋮) with feedback / save / progress actions */
+  menu?: ExplorerCardMenuActions;
 }
 
 export function ExplorerContentCard({
@@ -66,6 +111,7 @@ export function ExplorerContentCard({
   layout = "carousel",
   onOpen,
   onSave,
+  menu,
 }: ExplorerContentCardProps) {
   const { t } = useTranslation();
   const device = useDevice();
@@ -191,26 +237,101 @@ export function ExplorerContentCard({
             <ArrowUpRight className="h-3.5 w-3.5" />
             {t("explore.open")}
           </button>
-          {onSave && (
-            <button
-              className={cn(
-                "p-1 rounded-full transition-colors hover:bg-muted/50",
-                saved
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              aria-label={saved ? t("explore.savedLabel") : t("explore.saveLabel")}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSave();
-              }}
-            >
-              <Bookmark
-                className="h-4 w-4"
-                fill={saved ? "currentColor" : "none"}
-              />
-            </button>
-          )}
+          <div className="flex items-center gap-0.5">
+            {(onSave || menu?.onToggleSave) && (
+              <button
+                className={cn(
+                  "p-1 rounded-full transition-colors hover:bg-muted/50",
+                  (menu?.saved ?? saved)
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                aria-label={
+                  (menu?.saved ?? saved)
+                    ? t("explore.savedLabel")
+                    : t("explore.saveLabel")
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  (menu?.onToggleSave ?? onSave)?.();
+                }}
+              >
+                <Bookmark
+                  className="h-4 w-4"
+                  fill={(menu?.saved ?? saved) ? "currentColor" : "none"}
+                />
+              </button>
+            )}
+            {menu && hasMenuItems(menu) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="p-1 rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                    aria-label={t("explore.menu.label")}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-52"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {menu.onToggleSave && (
+                    <DropdownMenuItem onClick={menu.onToggleSave}>
+                      <Bookmark
+                        className="h-4 w-4 mr-2"
+                        fill={menu.saved ? "currentColor" : "none"}
+                      />
+                      {menu.saved
+                        ? t("explore.menu.unsave")
+                        : t("explore.menu.save")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onMoreLikeThis && (
+                    <DropdownMenuItem onClick={menu.onMoreLikeThis}>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {t("explore.menu.moreLikeThis")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onMarkCompleted && !menu.completed && (
+                    <DropdownMenuItem onClick={menu.onMarkCompleted}>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      {t("explore.menu.markCompleted")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onRemoveFromHistory && (
+                    <DropdownMenuItem onClick={menu.onRemoveFromHistory}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {t("explore.menu.removeFromHistory")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onNotInterested && (
+                    <DropdownMenuItem onClick={menu.onNotInterested}>
+                      <ThumbsDown className="h-4 w-4 mr-2" />
+                      {t("explore.menu.notInterested")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onHideCreator && (
+                    <DropdownMenuItem onClick={menu.onHideCreator}>
+                      <UserX className="h-4 w-4 mr-2" />
+                      {t("explore.menu.hideCreator")}
+                    </DropdownMenuItem>
+                  )}
+                  {menu.onReport && (
+                    <DropdownMenuItem
+                      onClick={menu.onReport}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Flag className="h-4 w-4 mr-2" />
+                      {t("explore.menu.report")}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {comingSoon && (

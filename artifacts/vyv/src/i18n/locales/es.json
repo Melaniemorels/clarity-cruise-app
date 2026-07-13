@@ -165,6 +165,40 @@
     "languages": {
       "es": "Español",
       "en": "English"
+    },
+    "menu": {
+      "label": "Más opciones",
+      "save": "Guardar",
+      "unsave": "Quitar de guardados",
+      "moreLikeThis": "Más como esto",
+      "markCompleted": "Marcar como completado",
+      "removeFromHistory": "Quitar de continuar",
+      "notInterested": "No me interesa",
+      "hideCreator": "Ocultar este creador",
+      "report": "Reportar contenido",
+      "savedToast": "Guardado en tu lista",
+      "removedFromSaved": "Quitado de guardados",
+      "moreLikeThisToast": "¡Anotado! Verás más contenido como este",
+      "notInterestedToast": "Entendido, verás menos contenido como este",
+      "hideCreatorToast": "No verás más contenido de {{creator}}",
+      "reportToast": "Gracias por avisarnos. No volverás a ver este contenido",
+      "completedToast": "Marcado como completado",
+      "errorGeneric": "No se pudo guardar el cambio. Intenta de nuevo."
+    },
+    "saved": {
+      "title": "Guardados",
+      "subtitle": "Tu contenido guardado para más tarde",
+      "empty": "Aún no guardaste nada",
+      "emptyHint": "Toca el ícono de guardar en cualquier tarjeta para verla aquí.",
+      "tabs": {
+        "all": "Todo",
+        "recent": "Recientes"
+      }
+    },
+    "continueSection": {
+      "title": "Continuar",
+      "subtitle": "Retomá lo que abriste",
+      "openedAgo": "Abierto {{when}}"
     }
   },
   "calendar": {

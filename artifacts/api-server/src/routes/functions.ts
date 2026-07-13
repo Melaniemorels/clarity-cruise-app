@@ -394,27 +394,47 @@ router.post(
           ? body.language.split("-")[0].toLowerCase()
           : null;
 
-      const [prefsRows, eventRows, itemRows] = await Promise.all([
-        db
-          .select()
-          .from(vyvTables.user_explore_preferences)
-          .where(eq(vyvTables.user_explore_preferences.user_id, userId))
-          .limit(1),
-        db
-          .select({
-            item_id: vyvTables.user_item_events.item_id,
-            event: vyvTables.user_item_events.event,
-          })
-          .from(vyvTables.user_item_events)
-          .where(eq(vyvTables.user_item_events.user_id, userId))
-          .orderBy(desc(vyvTables.user_item_events.created_at))
-          .limit(600),
-        db
-          .select()
-          .from(vyvTables.explore_items)
-          .orderBy(desc(vyvTables.explore_items.created_at))
-          .limit(200),
-      ]);
+      const [prefsRows, eventRows, itemRows, feedbackRows, savedRows] =
+        await Promise.all([
+          db
+            .select()
+            .from(vyvTables.user_explore_preferences)
+            .where(eq(vyvTables.user_explore_preferences.user_id, userId))
+            .limit(1),
+          db
+            .select({
+              item_id: vyvTables.user_item_events.item_id,
+              event: vyvTables.user_item_events.event,
+            })
+            .from(vyvTables.user_item_events)
+            .where(eq(vyvTables.user_item_events.user_id, userId))
+            .orderBy(desc(vyvTables.user_item_events.created_at))
+            .limit(600),
+          db
+            .select()
+            .from(vyvTables.explore_items)
+            .orderBy(desc(vyvTables.explore_items.created_at))
+            .limit(200),
+          db
+            .select({
+              item_id: vyvTables.recommendation_feedback.item_id,
+              action: vyvTables.recommendation_feedback.action,
+            })
+            .from(vyvTables.recommendation_feedback)
+            .where(eq(vyvTables.recommendation_feedback.user_id, userId)),
+          db
+            .select({
+              provider_item_id:
+                vyvTables.explorer_saved_items.provider_item_id,
+            })
+            .from(vyvTables.explorer_saved_items)
+            .where(
+              and(
+                eq(vyvTables.explorer_saved_items.user_id, userId),
+                eq(vyvTables.explorer_saved_items.provider, "vyv"),
+              ),
+            ),
+        ]);
 
       const prefsRow = prefsRows[0];
       const prefs: Prefs = {
@@ -478,19 +498,47 @@ router.post(
         ),
       ];
       const blockedCreators = new Set(prefs.blocked_creators ?? []);
-      const savedIds = new Set(
-        events.filter((e) => e.event === "save").map((e) => e.item_id),
+      // Explicit negative feedback: never serve these items again.
+      const excludedIds = new Set(
+        feedbackRows
+          .filter((f) => ["not_interested", "report"].includes(f.action))
+          .map((f) => f.item_id),
       );
+      // "Show me more like this": boost the tags/categories of those items.
+      const moreLikeIds = new Set(
+        feedbackRows
+          .filter((f) => f.action === "more_like_this")
+          .map((f) => f.item_id),
+      );
+      for (const it of allItems) {
+        if (!moreLikeIds.has(it.id)) continue;
+        for (const tag of it.tags ?? []) {
+          if (!topTags.includes(tag)) topTags.push(tag);
+        }
+        if (!recentCategories.includes(it.category)) {
+          recentCategories.push(it.category);
+        }
+      }
+      // Persistent saved items (bookmarks) keep appearing even after "seen".
+      const savedIds = new Set([
+        ...events.filter((e) => e.event === "save").map((e) => e.item_id),
+        ...savedRows.map((r) => r.provider_item_id),
+      ]);
 
       const filtered = pool.filter((item) => {
         if (blockedCreators.has(item.creator ?? "")) return false;
+        if (excludedIds.has(item.id)) return false;
         if (seenIds.has(item.id) && !savedIds.has(item.id)) return false;
         return true;
       });
 
       const candidates =
         filtered.length < pageSize
-          ? pool.filter((item) => !blockedCreators.has(item.creator ?? ""))
+          ? pool.filter(
+              (item) =>
+                !blockedCreators.has(item.creator ?? "") &&
+                !excludedIds.has(item.id),
+            )
           : filtered;
 
       const ranked = candidates
@@ -795,13 +843,20 @@ router.post(
         req.log?.error({ err }, "background spotify healthy sync failed"),
       );
 
-      const [ctx, ctxPrefsRows] = await Promise.all([
+      const [ctx, ctxPrefsRows, ctxFeedbackRows] = await Promise.all([
         loadRecContext(userId),
         db
           .select()
           .from(vyvTables.user_explore_preferences)
           .where(eq(vyvTables.user_explore_preferences.user_id, userId))
           .limit(1),
+        db
+          .select({
+            item_id: vyvTables.recommendation_feedback.item_id,
+            action: vyvTables.recommendation_feedback.action,
+          })
+          .from(vyvTables.recommendation_feedback)
+          .where(eq(vyvTables.recommendation_feedback.user_id, userId)),
       ]);
       const wantHome = target === "home" || target === "both";
       const wantExplorer = target === "explorer" || target === "both";
@@ -816,8 +871,21 @@ router.post(
         .from(vyvTables.explore_items)
         .orderBy(desc(vyvTables.explore_items.created_at))
         .limit(300);
-      const healthy = (itemRows as unknown as ExploreItemRow[]).filter((i) =>
-        HEALTHY_CATEGORY_SET.has(i.category),
+      // Honor explicit user feedback: drop blocked creators and items the
+      // user marked "not interested" / reported.
+      const ctxBlockedCreators = new Set(
+        ctxPrefsRows[0]?.blocked_creators ?? [],
+      );
+      const ctxExcludedIds = new Set(
+        ctxFeedbackRows
+          .filter((f) => ["not_interested", "report"].includes(f.action))
+          .map((f) => f.item_id),
+      );
+      const healthy = (itemRows as unknown as ExploreItemRow[]).filter(
+        (i) =>
+          HEALTHY_CATEGORY_SET.has(i.category) &&
+          !ctxBlockedCreators.has(i.creator ?? "") &&
+          !ctxExcludedIds.has(i.id),
       );
 
       // Strict language filtering: only recommend content in the app's UI
