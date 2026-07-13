@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Watch, Smartphone, Activity, Heart } from "lucide-react";
 import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 import vyvLogo from "@/assets/vyv-logo.png";
+import { Navigate } from "react-router-dom";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 const DeviceOnboarding = () => {
   const { t } = useTranslation();
   const { completeDevicesStep } = useOnboardingStep();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Health-device onboarding is parked for Phase 2.
+  if (!HEALTH_PHASE2_ENABLED) return <Navigate to="/" replace />;
 
   const handleViewDevices = () => {
     window.location.href = "/device-settings";

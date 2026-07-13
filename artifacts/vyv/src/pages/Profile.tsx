@@ -26,6 +26,7 @@ import { useGuide } from "@/contexts/GuideContext";
 import { useDevice } from "@/hooks/use-device";
 import { useNavStyle } from "@/components/ResponsiveNav";
 import { cn } from "@/lib/utils";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 /** Renders a capture thumbnail with graceful fallback on load error */
 function CaptureImage({ src, alt }: { src: string; alt: string }) {
@@ -124,6 +125,8 @@ const Profile = () => {
   };
 
   const handleDayClick = (dayIndex: number) => {
+    // Daily activity breakdown (workout/steps/etc.) is parked for Phase 2.
+    if (!HEALTH_PHASE2_ENABLED) return;
     const date = subDays(new Date(), 27 - dayIndex);
     setSelectedDate(date);
     setActivityModalOpen(true);
@@ -222,7 +225,8 @@ const Profile = () => {
         <div className={cn(isLandscape ? "grid grid-cols-2 gap-6" : "space-y-4")}>
           {/* Left column: Stats + Calendar */}
           <div className="space-y-4">
-            {/* Today's Stats */}
+            {/* Today's Stats — parked for Phase 2 (needs health-app data) */}
+            {HEALTH_PHASE2_ENABLED && (
             <div ref={statsRef} className="space-y-3">
               <h2 className="font-semibold">{t('profile.todayStats')}</h2>
               {healthData.map((data) => {
@@ -260,6 +264,7 @@ const Profile = () => {
                 );
               })}
             </div>
+            )}
 
             {/* Mini Calendar */}
             <Card>
@@ -418,14 +423,16 @@ const Profile = () => {
         placement="bottom"
       />
 
-      <ContextHelpTooltip
-        helpKey="profile:stats"
-        title={t("contextHelp.profileStatsTitle")}
-        body={t("contextHelp.profileStatsBody")}
-        anchorRef={statsRef}
-        placement="bottom"
-        delayMs={9500}
-      />
+      {HEALTH_PHASE2_ENABLED && (
+        <ContextHelpTooltip
+          helpKey="profile:stats"
+          title={t("contextHelp.profileStatsTitle")}
+          body={t("contextHelp.profileStatsBody")}
+          anchorRef={statsRef}
+          placement="bottom"
+          delayMs={9500}
+        />
+      )}
 
       <ResponsiveNav />
     </div>

@@ -26,6 +26,7 @@ import { useFocusMetrics, useUpdateTimeGoal } from "@/hooks/use-focus-metrics";
 import { useFriendAvailability } from "@/hooks/use-friend-availability";
 import { FriendAvailabilityHint } from "@/components/FriendAvailabilityHint";
 import { NotesSummaryCard } from "@/components/NotesSummaryCard";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 const Calendar = () => {
   const { t, i18n } = useTranslation();
@@ -494,35 +495,37 @@ const Calendar = () => {
               ) : null
             )}
 
-            {/* Health Overlay */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
-                {isHealthLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">{t('calendar.steps')}</span>
-                        <span className="font-semibold">{health.steps.value.toLocaleString()} / {health.steps.goal.toLocaleString()}</span>
-                      </div>
-                      <Progress value={Math.min(100, (health.steps.value / health.steps.goal) * 100)} className="h-2" />
+            {/* Health Overlay — parked for Phase 2 (needs real health-app data) */}
+            {HEALTH_PHASE2_ENABLED && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-3">{t('calendar.todaysActivity')}</h3>
+                  {isHealthLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
                     </div>
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">{t('calendar.workout')}</span>
-                        <span className="font-semibold">{health.workout.value} / {health.workout.goal} {t('calendar.minShort')}</span>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-muted-foreground">{t('calendar.steps')}</span>
+                          <span className="font-semibold">{health.steps.value.toLocaleString()} / {health.steps.goal.toLocaleString()}</span>
+                        </div>
+                        <Progress value={Math.min(100, (health.steps.value / health.steps.goal) * 100)} className="h-2" />
                       </div>
-                      <Progress value={Math.min(100, (health.workout.value / health.workout.goal) * 100)} className="h-2" />
+                      <div>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-muted-foreground">{t('calendar.workout')}</span>
+                          <span className="font-semibold">{health.workout.value} / {health.workout.goal} {t('calendar.minShort')}</span>
+                        </div>
+                        <Progress value={Math.min(100, (health.workout.value / health.workout.goal) * 100)} className="h-2" />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Notes — opens dedicated screen */}
             <NotesSummaryCard date={currentDate} />

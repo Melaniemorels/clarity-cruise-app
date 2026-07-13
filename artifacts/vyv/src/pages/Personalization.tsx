@@ -6,6 +6,7 @@ import { Sparkles, Briefcase, GraduationCap, Dumbbell, Users, HeartPulse, Palett
 import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 import { toast } from "sonner";
 import vyvLogo from "@/assets/vyv-logo.png";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 const FOCUS_OPTIONS = [
   { key: "work", icon: Briefcase },
@@ -66,7 +67,8 @@ const Personalization = () => {
       skipped ? undefined : { is_private: startPrivate },
     );
     if (success) {
-      window.location.href = "/onboarding";
+      // Device onboarding is parked for Phase 2 — go straight to the app.
+      window.location.href = HEALTH_PHASE2_ENABLED ? "/onboarding" : "/";
     } else {
       toast.error(t("onboarding.personalization.saveError"));
       setIsSubmitting(false);

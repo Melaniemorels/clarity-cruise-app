@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 export type OnboardingStep = "security" | "profile" | "personalization" | "devices" | "done";
 
@@ -53,7 +54,18 @@ export function useOnboardingStep() {
       } else if (!personalizationDone && !devicesDone) {
         setStep("personalization");
       } else if (!devicesDone) {
-        setStep("devices");
+        if (HEALTH_PHASE2_ENABLED) {
+          setStep("devices");
+        } else {
+          // Health-device onboarding is parked for Phase 2: skip the step and
+          // silently mark it complete so the user is never routed there.
+          setStep("done");
+          supabase
+            .from("profiles")
+            .update({ onboarding_completed: true } as any)
+            .eq("user_id", user.id)
+            .then(undefined, () => {});
+        }
       } else {
         setStep("done");
       }
@@ -116,6 +128,9 @@ export function useOnboardingStep() {
           ...(extraProfileFields ?? {}),
         };
         if (personalization) update.personalization = personalization;
+        // Health-device onboarding is parked for Phase 2: complete it in the
+        // same update so the user lands straight in the app with no bounce.
+        if (!HEALTH_PHASE2_ENABLED) update.onboarding_completed = true;
 
         const { error } = await supabase
           .from("profiles")
@@ -123,7 +138,7 @@ export function useOnboardingStep() {
           .eq("user_id", user.id);
 
         if (error) throw error;
-        setStep("devices");
+        setStep(HEALTH_PHASE2_ENABLED ? "devices" : "done");
         return true;
       } catch (error) {
         console.error("Error completing personalization step:", error);

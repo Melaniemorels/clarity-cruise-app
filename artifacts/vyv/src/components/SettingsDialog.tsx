@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/ThemeProvider";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
@@ -515,13 +516,15 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
               <Separator />
 
-              {/* Devices */}
-              <LinkButton
-                icon={Activity}
-                label={t("settings.healthDevices")}
-                description={t("settings.healthDevicesDesc")}
-                onClick={() => handleNavigate("/device-settings")}
-              />
+              {/* Devices — parked for Phase 2 (health-app connections) */}
+              {HEALTH_PHASE2_ENABLED && (
+                <LinkButton
+                  icon={Activity}
+                  label={t("settings.healthDevices")}
+                  description={t("settings.healthDevicesDesc")}
+                  onClick={() => handleNavigate("/device-settings")}
+                />
+              )}
 
               {/* Media Connections */}
               <LinkButton

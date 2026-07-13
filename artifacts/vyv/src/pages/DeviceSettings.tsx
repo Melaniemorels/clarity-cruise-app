@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Apple, Smartphone, Activity, ChevronLeft, Layers } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
+import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ const DeviceSettings = () => {
   const isFromOnboarding = step === "devices";
 
   useEffect(() => {
+    if (!HEALTH_PHASE2_ENABLED) return;
     fetchConnections();
   }, [user]);
 
@@ -136,6 +138,9 @@ const DeviceSettings = () => {
       navigate(-1);
     }
   };
+
+  // Health-app connections are parked for Phase 2.
+  if (!HEALTH_PHASE2_ENABLED) return <Navigate to="/" replace />;
 
   const connectedCount = connections.length;
 
