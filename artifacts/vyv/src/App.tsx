@@ -33,7 +33,7 @@ const Calendar = lazy(() => import("./pages/Calendar"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const Recommendations = lazy(() => import("./pages/Recommendations"));
-const PerfectDay = lazy(() => import("./pages/PerfectDay"));
+// PerfectDay page kept in codebase but not routed — deferred to phase 2
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -296,7 +296,8 @@ const App = () => (
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/profile/:userId" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
                   <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
-                  <Route path="/perfect-day" element={<ProtectedRoute><PerfectDay /></ProtectedRoute>} />
+                  {/* Perfect Day deferred to phase 2 — old links land on Explore */}
+                  <Route path="/perfect-day" element={<Navigate to="/explore" replace />} />
                   <Route path="/device-settings" element={<ProtectedRoute skipOnboardingCheck><DeviceSettings /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute skipOnboardingCheck><DeviceOnboarding /></ProtectedRoute>} />
                   <Route path="/security-onboarding" element={<ProtectedRoute skipOnboardingCheck><SecurityOnboarding /></ProtectedRoute>} />

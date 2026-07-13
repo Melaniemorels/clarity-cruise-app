@@ -2,13 +2,11 @@ import { useEffect, useRef, useState as useReactState } from "react";
 import { ResponsiveNav, useNavStyle } from "@/components/ResponsiveNav";
 import { useDevice } from "@/hooks/use-device";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
 import { ContentPlayer } from "@/components/ContentPlayer";
 import { ExploreConnectionsCard } from "@/components/explore/ExploreConnectionsCard";
 import { ExploreOnboardingDialog } from "@/components/explore/ExploreOnboardingDialog";
 import { ContextHelpTooltip } from "@/components/ContextHelpTooltip";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useModuleTimeTracker } from "@/hooks/use-module-time-tracker";
@@ -50,7 +48,6 @@ function LanguageToggleRow() {
 
 const Explore = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [selectedContent, setSelectedContent] = useState<{
     title: string; category: string; icon: string; duration: string; color: string;
   } | null>(null);
@@ -142,26 +139,7 @@ const Explore = () => {
         {/* Onboarding */}
         <ExploreOnboardingDialog />
 
-        {/* Perfect Day CTA — refined, old money */}
-        <div
-          className="rounded-2xl border border-border/50 bg-card p-6 text-center cursor-pointer hover:border-border transition-all duration-300"
-          onClick={() => navigate("/perfect-day")}
-        >
-          <div className="flex justify-center mb-3">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Sparkles className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-          <h3 className="font-semibold text-foreground mb-1.5 tracking-tight">
-            {t('explore.createTemplateTitle')}
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-            {t('explore.createTemplateDescription')}
-          </p>
-          <Button size="sm" className="tracking-wide">
-            {t('explore.createTemplate')}
-          </Button>
-        </div>
+        {/* Perfect Day CTA removed — deferred to phase 2 */}
       </div>
 
       <ContentPlayer open={playerOpen} onOpenChange={setPlayerOpen} content={selectedContent} />
