@@ -8,3 +8,4 @@
 - [VYV migration architecture](vyv-migration.md) — imported Lovable/Supabase app onto pnpm-workspace via a Supabase compatibility shim routing to an Express API.
 - [Schema drift breaks auth silently](vyv-schema-drift.md) — blanket 401s with valid Clerk cookie = live-DB column drift; post-merge drizzle push silently skips renames (TTY prompt), apply DDL via psql.
 - [api-server test bundling](api-server-test-bundling.md) — esbuild test bundles need an alias per workspace lib AND that lib's npm deps as api-server devDeps (pnpm doesn't hoist).
+- [Explore catalogue test seeding](explore-catalogue-test-seeding.md) — seeds shift the newest-N window and null-language rows pass every language filter; seed pools above thresholds, snapshot pre+post.
