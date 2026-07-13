@@ -389,6 +389,10 @@ router.post(
       const category: string | null = body.category ?? null;
       const page: number = body.page ?? 0;
       const pageSize: number = Math.min(body.pageSize ?? 8, 50);
+      const uiLanguage: string | null =
+        typeof body.language === "string"
+          ? body.language.split("-")[0].toLowerCase()
+          : null;
 
       const [prefsRows, eventRows, itemRows] = await Promise.all([
         db
@@ -414,7 +418,9 @@ router.post(
 
       const prefsRow = prefsRows[0];
       const prefs: Prefs = {
-        language: prefsRow?.language ?? null,
+        // The live UI language wins over the persisted preference so ranking
+        // favours the language the user is actually seeing the app in.
+        language: uiLanguage ?? prefsRow?.language ?? null,
         goals: prefsRow?.goals ?? [],
         preferred_tags: prefsRow?.preferred_tags ?? [],
         blocked_creators: prefsRow?.blocked_creators ?? [],
@@ -436,9 +442,19 @@ router.post(
         HEALTHY_CATEGORY_SET.has(i.category),
       );
 
-      const pool = category
+      let pool = category
         ? allItems.filter((i) => i.category === category)
         : allItems;
+
+      // Language-aware catalogue: serve content in the app's UI language
+      // (items with unknown language pass through). Fall back to the full
+      // pool only when the language-matched slice is too thin to fill a page.
+      if (uiLanguage) {
+        const langPool = pool.filter(
+          (i) => !i.language || i.language === uiLanguage,
+        );
+        if (langPool.length >= Math.min(pageSize, 4)) pool = langPool;
+      }
 
       const seenIds = new Set(
         events
@@ -797,11 +813,20 @@ router.post(
         HEALTHY_CATEGORY_SET.has(i.category),
       );
 
+      // Language-aware: only recommend content in the app's UI language
+      // (items with unknown language pass through), unless that slice is
+      // too thin to build recommendations from.
+      const uiLang = language.split("-")[0].toLowerCase();
+      const langHealthy = healthy.filter(
+        (i) => !i.language || i.language === uiLang,
+      );
+      const base = langHealthy.length >= 4 ? langHealthy : healthy;
+
       // Fits the free gap (unknown duration → assume a short 20-min session).
-      const fitting = healthy.filter(
+      const fitting = base.filter(
         (i) => (i.duration_min ?? 20) <= Math.max(gapMinutes, 10),
       );
-      const pool = fitting.length >= 4 ? fitting : healthy;
+      const pool = fitting.length >= 4 ? fitting : base;
 
       // Rank: time-of-day category match first, then language, then variety.
       const catRank = (c: string) => {

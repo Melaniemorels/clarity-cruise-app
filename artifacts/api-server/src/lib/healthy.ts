@@ -108,7 +108,8 @@ export function isoDurationToMinutes(iso: string | null | undefined): number | n
 }
 
 // Per-category YouTube search queries used to keep the catalogue stocked with
-// real, current wellness content (Spanish-first with English fallback mix).
+// real, current wellness content. One query set per catalogue language so
+// Spanish and English users both get content in their own language.
 export const CATEGORY_SEARCH_QUERIES: Record<HealthyCategory, string> = {
   Yoga: "yoga en casa para principiantes",
   Pilates: "pilates en casa rutina completa",
@@ -123,6 +124,24 @@ export const CATEGORY_SEARCH_QUERIES: Record<HealthyCategory, string> = {
   Música: "música para concentrarse y estudiar",
   Audiolibros: "audiolibro desarrollo personal completo",
 };
+
+export const CATEGORY_SEARCH_QUERIES_EN: Record<HealthyCategory, string> = {
+  Yoga: "beginner yoga at home full class",
+  Pilates: "pilates at home full body routine",
+  Ejercicios: "guided stretching and mobility routine",
+  Meditación: "guided meditation mindfulness",
+  Calma: "breathing exercises to relax and sleep",
+  Energía: "energizing morning routine",
+  Nutrición: "easy healthy recipes",
+  PlanesDeComida: "healthy weekly meal prep",
+  Motivacional: "motivational audio habits discipline",
+  Podcasts: "wellness and mental health podcast",
+  Música: "focus music for studying and working",
+  Audiolibros: "personal development audiobook full",
+};
+
+/** Catalogue languages we actively stock via curated searches. */
+export type CatalogLang = "es" | "en";
 
 // Time-of-day → categories that fit that moment (used by contextual recs).
 export const TIME_OF_DAY_CATEGORIES: Record<string, HealthyCategory[]> = {

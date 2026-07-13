@@ -317,6 +317,20 @@ const EPISODE_SEARCH_QUERIES: Partial<Record<HealthyCategory, string>> = {
   Audiolibros: "audiolibro desarrollo personal completo",
 };
 
+// English counterparts so users with the app in English get English content.
+const EPISODE_SEARCH_QUERIES_EN: Partial<Record<HealthyCategory, string>> = {
+  "Meditación": "guided meditation",
+  Calma: "relaxation for sleep",
+  Motivacional: "personal motivation podcast",
+  Podcasts: "wellness health podcast",
+  "Nutrición": "nutrition healthy eating",
+  "Energía": "morning energy habits",
+  Yoga: "yoga nidra guided relaxation",
+  PlanesDeComida: "meal prep healthy weekly plan",
+  "Música": "relaxing music for sleep and focus",
+  Audiolibros: "personal development audiobook",
+};
+
 // Second-pass queries for sections the classifier tends to leave thin (many
 // results of the primary query get reclassified into Meditación/Calma).
 // Only used by the app-level catalogue sync.
@@ -327,6 +341,15 @@ const EXTRA_EPISODE_QUERIES: [HealthyCategory, string][] = [
   ["Música", "música instrumental bienestar"],
   ["PlanesDeComida", "plan semanal de comidas batch cooking"],
   ["Audiolibros", "audiolibro hábitos español"],
+];
+
+const EXTRA_EPISODE_QUERIES_EN: [HealthyCategory, string][] = [
+  ["Podcasts", "personal growth podcast"],
+  ["Podcasts", "positive psychology podcast"],
+  ["Música", "focus sounds study playlist"],
+  ["Música", "instrumental wellness music"],
+  ["PlanesDeComida", "weekly meal plan batch cooking"],
+  ["Audiolibros", "habits audiobook"],
 ];
 
 interface CandidateItem {
@@ -344,6 +367,7 @@ interface CandidateItem {
 async function searchHealthyEpisodes(
   token: string,
   entries: [HealthyCategory, string][],
+  lang: "es" | "en" = "es",
 ): Promise<CandidateItem[]> {
   const candidates: CandidateItem[] = [];
   for (const [category, query] of entries) {
@@ -355,7 +379,7 @@ async function searchHealthyEpisodes(
         limit: "8",
         // Required for app (client-credentials) tokens — without a market the
         // search returns null items. Harmless with user tokens.
-        market: "ES",
+        market: lang === "en" ? "US" : "ES",
       });
       for (const ep of found.episodes?.items ?? []) {
         if (!ep?.id || !ep?.name) continue;
@@ -380,7 +404,11 @@ async function searchHealthyEpisodes(
             ? "es"
             : ep.languages?.some((l: string) => l.startsWith("es"))
               ? "es"
-              : null,
+              : ep.language?.startsWith("en")
+                ? "en"
+                : ep.languages?.some((l: string) => l.startsWith("en"))
+                  ? "en"
+                  : lang,
         });
       }
     } catch {
@@ -476,12 +504,18 @@ export async function syncSpotifyCatalog(): Promise<{
   if (!token) return { scanned: 0, inserted: 0 };
 
   // App-level syncs cover ALL audio categories in one pass plus the
-  // second-pass queries for the thin sections (~16 searches, well inside
-  // Spotify's rate limits, and only every 12h).
-  const entries = (
+  // second-pass queries for the thin sections, in BOTH catalogue languages
+  // (~32 searches, well inside Spotify's rate limits, and only every 12h).
+  const entriesEs = (
     Object.entries(EPISODE_SEARCH_QUERIES) as [HealthyCategory, string][]
   ).concat(EXTRA_EPISODE_QUERIES);
-  const candidates = await searchHealthyEpisodes(token, entries);
+  const entriesEn = (
+    Object.entries(EPISODE_SEARCH_QUERIES_EN) as [HealthyCategory, string][]
+  ).concat(EXTRA_EPISODE_QUERIES_EN);
+  const candidates = [
+    ...(await searchHealthyEpisodes(token, entriesEs, "es")),
+    ...(await searchHealthyEpisodes(token, entriesEn, "en")),
+  ];
   const inserted = await insertSpotifyCandidates(candidates);
   lastCatalogSyncAt = Date.now();
   return { scanned: candidates.length, inserted };
@@ -535,11 +569,16 @@ export async function syncSpotifyHealthy(
   }
 
   // 2) Curated wellness episode searches (rotate 3 categories per sync to
-  // stay well inside Spotify's rate limits; the window advances every 12h).
-  const allEntries = Object.entries(EPISODE_SEARCH_QUERIES) as [
-    HealthyCategory,
-    string,
-  ][];
+  // stay well inside Spotify's rate limits; the window advances every 12h
+  // and covers BOTH language query sets across successive syncs).
+  const allEntries: [HealthyCategory, string, "es" | "en"][] = [
+    ...(
+      Object.entries(EPISODE_SEARCH_QUERIES) as [HealthyCategory, string][]
+    ).map(([c, q]): [HealthyCategory, string, "es" | "en"] => [c, q, "es"]),
+    ...(
+      Object.entries(EPISODE_SEARCH_QUERIES_EN) as [HealthyCategory, string][]
+    ).map(([c, q]): [HealthyCategory, string, "es" | "en"] => [c, q, "en"]),
+  ];
   const CATEGORIES_PER_SYNC = 3;
   const offset =
     (Math.floor(Date.now() / SYNC_STALE_MS) * CATEGORIES_PER_SYNC) %
@@ -548,7 +587,11 @@ export async function syncSpotifyHealthy(
     { length: CATEGORIES_PER_SYNC },
     (_, i) => allEntries[(offset + i) % allEntries.length],
   );
-  candidates.push(...(await searchHealthyEpisodes(token, searchEntries)));
+  for (const [category, query, lang] of searchEntries) {
+    candidates.push(
+      ...(await searchHealthyEpisodes(token, [[category, query]], lang)),
+    );
+  }
 
   // 3) Dedupe against what is already in the catalogue and insert the rest.
   const inserted = await insertSpotifyCandidates(candidates);

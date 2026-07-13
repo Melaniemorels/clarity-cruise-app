@@ -16,6 +16,7 @@ import {
   isBlockedContent,
   isoDurationToMinutes,
   CATEGORY_SEARCH_QUERIES,
+  CATEGORY_SEARCH_QUERIES_EN,
   type HealthyCategory,
 } from "../lib/healthy";
 
@@ -337,6 +338,7 @@ interface CandidateItem {
 function videoToCandidate(
   v: any,
   fallbackCategory?: HealthyCategory,
+  fallbackLang?: string,
 ): CandidateItem | null {
   const id = typeof v.id === "string" ? v.id : v.id?.videoId;
   const sn = v.snippet;
@@ -361,7 +363,10 @@ function videoToCandidate(
       sn.defaultAudioLanguage?.startsWith("es") ||
       sn.defaultLanguage?.startsWith("es")
         ? "es"
-        : null,
+        : sn.defaultAudioLanguage?.startsWith("en") ||
+            sn.defaultLanguage?.startsWith("en")
+          ? "en"
+          : (fallbackLang ?? null),
   };
 }
 
@@ -399,12 +404,16 @@ export async function syncYouTubeHealthy(
 
   // 2) Curated wellness searches per category (real, current videos).
   // Quota control: search.list costs 100 units/call, so rotate a subset of
-  // 4 categories per sync instead of hitting all 10 every time. The rotation
-  // window advances every 12h, so successive syncs cover the whole taxonomy.
-  const allEntries = Object.entries(CATEGORY_SEARCH_QUERIES) as [
-    HealthyCategory,
-    string,
-  ][];
+  // 4 categories per sync instead of hitting all every time. The rotation
+  // window advances every 12h and covers BOTH language query sets, so the
+  // catalogue fills with Spanish and English content over successive syncs.
+  const allEntries: [HealthyCategory, string, "es" | "en"][] = [
+    ...(Object.entries(CATEGORY_SEARCH_QUERIES) as [HealthyCategory, string][])
+      .map(([c, q]): [HealthyCategory, string, "es" | "en"] => [c, q, "es"]),
+    ...(
+      Object.entries(CATEGORY_SEARCH_QUERIES_EN) as [HealthyCategory, string][]
+    ).map(([c, q]): [HealthyCategory, string, "es" | "en"] => [c, q, "en"]),
+  ];
   const CATEGORIES_PER_SYNC = 4;
   const offset =
     (Math.floor(Date.now() / SYNC_STALE_MS) * CATEGORIES_PER_SYNC) %
@@ -413,7 +422,7 @@ export async function syncYouTubeHealthy(
     { length: CATEGORIES_PER_SYNC },
     (_, i) => allEntries[(offset + i) % allEntries.length],
   );
-  for (const [category, query] of searchEntries) {
+  for (const [category, query, lang] of searchEntries) {
     try {
       const found = await ytGet(token, "search", {
         part: "snippet",
@@ -421,7 +430,7 @@ export async function syncYouTubeHealthy(
         type: "video",
         maxResults: "8",
         safeSearch: "strict",
-        relevanceLanguage: "es",
+        relevanceLanguage: lang,
       });
       const ids = (found.items ?? [])
         .map((it: any) => it.id?.videoId)
@@ -433,7 +442,7 @@ export async function syncYouTubeHealthy(
         id: ids.join(","),
       });
       for (const v of details.items ?? []) {
-        const c = videoToCandidate(v, category);
+        const c = videoToCandidate(v, category, lang);
         if (c) candidates.push(c);
       }
     } catch {
