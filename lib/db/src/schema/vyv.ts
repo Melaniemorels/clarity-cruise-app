@@ -603,3 +603,31 @@ export const vyvTables = {
 } as const;
 
 export type VyvTableName = keyof typeof vyvTables;
+
+// ---------------------------------------------------------------------------
+// Server-only tables (NOT in the vyvTables client allowlist)
+// ---------------------------------------------------------------------------
+
+// Web Push subscriptions — managed exclusively through /api/push/* routes.
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: id(),
+  user_id: uuid("user_id").notNull(),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  created_at: createdAt(),
+});
+
+// App-level key/value config (e.g. VAPID keys; sensitive values encrypted).
+export const appConfig = pgTable("app_config", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updated_at: updatedAt(),
+});
+
+// Tracks which calendar events already got a push reminder (dedupe).
+export const calendarRemindersSent = pgTable("calendar_reminders_sent", {
+  event_id: uuid("event_id").primaryKey(),
+  user_id: uuid("user_id").notNull(),
+  sent_at: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+});

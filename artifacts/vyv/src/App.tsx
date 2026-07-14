@@ -8,7 +8,8 @@ import { ClerkProvider, SignIn, SignUp, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { dark, shadcn } from "@clerk/themes";
 import { enUS, esES } from "@clerk/localizations";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { resyncPushSubscription } from "./hooks/use-push-notifications";
 import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
 import { FindFriendsModal } from "./components/FindFriendsModal";
@@ -242,6 +243,16 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+// Silently re-registers the browser's existing push subscription with the
+// server after login (never prompts for permission).
+function PushSubscriptionResync() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user) void resyncPushSubscription();
+  }, [user?.id]);
+  return null;
+}
+
 // ClerkProvider must live inside BrowserRouter so routerPush/Replace can use
 // react-router navigation. AuthProvider (which consumes Clerk hooks) nests inside.
 function ClerkWithRouter({ children }: { children: React.ReactNode }) {
@@ -273,6 +284,7 @@ const App = () => (
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <ClerkWithRouter>
             <AuthProvider>
+              <PushSubscriptionResync />
               <VYVProvider>
               <GuideProvider>
               <NetworkProvider>

@@ -24,6 +24,7 @@ import {
   type AnyColumn,
 } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
+import { sendNotificationPush } from "../lib/webPush";
 
 const router: IRouter = Router();
 
@@ -312,6 +313,9 @@ async function assertInsertAllowed(
   rows: Record<string, unknown>[],
   userId: string,
 ): Promise<string | null> {
+  if (tableName === "notifications") {
+    return assertNotificationInsertAllowed(rows, userId);
+  }
   if (tableName !== "social_plan_invites") return null;
   const planIds = [
     ...new Set(
@@ -337,6 +341,110 @@ async function assertInsertAllowed(
     );
   if (owned.length !== planIds.length) {
     return "Cannot invite to a plan you did not create";
+  }
+  return null;
+}
+
+// Notifications are the one cross-user insert, so each row must be backed by
+// a real relationship between the caller (actor) and the recipient. Otherwise
+// any logged-in user could spam arbitrary users (and trigger push).
+async function assertNotificationInsertAllowed(
+  rows: Record<string, unknown>[],
+  userId: string,
+): Promise<string | null> {
+  for (const row of rows) {
+    const recipient = row["user_id"];
+    const type = row["type"];
+    if (typeof recipient !== "string" || !recipient) {
+      return "user_id is required";
+    }
+    if (typeof type !== "string") return "type is required";
+    if (recipient === userId) continue; // notifying yourself is harmless
+
+    const follows = getTable("follows");
+    const followCols = follows
+      ? (getTableColumns(follows) as unknown as Record<string, AnyColumn>)
+      : null;
+
+    const followEdge = async (
+      follower: string,
+      following: string,
+    ): Promise<boolean> => {
+      if (!follows || !followCols) return false;
+      const hit = await db
+        .select({ id: sql<string>`${followCols["id"]}` })
+        .from(follows)
+        .where(
+          and(
+            eq(followCols["follower_id"], follower),
+            eq(followCols["following_id"], following),
+          ),
+        )
+        .limit(1);
+      return hit.length > 0;
+    };
+
+    switch (type) {
+      case "new_follower":
+      case "follow_request": {
+        if (!(await followEdge(userId, recipient))) {
+          return "No follow relationship with this user";
+        }
+        break;
+      }
+      case "request_accepted":
+      case "request_rejected": {
+        if (!(await followEdge(recipient, userId))) {
+          return "No follow request from this user";
+        }
+        break;
+      }
+      case "plan_invite":
+      case "plan_accepted":
+      case "plan_declined": {
+        const planId = row["reference_id"];
+        if (typeof planId !== "string" || !planId) {
+          return "reference_id (plan) is required";
+        }
+        const invites = getTable("social_plan_invites");
+        const plans = getTable("social_plans");
+        if (!invites || !plans) return "plans not available";
+        const inviteCols = getTableColumns(invites) as unknown as Record<
+          string,
+          AnyColumn
+        >;
+        const planCols = getTableColumns(plans) as unknown as Record<
+          string,
+          AnyColumn
+        >;
+        // plan_invite: caller is the plan creator, recipient is an invitee.
+        // plan_accepted/declined: caller is an invitee, recipient the creator.
+        const creatorId = type === "plan_invite" ? userId : recipient;
+        const inviteeId = type === "plan_invite" ? recipient : userId;
+        const hit = await db
+          .select({ id: sql<string>`${inviteCols["id"]}` })
+          .from(invites)
+          .innerJoin(plans, eq(inviteCols["plan_id"], planCols["id"]))
+          .where(
+            and(
+              eq(inviteCols["plan_id"], planId),
+              eq(inviteCols["invitee_id"], inviteeId),
+              eq(planCols["creator_id"], creatorId),
+            ),
+          )
+          .limit(1);
+        if (hit.length === 0) return "No matching plan invite";
+        break;
+      }
+      default: {
+        // Unknown / not-yet-supported cross-user types (like, comment, ...):
+        // require at least an accepted follow edge in either direction.
+        const related =
+          (await followEdge(userId, recipient)) ||
+          (await followEdge(recipient, userId));
+        if (!related) return "No relationship with this user";
+      }
+    }
   }
   return null;
 }
@@ -496,6 +604,17 @@ router.post(
             .insert(table)
             .values(cleaned)
             .returning();
+          // Mirror social notifications as web-push (best-effort, non-blocking).
+          if (payload.table === "notifications") {
+            for (const row of inserted as Array<{
+              user_id: string;
+              actor_id: string;
+              type: string;
+              message: string | null;
+            }>) {
+              void sendNotificationPush(row);
+            }
+          }
           finishWrite(res, payload, inserted);
           return;
         }

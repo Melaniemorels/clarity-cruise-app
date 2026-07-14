@@ -34,6 +34,7 @@ import { SectionVisibilitySettings } from "@/components/SectionVisibilitySetting
 import { SocialBudgetSettings } from "@/components/SocialBudgetSettings";
 import { AICalendarAuditList } from "@/components/AICalendarAuditList";
 import { AIMemoryManager } from "@/components/AIMemoryManager";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { toast } from "sonner";
 import {
   Sun,
@@ -87,6 +88,26 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [autoSaveCaptures, setAutoSaveCaptures] = useState(() => getAutoSavePreference());
+  const push = usePushNotifications();
+
+  const handlePushToggle = async (checked: boolean) => {
+    try {
+      if (checked) {
+        await push.enable();
+        toast.success(t("settings.pushEnabled"));
+      } else {
+        await push.disable();
+        toast.success(t("settings.pushDisabled"));
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg === "permission-denied") {
+        toast.error(t("settings.pushBlocked"));
+      } else {
+        toast.error(t("settings.pushError"));
+      }
+    }
+  };
 
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -252,19 +273,29 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-muted-foreground">{t("settings.notificationsSection")}</h3>
-                  <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-                    {t("settings.comingSoonBadge")}
-                  </span>
+                </div>
+                <div className="space-y-4 mb-4">
+                  <SettingRow
+                    icon={Bell}
+                    label={t("settings.pushNotifications")}
+                    description={
+                      push.supported
+                        ? t("settings.pushNotificationsDesc")
+                        : t("settings.pushNotSupported")
+                    }
+                    action={
+                      <Switch
+                        checked={push.enabled}
+                        disabled={!push.supported || push.busy || !push.checked}
+                        onCheckedChange={handlePushToggle}
+                      />
+                    }
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
                   {t("settings.notificationsComingSoonDesc")}
                 </p>
                 <div className="space-y-4 opacity-60">
-                  <SettingRow
-                    icon={Bell}
-                    label={t("settings.pushNotifications")}
-                    action={<Switch checked={false} disabled />}
-                  />
                   <SettingRow
                     icon={Activity}
                     label={t("settings.activityNotifications")}

@@ -7,6 +7,7 @@ import restRouter from "./rest";
 import mediaRouter from "./media";
 import spotifyRouter from "./spotify";
 import storageRouter from "./storage";
+import pushRouter from "./push";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(restRouter);
 router.use(mediaRouter);
 router.use(spotifyRouter);
 router.use(storageRouter);
+router.use(pushRouter);
 
 export default router;

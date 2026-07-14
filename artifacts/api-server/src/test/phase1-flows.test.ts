@@ -24,6 +24,9 @@ import { db, appUsers, vyvTables } from "@workspace/db";
 import { eq, inArray, like, or } from "drizzle-orm";
 import dbRouter from "../routes/db";
 import functionsRouter from "../routes/functions";
+import pushRouter from "../routes/push";
+import { pushSubscriptions, calendarRemindersSent } from "@workspace/db";
+import { runReminderSweep } from "../lib/webPush";
 import type { AuthedUser } from "../lib/auth";
 
 const users: Record<string, AuthedUser> = {};
@@ -37,6 +40,7 @@ app.use((req, _res, next) => {
 });
 app.use(dbRouter);
 app.use(functionsRouter);
+app.use(pushRouter);
 
 let server: Server;
 let baseUrl: string;
@@ -78,12 +82,18 @@ before(async () => {
     .insert(appUsers)
     .values({ email: `${marker}-b@test.local` })
     .returning();
+  const [c] = await db
+    .insert(appUsers)
+    .values({ email: `${marker}-c@test.local` })
+    .returning();
   users.a = { id: a.id, email: a.email };
   users.b = { id: b.id, email: b.email };
+  users.c = { id: c.id, email: c.email };
 
   await db.insert(vyvTables.profiles).values([
     { user_id: a.id, handle: `${marker}-a`, name: "Test A" },
     { user_id: b.id, handle: `${marker}-b`, name: "Test B" },
+    { user_id: c.id, handle: `${marker}-c`, name: "Test C" },
   ]);
 
   server = app.listen(0);
@@ -93,7 +103,7 @@ before(async () => {
 });
 
 after(async () => {
-  const ids = [users.a.id, users.b.id];
+  const ids = [users.a.id, users.b.id, users.c.id];
   await db
     .delete(vyvTables.notifications)
     .where(
@@ -120,6 +130,12 @@ after(async () => {
     .delete(vyvTables.profile_section_visibility)
     .where(inArray(vyvTables.profile_section_visibility.user_id, ids));
   await db
+    .delete(pushSubscriptions)
+    .where(inArray(pushSubscriptions.user_id, ids));
+  await db
+    .delete(calendarRemindersSent)
+    .where(inArray(calendarRemindersSent.user_id, ids));
+  await db
     .delete(vyvTables.profiles)
     .where(like(vyvTables.profiles.handle, `${marker}%`));
   await db.delete(appUsers).where(inArray(appUsers.id, ids));
@@ -131,6 +147,15 @@ after(async () => {
 // ---------------------------------------------------------------------------
 
 test("notifications: A can notify B; actor is forced to A", async () => {
+  // The notification must be backed by a real relationship: A follows B.
+  await db
+    .insert(vyvTables.follows)
+    .values({
+      follower_id: users.a.id,
+      following_id: users.b.id,
+      status: "accepted",
+    })
+    .onConflictDoNothing();
   const insert = await query("a", {
     table: "notifications",
     action: "insert",
@@ -363,4 +388,120 @@ test("vyv-calendar-action: update and delete are owner-scoped and audited", asyn
     audits.some((x) => x.action === "delete" && x.event_id === aiEventId),
     "delete audit row exists",
   );
+});
+
+// ---------------------------------------------------------------------------
+// 4. Web push
+// ---------------------------------------------------------------------------
+
+test("push: vapid public key is served to authenticated users", async () => {
+  const res = await fetch(`${baseUrl}/push/vapid-public-key`, {
+    headers: { "x-test-user": "a" },
+  });
+  assert.equal(res.status, 200);
+  const json = (await res.json()) as { publicKey: string };
+  assert.ok(json.publicKey && json.publicKey.length > 20, "public key returned");
+
+  // A second call returns the SAME key (persisted, not regenerated).
+  const res2 = await fetch(`${baseUrl}/push/vapid-public-key`, {
+    headers: { "x-test-user": "b" },
+  });
+  const json2 = (await res2.json()) as { publicKey: string };
+  assert.equal(json2.publicKey, json.publicKey);
+});
+
+test("push: subscribe stores the subscription for the caller; unsubscribe removes it", async () => {
+  const endpoint = `https://push.example.test/${marker}`;
+  const sub = await fetch(`${baseUrl}/push/subscribe`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-user": "b" },
+    body: JSON.stringify({
+      subscription: { endpoint, keys: { p256dh: "test-p256dh", auth: "test-auth" } },
+    }),
+  });
+  assert.equal(sub.status, 200);
+
+  const rows = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint));
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].user_id, users.b.id, "subscription belongs to B");
+
+  // Malformed subscription is rejected.
+  const bad = await fetch(`${baseUrl}/push/subscribe`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-user": "b" },
+    body: JSON.stringify({ subscription: { endpoint: "not-a-url" } }),
+  });
+  assert.equal(bad.status, 400);
+
+  const unsub = await fetch(`${baseUrl}/push/unsubscribe`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-user": "b" },
+    body: JSON.stringify({ endpoint }),
+  });
+  assert.equal(unsub.status, 200);
+  const after = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint));
+  assert.equal(after.length, 0, "subscription removed");
+});
+
+test("push: reminder sweep claims upcoming events exactly once", async () => {
+  // B has a push subscription and an event starting in 10 minutes.
+  const endpoint = `https://push.example.test/reminder-${marker}`;
+  await db.insert(pushSubscriptions).values({
+    user_id: users.b.id,
+    endpoint,
+    p256dh: "test-p256dh",
+    auth: "test-auth",
+  });
+  const [ev] = await db
+    .insert(vyvTables.calendar_events)
+    .values({
+      user_id: users.b.id,
+      title: `Reminder test ${marker}`,
+      category: "personal",
+      starts_at: new Date(Date.now() + 10 * 60 * 1000),
+      ends_at: new Date(Date.now() + 70 * 60 * 1000),
+    })
+    .returning();
+
+  await runReminderSweep(); // send fails against the fake endpoint, but the claim must stick
+  const claims = await db
+    .select()
+    .from(calendarRemindersSent)
+    .where(eq(calendarRemindersSent.event_id, ev.id));
+  assert.equal(claims.length, 1, "reminder claimed for the event");
+
+  await runReminderSweep();
+  const claims2 = await db
+    .select()
+    .from(calendarRemindersSent)
+    .where(eq(calendarRemindersSent.event_id, ev.id));
+  assert.equal(claims2.length, 1, "no double claim on second sweep");
+
+  await db
+    .delete(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint));
+});
+
+test("push/security: cannot notify an arbitrary user without a relationship", async () => {
+  // C has no follow / plan relationship with A.
+  const res = await fetch(`${baseUrl}/db/query`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-user": "c" },
+    body: JSON.stringify({
+      table: "notifications",
+      action: "insert",
+      values: {
+        user_id: users.a.id,
+        type: "new_follower",
+        message: "spam attempt",
+      },
+    }),
+  });
+  assert.equal(res.status, 403, "unrelated notification insert is rejected");
 });
