@@ -61,6 +61,9 @@ export const profiles = pgTable("profiles", {
     .default(false),
   ai_memory_enabled: boolean("ai_memory_enabled").notNull().default(false),
   onboarding_completed: boolean("onboarding_completed").notNull().default(false),
+  has_completed_app_tour: boolean("has_completed_app_tour")
+    .notNull()
+    .default(false),
   onboarding_step: text("onboarding_step").notNull().default("welcome"),
   personalization_completed: boolean("personalization_completed")
     .notNull()

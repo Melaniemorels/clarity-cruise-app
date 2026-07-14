@@ -1,0 +1,170 @@
+The current onboarding is incomplete.
+Right now, after a user creates an account and finishes setting up their profile, they are immediately dropped into the app without understanding what anything does.
+This creates confusion and a poor first impression.
+I want a beautiful, interactive, first-time onboarding walkthrough that introduces the app in less than one minute.
+Goal
+Help new users immediately understand VYV without overwhelming them.
+The experience should feel:
+Premium
+Apple-quality
+Calm
+Modern
+Interactive
+Minimal
+Friendly
+Intentional
+The tour should teach users where everything is while letting them interact with the real interface.
+Important
+Profile creation is NOT the onboarding.
+The onboarding starts after the profile has been completed.
+Only then should the walkthrough begin.
+How it should work
+After profile setup:
+Open the real app.
+Do NOT show another fake screen or slideshow.
+Instead:
+slightly dim the interface
+highlight one real element at a time
+display a small floating tooltip
+animate smoothly between steps
+allow the user to tap Next
+allow Skip at any moment
+display progress (example: 2 of 5)
+The highlighted UI element should remain fully interactive.
+Step 1
+Highlight:
+Feed
+Text:
+Welcome to VYV
+This is your intentional feed.
+See authentic moments from yourself and your friends without endless scrolling.
+Only meaningful content.
+Button:
+Next
+Step 2
+Highlight:
+Search icon inside Feed
+Text:
+Find your people
+Search by username, connect your contacts, or invite friends with a link.
+Once connected, VYV helps you discover when you're both available to spend time together.
+No endless chatting.
+Just real plans.
+Button:
+Next
+Step 3
+Highlight:
+Calendar
+Text:
+Your AI Calendar
+Organize your life effortlessly.
+Create events.
+Plan your day.
+Manage your schedule.
+Discover shared availability with friends.
+The AI helps you organize your time intentionally.
+Button:
+Next
+Step 4
+Highlight:
+Capture button (center button)
+IMPORTANT
+This feature is NOT a focus timer.
+This is VYV's Capture feature.
+Text:
+Capture the moment
+Take a real photo of what you're doing right now.
+No filters.
+No editing.
+No staged content.
+Make it. Don't fabricate it.
+Share authentic moments instead of creating content for attention.
+Button:
+Next
+Step 5
+Highlight:
+Profile
+Text:
+You're in control
+Customize your profile.
+Manage privacy.
+Connect calendars.
+Manage connected services.
+Adjust your preferences.
+Everything is designed to give you control over your digital life.
+Button:
+Finish
+Final Screen
+Display:
+You're ready.
+Welcome to VYV.
+Less noise.
+More intentional living.
+Primary button:
+Start Exploring
+Secondary button:
+Replay Tour Later
+Design Requirements
+Use:
+soft blur background
+premium glass cards
+rounded corners
+subtle shadows
+smooth animations
+Apple-like transitions
+clean typography
+elegant spacing
+The experience should feel closer to Apple's onboarding than a typical Android tutorial.
+Avoid:
+giant popups
+long paragraphs
+confetti
+childish graphics
+loud animations
+too much text
+UX Rules
+Maximum duration:
+30–45 seconds
+Maximum:
+5 steps
+Each explanation should be:
+One short paragraph.
+The user should always understand what to do next.
+The onboarding should feel effortless.
+Language
+Automatically use the user's selected language.
+Never mix English and Spanish.
+Every tooltip should be translated properly.
+First-Time Logic
+Create a persistent user property:
+has_completed_app_tour
+Default:
+false
+After the user:
+finishes the tour
+or
+taps Skip
+update it to:
+true
+Never automatically show it again.
+Settings
+Inside:
+Profile
+→ Settings
+→ Help
+Add:
+Replay App Tour
+so users can experience it again whenever they want.
+Edge Cases
+Never launch before profile completion.
+Never repeat after login.
+Never repeat after refresh.
+If the user closes the app halfway through, resume from the last unfinished step or restart only once.
+Ensure the walkthrough works even if the user hasn't connected Spotify, YouTube, Apple Health, or Google Calendar yet.
+VYV Philosophy
+Every design decision should reinforce this idea:
+Technology should help people spend less time on their phones and more time living real life.
+The onboarding should communicate that VYV is not another social network.
+It is an intentional life companion.
+The experience should leave users thinking:
+"I understand this app in under a minute, and I already know why it's different."

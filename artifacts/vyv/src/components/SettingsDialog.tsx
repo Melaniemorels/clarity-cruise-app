@@ -69,7 +69,7 @@ import {
   Brain,
 } from "lucide-react";
 import { getAutoSavePreference, setAutoSavePreference } from "@/components/QuickCamera";
-import { useGuide } from "@/contexts/GuideContext";
+import { requestTourReplay } from "@/hooks/use-app-tour";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -85,7 +85,6 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
   const { data: profile } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const navigate = useNavigate();
-  const { replayTour } = useGuide();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [autoSaveCaptures, setAutoSaveCaptures] = useState(() => getAutoSavePreference());
@@ -698,7 +697,9 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     description={t("settings.replayTourDesc")}
                     onClick={() => {
                       onOpenChange(false);
-                      replayTour();
+                      // Re-launch the spotlight tour on the Feed (its home).
+                      navigate("/");
+                      setTimeout(() => requestTourReplay(), 350);
                     }}
                   />
                   <LinkButton

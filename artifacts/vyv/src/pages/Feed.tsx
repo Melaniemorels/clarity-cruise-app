@@ -31,83 +31,44 @@ const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const COOLDOWN_STORAGE_KEY = "vyv_social_completed_cooldown";
 
 import { useAppTour } from "@/hooks/use-app-tour";
-import { EXPLORER_ENABLED } from "@/lib/feature-flags";
 
+// Exactly 5 short steps (see onboarding spec): Feed → Search → Calendar →
+// Capture → Profile, followed by a full-screen finale inside the tour itself.
 const getTourSteps = (t: (key: string) => string) => [
   {
-    id: "welcome",
-    title: t('guide.tour.welcomeTitle'),
-    body: t('guide.tour.welcomeBody'),
-    selector: "body",
-    placement: "bottom" as const,
-  },
-  {
     id: "feed",
-    title: t('guide.tour.homeTitle'),
-    body: t('guide.tour.homeBody'),
+    title: t('guide.tour.feedStepTitle'),
+    body: t('guide.tour.feedStepBody'),
     selector: "#tab-home",
     placement: "top" as const,
   },
-  // Explorer tour steps only exist while the Explorer surface is enabled.
-  ...(EXPLORER_ENABLED
-    ? [
-        {
-          id: "explore",
-          title: t('guide.tour.exploreTitle'),
-          body: t('guide.tour.exploreBody'),
-          selector: "#tab-explore",
-          placement: "top" as const,
-        },
-        {
-          id: "elevate",
-          title: t('guide.tour.elevateTitle'),
-          body: t('guide.tour.elevateBody'),
-          selector: "#explore-elevate-section",
-          placement: "top" as const,
-        },
-      ]
-    : []),
   {
-    id: "focus",
-    title: t('guide.tour.focusTitle'),
-    body: t('guide.tour.focusBody'),
-    selector: "#tab-focus",
-    placement: "top" as const,
+    id: "search",
+    title: t('guide.tour.searchStepTitle'),
+    body: t('guide.tour.searchStepBody'),
+    selector: "#feed-search-button",
+    placement: "bottom" as const,
   },
   {
     id: "calendar",
-    title: t('guide.tour.calendarTitle'),
-    body: t('guide.tour.calendarBody'),
+    title: t('guide.tour.calendarStepTitle'),
+    body: t('guide.tour.calendarStepBody'),
     selector: "#tab-calendar",
     placement: "top" as const,
   },
   {
-    id: "guide",
-    title: t('guide.tour.guideTitle'),
-    body: t('guide.tour.guideBody'),
-    selector: "#guide-assistant-button",
-    placement: "left" as const,
-  },
-  {
-    id: "guideCalendar",
-    title: t('guide.tour.guideCalendarTitle'),
-    body: t('guide.tour.guideCalendarBody'),
-    selector: "#guide-assistant-button",
-    placement: "left" as const,
-  },
-  {
-    id: "profile",
-    title: t('guide.tour.profileTitle'),
-    body: t('guide.tour.profileBody'),
-    selector: "#tab-profile",
+    id: "capture",
+    title: t('guide.tour.captureStepTitle'),
+    body: t('guide.tour.captureStepBody'),
+    selector: "#tab-focus",
     placement: "top" as const,
   },
   {
-    id: "ready",
-    title: t('guide.tour.readyTitle'),
-    body: t('guide.tour.readyBody'),
-    selector: "body",
-    placement: "bottom" as const,
+    id: "profile",
+    title: t('guide.tour.profileStepTitle'),
+    body: t('guide.tour.profileStepBody'),
+    selector: "#tab-profile",
+    placement: "top" as const,
   },
 ];
 
@@ -129,7 +90,12 @@ const Feed = () => {
   const feedHeaderRef = useRef<HTMLDivElement>(null);
 
   // App-wide first-time tour (Instagram-style: shows once, per user, cross-device)
-  const { shouldShow: showTour, markComplete: completeTour } = useAppTour();
+  const {
+    shouldShow: showTour,
+    markComplete: completeTour,
+    initialStep: tourInitialStep,
+    rememberStep: rememberTourStep,
+  } = useAppTour();
   // Check and manage cooldown state
   useEffect(() => {
     const checkCooldown = () => {
@@ -337,6 +303,7 @@ const Feed = () => {
             <AdaptiveHeading level={1}>VYV</AdaptiveHeading>
             <div className={cn("flex items-center", device.isMobile ? "gap-2" : "gap-4")}>
               <Button
+                id="feed-search-button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSearchOpen(true)}
@@ -475,6 +442,8 @@ const Feed = () => {
           steps={tourSteps}
           onComplete={completeTour}
           autoStartDelayMs={600}
+          initialStep={tourInitialStep}
+          onStepChange={rememberTourStep}
         />
       )}
     </div>

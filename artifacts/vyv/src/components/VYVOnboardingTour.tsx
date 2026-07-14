@@ -46,16 +46,25 @@ export default function VYVOnboardingTour({
   /** Called when tour ends (finish or skip). Parent is responsible for persisting. */
   onComplete,
   autoStartDelayMs = 350,
+  initialStep = 0,
+  onStepChange,
 }: {
   steps: Step[];
   onComplete: () => void;
   /** @deprecated kept for backward compat */
   storageKey?: string;
   autoStartDelayMs?: number;
+  /** Resume from this step (mid-tour exit). */
+  initialStep?: number;
+  /** Reports each visited step so the parent can persist resume state. */
+  onStepChange?: (index: number) => void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [idx, setIdx] = useState(0);
+  const [idx, setIdx] = useState(() =>
+    clamp(initialStep, 0, Math.max(0, steps.length - 1)),
+  );
+  const [finale, setFinale] = useState(false);
   const [target, setTarget] = useState<{ el: HTMLElement; r: DOMRect } | null>(null);
   const [cardPos, setCardPos] = useState<{ x: number; y: number }>({ x: 18, y: 18 });
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -78,9 +87,15 @@ export default function VYVOnboardingTour({
     };
   }, [open]);
 
+  // Report step changes so the parent can resume a half-finished tour
+  useEffect(() => {
+    if (!open || finale) return;
+    onStepChange?.(idx);
+  }, [open, finale, idx, onStepChange]);
+
   // Resolve target & position
   useEffect(() => {
-    if (!open) return;
+    if (!open || finale) return;
     const update = () => {
       const info = getTargetRect(step.selector);
       if (!info) {
@@ -114,13 +129,38 @@ export default function VYVOnboardingTour({
   };
 
   const next = () => {
-    if (idx >= steps.length - 1) return close();
+    if (idx >= steps.length - 1) {
+      setFinale(true);
+      return;
+    }
     setIdx((v) => v + 1);
   };
 
   const back = () => setIdx((v) => Math.max(0, v - 1));
 
   if (!open) return null;
+
+  if (finale) {
+    return (
+      <>
+        <style>{tourStyles}</style>
+        <div className="vyvTourOverlay vyvTourFinale" role="dialog" aria-modal="true">
+          <div className="vyvFinaleBackdrop" />
+          <div className="vyvTourCard vyvFinaleCard">
+            <div className="vyvFinaleTitle">{t("guide.tour.finaleTitle")}</div>
+            <div className="vyvFinaleSubtitle">{t("guide.tour.finaleSubtitle")}</div>
+            <div className="vyvTourBody vyvFinaleBody">{t("guide.tour.finaleBody")}</div>
+            <button className="vyvBtnPrimary vyvFinalePrimary" onClick={close}>
+              {t("guide.tour.startExploring")}
+            </button>
+            <button className="vyvBtnGhost vyvFinaleSecondary" onClick={close}>
+              {t("guide.tour.replayLater")}
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // Spotlight geometry
   const spot = target?.r
@@ -155,10 +195,15 @@ export default function VYVOnboardingTour({
           style={{ transform: `translate3d(${cardPos.x}px, ${cardPos.y}px, 0)` }}
         >
           <button className="vyvTourClose" onClick={close} aria-label={t('common.close')}>×</button>
-          <div className="vyvTourDots" aria-hidden="true">
-            {steps.map((_, i) => (
-              <span key={i} className={`vyvDot ${i === idx ? "active" : ""}`} />
-            ))}
+          <div className="vyvTourProgressRow">
+            <div className="vyvTourDots" aria-hidden="true">
+              {steps.map((_, i) => (
+                <span key={i} className={`vyvDot ${i === idx ? "active" : ""}`} />
+              ))}
+            </div>
+            <span className="vyvTourProgress">
+              {t("guide.tour.progress", { current: idx + 1, total: steps.length })}
+            </span>
           </div>
           <div className="vyvTourTitle">{step.title}</div>
           <div className="vyvTourBody">{step.body}</div>
@@ -232,11 +277,22 @@ const tourStyles = `
   font-size: 18px;
   line-height:1;
 }
+.vyvTourProgressRow{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding-top: 2px;
+  padding-bottom: 10px;
+  padding-right: 34px;
+}
+.vyvTourProgress{
+  font-size: 11px;
+  letter-spacing: .3px;
+  color: rgba(245,244,240,0.55);
+}
 .vyvTourDots{
   display:flex;
   gap: 6px;
-  padding-top: 2px;
-  padding-bottom: 10px;
 }
 .vyvDot{
   width: 7px;
@@ -306,4 +362,59 @@ const tourStyles = `
 .vyvPointer.bottom{ top:-7px; left: 32px; transform: rotate(225deg); }
 .vyvPointer.left{ right:-7px; top: 28px; transform: rotate(135deg); }
 .vyvPointer.right{ left:-7px; top: 28px; transform: rotate(-45deg); }
+.vyvTourCard{
+  transition: transform .45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.vyvTourDim, .vyvTourHalo{
+  transition: all .45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.vyvTourFinale{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.vyvFinaleBackdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(7, 12, 16, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: vyvFadeIn .5s ease both;
+}
+.vyvFinaleCard{
+  position:relative;
+  width: 340px;
+  text-align:center;
+  padding: 28px 24px 22px 24px;
+  animation: vyvRiseIn .55s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.vyvFinaleTitle{
+  font-weight: 640;
+  font-size: 22px;
+  letter-spacing: .2px;
+  margin-bottom: 4px;
+}
+.vyvFinaleSubtitle{
+  font-size: 15px;
+  color: rgba(245,244,240,0.85);
+  margin-bottom: 12px;
+}
+.vyvFinaleBody{
+  margin-bottom: 18px;
+}
+.vyvFinalePrimary{
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.vyvFinaleSecondary{
+  width: 100%;
+  padding: 10px;
+}
+@keyframes vyvFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes vyvRiseIn{
+  from{ opacity:0; transform: translateY(16px) scale(.97); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
 `;
