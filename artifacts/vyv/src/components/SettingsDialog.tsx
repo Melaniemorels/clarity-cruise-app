@@ -160,9 +160,26 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
     openUserProfile();
   };
 
-  const handleDeleteAccount = () => {
-    setDeleteDialogOpen(false);
-    toast.info(t("settings.deleteAccountRequested"));
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const handleDeleteAccount = async () => {
+    if (deletingAccount) return;
+    setDeletingAccount(true);
+    try {
+      const BASE = (import.meta.env.VITE_SUPABASE_URL as string) || "/api";
+      const res = await fetch(`${BASE}/auth/delete-account`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("delete_failed");
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+      toast.success(t("settings.accountDeleted"));
+      await signOut();
+    } catch {
+      toast.error(t("settings.deleteAccountError"));
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const SectionHeader = ({ children }: { children: React.ReactNode }) => (
@@ -718,8 +735,12 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                     label={t("settings.logOutAllDevices")}
                     description={t("settings.logOutAllDevicesDesc")}
                     onClick={async () => {
-                      await signOutAll();
-                      toast.success(t("settings.loggedOutAllDevices"));
+                      try {
+                        await signOutAll();
+                        toast.success(t("settings.loggedOutAllDevices"));
+                      } catch {
+                        toast.error(t("settings.logOutAllDevicesError"));
+                      }
                     }}
                   />
                 </div>
@@ -752,10 +773,14 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAccount}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleDeleteAccount();
+              }}
+              disabled={deletingAccount}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {t("settings.deleteAccount")}
+              {deletingAccount ? t("settings.deletingAccount") : t("settings.deleteAccount")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

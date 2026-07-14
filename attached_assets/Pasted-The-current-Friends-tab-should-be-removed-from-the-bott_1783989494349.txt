@@ -1,0 +1,84 @@
+The current "Friends" tab should be removed from the bottom navigation.
+VYV is not a messaging or social media app. The goal is to help people connect intentionally, not spend more time inside the app.
+Navigation
+Remove the Friends tab completely.
+Bottom navigation should become:
+Feed
+Calendar
+Focus
+Profile
+(or Explorer if that is the final navigation).
+Move Friend Discovery
+The friend search functionality should live inside the existing search (magnifying glass) from the Feed.
+Inside Search users can:
+Search users by username
+Connect phone contacts
+Invite friends with a share link
+Do not create a dedicated page in the navigation for this.
+Friend Requests
+When someone sends a friend request:
+The receiver gets a simple notification.
+Example:
+Melanie wants to connect with you.
+Buttons:
+Accept
+Decline
+Nothing more.
+No chat.
+No inbox.
+No conversation threads.
+After Accepting
+Once both users are connected:
+Automatically create the friendship.
+From that point they can:
+Share availability (only if both enabled it)
+See overlapping free time
+Receive AI suggestions to meet
+Example:
+"You and Emma are both free Thursday from 5–7 PM."
+Planning Together
+When one user taps:
+Plan Together
+The AI should:
+Find overlapping availability.
+Suggest a time.
+Create the event.
+Add it automatically to BOTH users' calendars after both users confirm.
+Example:
+Coffee with Emma
+Thursday
+5:30 PM
+Accept
+Decline
+Suggest another time
+Only after BOTH users accept should the event appear automatically in both calendars.
+Communication Philosophy
+VYV should NOT include:
+Direct Messages
+Chat
+Group Chat
+Voice Notes
+Social conversations
+The purpose is to reduce digital noise.
+If users want to communicate they should simply use their preferred messaging app.
+After becoming friends show actions like:
+Message
+Call
+FaceTime (iOS)
+WhatsApp (if installed)
+These buttons simply open the external app.
+VYV should never become another messaging platform.
+Design Philosophy
+The product philosophy is:
+Create real-life moments, not more screen time.
+The app helps users:
+discover when they are both free,
+suggest meaningful activities,
+schedule them,
+then get out of the way.
+Less chatting.
+More living.
+MVP Goal
+Keep the social layer extremely lightweight.
+VYV is an AI Calendar and intentional life companion.
+Social features exist only to make real-life plans easier, never to increase time spent inside the app.

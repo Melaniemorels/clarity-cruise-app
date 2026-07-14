@@ -126,6 +126,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     error: { message: "Please use the sign-in page." },
   });
 
+  // Revokes every Clerk session server-side (all devices), then signs out
+  // locally. Throws if the server could not revoke all remote sessions so the
+  // UI never claims an all-device logout that did not happen.
+  const doSignOutAll = async () => {
+    const res = await fetch(`${BASE}/auth/signout-all`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("signout_all_failed");
+    await doSignOut();
+  };
+
   const doSignOut = async () => {
     try {
       await clerk.signOut();
@@ -147,7 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signIn,
         signOut: doSignOut,
-        signOutAll: doSignOut,
+        signOutAll: doSignOutAll,
         loading,
       }}
     >

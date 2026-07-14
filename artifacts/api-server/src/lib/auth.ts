@@ -38,6 +38,11 @@ export function getBearer(req: Request): string | null {
 // next request.
 const clerkUserCache = new Map<string, AuthedUser>();
 
+// Drop a cached identity (used when the account is deleted).
+export function forgetClerkUser(clerkUserId: string): void {
+  clerkUserCache.delete(clerkUserId);
+}
+
 async function fetchClerkEmail(clerkUserId: string): Promise<string> {
   try {
     const clerkUser = await clerkClient.users.getUser(clerkUserId);
