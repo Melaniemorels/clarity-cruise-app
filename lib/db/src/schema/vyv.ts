@@ -230,7 +230,7 @@ export const notifications = pgTable("notifications", {
 
 export const feedSettings = pgTable("feed_settings", {
   id: id(),
-  user_id: uuid("user_id").notNull(),
+  user_id: uuid("user_id").notNull().unique(),
   allow_extensions: boolean("allow_extensions").notNull().default(false),
   daily_feed_minutes: integer("daily_feed_minutes"),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
