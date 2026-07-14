@@ -36,6 +36,7 @@ interface EditProfileDialogProps {
     bio: string | null;
     photo_url: string | null;
     name: string | null;
+    phone_number?: string | null;
   } | null;
 }
 
@@ -49,6 +50,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
   const [bio, setBio] = useState(profile?.bio || "");
   const [name, setName] = useState(profile?.name || "");
   const [photoUrl, setPhotoUrl] = useState(profile?.photo_url || "");
+  const [phone, setPhone] = useState(profile?.phone_number || "");
   const [handleError, setHandleError] = useState<string | null>(null);
 
   // Mutations
@@ -91,6 +93,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
       setBio(profile.bio || "");
       setName(profile.name || "");
       setPhotoUrl(profile.photo_url || "");
+      setPhone(profile.phone_number || "");
       setHandleError(null);
     }
   }, [open, profile]);
@@ -181,6 +184,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
         bio: bio.trim() || undefined,
         name: name.trim() || undefined,
         photo_url: photoUrl || undefined,
+        phone_number: phone.trim() || null,
       });
       
       // Invalidate handle changes query
@@ -279,6 +283,20 @@ export const EditProfileDialog = ({ open, onOpenChange, profile }: EditProfileDi
               placeholder={t('editProfile.namePlaceholder')}
               maxLength={50}
             />
+          </div>
+
+          {/* Phone (for friends' external contact buttons) */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">{t('editProfile.phone')}</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/[^\d+\s()-]/g, ""))}
+              placeholder="+34 600 000 000"
+              maxLength={20}
+            />
+            <p className="text-xs text-muted-foreground">{t('editProfile.phoneHint')}</p>
           </div>
 
           {/* Handle/Username */}

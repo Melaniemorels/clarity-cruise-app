@@ -1,8 +1,9 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, vyvTables } from "@workspace/db";
+import { db, vyvTables, appUsers } from "@workspace/db";
 import { and, eq, gte, lte, desc, inArray, lt, gt, isNotNull } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { requireUser } from "../lib/auth";
+import { sendNotificationPush } from "../lib/webPush";
 import {
   HEALTHY_CATEGORY_SET,
   TIME_OF_DAY_CATEGORIES,
@@ -1845,6 +1846,269 @@ router.post(
     } catch (err) {
       req.log?.error({ err }, "friend-availability failed");
       res.status(500).json({ error: "Could not load friend availability" });
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// plan-invite-respond — mutual-confirm "Plan Together":
+// the invitee accepts/declines; on accept the event is written into BOTH
+// users' calendars server-side (the creator already confirmed by creating).
+// ---------------------------------------------------------------------------
+
+// Converts a wall-clock (date + minutes) in an IANA timezone to a UTC instant.
+function wallClockToUtc(dateStr: string, minutes: number, timeZone: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const guess = Date.UTC(y, (m ?? 1) - 1, d ?? 1, Math.floor(minutes / 60), minutes % 60);
+  try {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const parts = Object.fromEntries(
+      dtf.formatToParts(new Date(guess)).map((p) => [p.type, p.value]),
+    ) as Record<string, string>;
+    const asUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour === "24" ? "0" : parts.hour),
+      Number(parts.minute),
+      Number(parts.second),
+    );
+    return new Date(guess - (asUtc - guess));
+  } catch {
+    return new Date(guess); // unknown tz — treat wall clock as UTC
+  }
+}
+
+// ---------------------------------------------------------------------------
+// match-contacts — the "connect contacts" flow: the client sends emails/phones
+// picked via the Contact Picker API and gets back matching VYV profiles.
+// ---------------------------------------------------------------------------
+
+// Per-user abuse throttle: contact matching is a rare user action (picking
+// contacts), so a small hourly budget blocks bulk account enumeration.
+const matchContactsCalls = new Map<string, { count: number; resetAt: number }>();
+const MATCH_CONTACTS_LIMIT = 12; // calls per hour per user
+
+router.post(
+  "/functions/v1/match-contacts",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const now = Date.now();
+    const bucket = matchContactsCalls.get(userId);
+    if (!bucket || bucket.resetAt <= now) {
+      matchContactsCalls.set(userId, { count: 1, resetAt: now + 3_600_000 });
+    } else if (bucket.count >= MATCH_CONTACTS_LIMIT) {
+      res.status(429).json({ error: "Too many contact match requests" });
+      return;
+    } else {
+      bucket.count += 1;
+    }
+    const body = (req.body ?? {}) as { emails?: unknown; phones?: unknown };
+    const emails = (Array.isArray(body.emails) ? body.emails : [])
+      .filter((e): e is string => typeof e === "string")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+      .slice(0, 200);
+    const phones = (Array.isArray(body.phones) ? body.phones : [])
+      .filter((p): p is string => typeof p === "string")
+      .map((p) => p.replace(/[^\d+]/g, ""))
+      .filter((p) => p.replace(/\D/g, "").length >= 7)
+      .slice(0, 200);
+    if (emails.length === 0 && phones.length === 0) {
+      res.json({ matches: [] });
+      return;
+    }
+    try {
+      const ids = new Set<string>();
+      if (emails.length > 0) {
+        const rows = await db
+          .select({ id: appUsers.id })
+          .from(appUsers)
+          .where(inArray(appUsers.email, emails));
+        for (const r of rows) ids.add(r.id);
+      }
+      if (phones.length > 0) {
+        const rows = await db
+          .select({
+            user_id: vyvTables.profiles.user_id,
+            phone_number: vyvTables.profiles.phone_number,
+          })
+          .from(vyvTables.profiles)
+          .where(isNotNull(vyvTables.profiles.phone_number));
+        // Country-code tolerant: numbers match when one's digits end with the
+        // other's (e.g. picked "600111222" vs stored "+34 600 111 222").
+        const pickedDigits = phones
+          .map((p) => p.replace(/\D/g, ""))
+          .filter((p) => p.length >= 7);
+        for (const r of rows) {
+          const digits = (r.phone_number ?? "").replace(/\D/g, "");
+          if (digits.length < 7) continue;
+          const hit = pickedDigits.some(
+            (p) => digits.endsWith(p) || p.endsWith(digits),
+          );
+          if (hit) ids.add(r.user_id);
+        }
+      }
+      ids.delete(userId);
+      if (ids.size === 0) {
+        res.json({ matches: [] });
+        return;
+      }
+      const profiles = await db
+        .select({
+          user_id: vyvTables.profiles.user_id,
+          handle: vyvTables.profiles.handle,
+          name: vyvTables.profiles.name,
+          photo_url: vyvTables.profiles.photo_url,
+        })
+        .from(vyvTables.profiles)
+        .where(inArray(vyvTables.profiles.user_id, [...ids]));
+      res.json({ matches: profiles });
+    } catch (err) {
+      req.log?.error({ err }, "match-contacts failed");
+      res.status(500).json({ error: "Could not match contacts" });
+    }
+  },
+);
+
+router.post(
+  "/functions/v1/plan-invite-respond",
+  requireUser,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.authUser!.id;
+    const { plan_id: planId, accepted } = (req.body ?? {}) as {
+      plan_id?: string;
+      accepted?: boolean;
+    };
+    if (!planId || typeof accepted !== "boolean") {
+      res.status(400).json({ error: "plan_id and accepted are required" });
+      return;
+    }
+    try {
+      const [invite] = await db
+        .select()
+        .from(vyvTables.social_plan_invites)
+        .where(
+          and(
+            eq(vyvTables.social_plan_invites.plan_id, planId),
+            eq(vyvTables.social_plan_invites.invitee_id, userId),
+          ),
+        )
+        .limit(1);
+      if (!invite) {
+        res.status(404).json({ error: "Invite not found" });
+        return;
+      }
+      const [plan] = await db
+        .select()
+        .from(vyvTables.social_plans)
+        .where(eq(vyvTables.social_plans.id, planId))
+        .limit(1);
+      if (!plan) {
+        res.status(404).json({ error: "Plan not found" });
+        return;
+      }
+
+      // Atomic status transition: only the request that flips the invite off
+      // "pending" performs side effects (events, notification, push). Repeat
+      // or concurrent responses become no-ops, so nothing duplicates.
+      const transitioned = await db
+        .update(vyvTables.social_plan_invites)
+        .set({
+          status: accepted ? "accepted" : "declined",
+          responded_at: new Date(),
+        })
+        .where(
+          and(
+            eq(vyvTables.social_plan_invites.id, invite.id),
+            eq(vyvTables.social_plan_invites.status, "pending"),
+          ),
+        )
+        .returning({ id: vyvTables.social_plan_invites.id });
+      if (transitioned.length === 0) {
+        res.json({ ok: true, accepted, alreadyResponded: true });
+        return;
+      }
+
+      if (accepted) {
+        // Interpret the plan's wall-clock time in the creator's timezone
+        // (plans are made to meet in person, so one shared instant).
+        const [creatorProfile] = await db
+          .select({
+            current_timezone: vyvTables.profiles.current_timezone,
+            home_timezone: vyvTables.profiles.home_timezone,
+          })
+          .from(vyvTables.profiles)
+          .where(eq(vyvTables.profiles.user_id, plan.creator_id))
+          .limit(1);
+        const tz =
+          creatorProfile?.current_timezone ||
+          creatorProfile?.home_timezone ||
+          "UTC";
+        const startsAt = wallClockToUtc(plan.plan_date, plan.start_minute, tz);
+        const endsAt = wallClockToUtc(plan.plan_date, plan.end_minute, tz);
+        const externalId = `social_plan:${planId}`;
+
+        for (const participant of [plan.creator_id, invite.invitee_id]) {
+          const [existing] = await db
+            .select({ id: vyvTables.calendar_events.id })
+            .from(vyvTables.calendar_events)
+            .where(
+              and(
+                eq(vyvTables.calendar_events.user_id, participant),
+                eq(vyvTables.calendar_events.external_id, externalId),
+              ),
+            )
+            .limit(1);
+          if (existing) continue; // idempotent (double-tap / re-accept)
+          await db.insert(vyvTables.calendar_events).values({
+            user_id: participant,
+            title: plan.title,
+            category: "social",
+            starts_at: startsAt,
+            ends_at: endsAt,
+            notes: plan.note ?? null,
+            source: "social_plan",
+            external_id: externalId,
+          });
+        }
+
+        await db
+          .update(vyvTables.social_plans)
+          .set({ status: "confirmed" })
+          .where(eq(vyvTables.social_plans.id, planId));
+      }
+
+      // Notify the creator of the response (in-app + push mirror).
+      const type = accepted ? "plan_accepted" : "plan_declined";
+      await db.insert(vyvTables.notifications).values({
+        user_id: plan.creator_id,
+        actor_id: userId,
+        type,
+        reference_id: planId,
+        message: plan.title,
+      });
+      void sendNotificationPush({
+        user_id: plan.creator_id,
+        actor_id: userId,
+        type,
+        message: null,
+      });
+
+      res.json({ ok: true, accepted });
+    } catch (err) {
+      req.log?.error({ err }, "plan-invite-respond failed");
+      res.status(500).json({ error: "Could not respond to the plan invite" });
     }
   },
 );

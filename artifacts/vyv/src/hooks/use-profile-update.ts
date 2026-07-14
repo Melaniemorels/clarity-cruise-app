@@ -10,6 +10,7 @@ interface ProfileUpdateData {
   bio?: string;
   photo_url?: string;
   is_private?: boolean;
+  phone_number?: string | null;
 }
 
 interface HandleValidation {

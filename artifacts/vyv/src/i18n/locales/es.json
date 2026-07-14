@@ -644,7 +644,9 @@
       "handleTooShort": "El nombre de usuario debe tener al menos 3 caracteres",
       "handleTooLong": "El nombre de usuario debe tener 20 caracteres o menos",
       "handleInvalidChars": "El nombre de usuario solo puede contener letras, números y guion bajo"
-    }
+    },
+    "phone": "Teléfono (opcional)",
+    "phoneHint": "Tus amigos verán botones para escribirte o llamarte fuera de VYV."
   },
   "userSearch": {
     "title": "Buscar Amigos",
@@ -1167,7 +1169,9 @@
     "copyLink": "Copiar link",
     "share": "Compartir…",
     "linkCopied": "Link copiado",
-    "joinVYV": "Únete a VYV"
+    "joinVYV": "Únete a VYV",
+    "contactsUnsupported": "Tu navegador no permite elegir contactos. Busca por usuario o comparte el link de invitación.",
+    "noContactMatches": "Ninguno de tus contactos está en VYV todavía — ¡invítalos con un link!"
   },
   "shareProfile": {
     "title": "Compartir perfil",
@@ -1349,5 +1353,9 @@
       "updated": "Actualizado",
       "removed": "Eliminado"
     }
+  },
+  "contactFriend": {
+    "message": "Mensaje",
+    "call": "Llamar"
   }
 }

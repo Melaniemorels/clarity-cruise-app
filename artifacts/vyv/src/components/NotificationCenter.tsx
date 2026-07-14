@@ -22,7 +22,6 @@ import {
   useUnreadCount, 
   useMarkAsRead,
   useMarkAllAsRead,
-  useCreateNotification,
   type NotificationType 
 } from "@/hooks/use-notifications";
 import {
@@ -57,7 +56,6 @@ export function NotificationCenter() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
-  const createNotification = useCreateNotification();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
@@ -114,29 +112,21 @@ export function NotificationCenter() {
     if (!user || !notification.reference_id) return;
     setRespondingTo(notification.id);
     try {
-      // Update invite status
-      await supabase
-        .from("social_plan_invites" as any)
-        .update({ status: accepted ? "accepted" : "declined", responded_at: new Date().toISOString() })
-        .eq("plan_id", notification.reference_id)
-        .eq("invitee_id", user.id);
+      // The server updates the invite, notifies the creator and — on accept —
+      // writes the event into BOTH users' calendars (mutual confirmation).
+      const { error } = await supabase.functions.invoke("plan-invite-respond", {
+        body: { plan_id: notification.reference_id, accepted },
+      });
+      if (error) throw error;
 
       // Mark notification as read
       if (!notification.is_read) {
         markAsRead.mutate(notification.id);
       }
 
-      // Send notification back to plan creator
-      await createNotification.mutateAsync({
-        user_id: notification.actor_id,
-        type: accepted ? "plan_accepted" : "plan_declined",
-        actor_id: user.id,
-        reference_id: notification.reference_id,
-        message: notification.message,
-      });
-
       toast.success(t(accepted ? "notifications.planAcceptSuccess" : "notifications.planDeclineSuccess"));
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
     } catch {
       toast.error(t("common.error"));
     } finally {

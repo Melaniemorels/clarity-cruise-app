@@ -644,7 +644,9 @@
       "handleTooShort": "Username must be at least 3 characters",
       "handleTooLong": "Username must be 20 characters or less",
       "handleInvalidChars": "Username can only contain letters, numbers, and underscores"
-    }
+    },
+    "phone": "Phone (optional)",
+    "phoneHint": "Your friends will see buttons to message or call you outside VYV."
   },
   "userSearch": {
     "title": "Search Friends",
@@ -1167,7 +1169,9 @@
     "copyLink": "Copy link",
     "share": "Share…",
     "linkCopied": "Link copied",
-    "joinVYV": "Join VYV"
+    "joinVYV": "Join VYV",
+    "contactsUnsupported": "Your browser doesn't support the contact picker. Search by username or share the invite link.",
+    "noContactMatches": "None of your contacts are on VYV yet — invite them with a link!"
   },
   "shareProfile": {
     "title": "Share profile",
@@ -1349,5 +1353,9 @@
       "updated": "Updated",
       "removed": "Removed"
     }
+  },
+  "contactFriend": {
+    "message": "Message",
+    "call": "Call"
   }
 }

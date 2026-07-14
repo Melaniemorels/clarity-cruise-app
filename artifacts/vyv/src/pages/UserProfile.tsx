@@ -18,6 +18,7 @@ import { useFollowStatus } from "@/hooks/use-follow-status";
 import { usePosts } from "@/hooks/use-posts";
 import { ScreenshotGuard } from "@/components/ScreenshotGuard";
 import { UserProfilePostsGrid } from "@/components/UserProfilePostsGrid";
+import { ContactFriendButtons } from "@/components/ContactFriendButtons";
 
 interface UserProfileData {
   user_id: string;
@@ -26,6 +27,7 @@ interface UserProfileData {
   bio: string | null;
   photo_url: string | null;
   is_private: boolean;
+  phone_number: string | null;
   posts_count: number;
   followers_count: number;
   following_count: number;
@@ -59,7 +61,7 @@ const UserProfile = () => {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("user_id, handle, name, bio, photo_url, is_private")
+        .select("user_id, handle, name, bio, photo_url, is_private, phone_number")
         .eq("user_id", userId)
         .single();
 
@@ -95,6 +97,7 @@ const UserProfile = () => {
         bio: profileData.bio,
         photo_url: profileData.photo_url,
         is_private: profileData.is_private ?? false,
+        phone_number: profileData.phone_number ?? null,
         posts_count: postsCount || 0,
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
@@ -229,6 +232,11 @@ const UserProfile = () => {
                 targetIsPrivate={profile.is_private}
                 className="w-full"
               />
+            )}
+
+            {/* External contact actions for friends — VYV has no built-in chat */}
+            {followStatus === "accepted" && profile.phone_number && (
+              <ContactFriendButtons phoneNumber={profile.phone_number} />
             )}
           </CardContent>
         </Card>

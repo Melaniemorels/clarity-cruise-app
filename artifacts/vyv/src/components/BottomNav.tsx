@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Compass, Lock, Calendar, User, Users } from "lucide-react";
+import { Home, Compass, Lock, Calendar, User } from "lucide-react";
 import { NavLink } from "./NavLink";
 import { QuickCamera } from "./QuickCamera";
 import { FocusIntroModal } from "./FocusIntroModal";
@@ -94,15 +94,12 @@ export const BottomNav = () => {
             {!isLandscape && <span className="text-xs font-medium">{t("nav.focus")}</span>}
           </button>
 
-          {EXPLORER_ENABLED ? (
+          {/* Friends tab intentionally removed: friend discovery lives inside
+              the Feed search — VYV is not a social network. */}
+          {EXPLORER_ENABLED && (
             <NavLink to="/calendar" id="tab-calendar" className={linkClass} activeClassName={activeClass} ref={calendarAnchor}>
               <Calendar className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
               {!isLandscape && <span className="text-xs font-medium">{t("nav.calendar")}</span>}
-            </NavLink>
-          ) : (
-            <NavLink to="/find-friends" id="tab-friends" className={linkClass} activeClassName={activeClass}>
-              <Users className={cn(isCompact ? "h-5 w-5" : "h-6 w-6")} strokeWidth={1.4} />
-              {!isLandscape && <span className="text-xs font-medium">{t("nav.friends")}</span>}
             </NavLink>
           )}
 
