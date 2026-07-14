@@ -441,7 +441,8 @@
     "aiCalendarAccessOffDesc": "Desactivado. El asistente no puede ver ni cambiar tu calendario.",
     "myMemory": "Mi memoria",
     "myMemoryOnDesc": "La Guía VYV recuerda discretamente lo que compartes para que los próximos chats sean más personales.",
-    "myMemoryOffDesc": "Desactivado. La Guía VYV no recordará nada entre chats."
+    "myMemoryOffDesc": "Desactivado. La Guía VYV no recordará nada entre chats.",
+    "manageAccountDesc": "Se abre el panel seguro de tu cuenta"
   },
   "devices": {
     "title": "Dispositivos de Salud",

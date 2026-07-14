@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/ThemeProvider";
 import { HEALTH_PHASE2_ENABLED, EXPLORER_ENABLED } from "@/lib/feature-flags";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClerk } from "@clerk/react";
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/hooks/use-language";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -151,6 +152,12 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
 
   const handleComingSoon = () => {
     toast.info(t("settings.comingSoon"));
+  };
+
+  const { openUserProfile } = useClerk();
+  const handleManageAccount = () => {
+    onOpenChange(false);
+    openUserProfile();
   };
 
   const handleDeleteAccount = () => {
@@ -337,14 +344,14 @@ export function SettingsDialog({ open, onOpenChange, onEditProfile }: SettingsDi
                   <LinkButton
                     icon={Mail}
                     label={t("settings.changeEmail")}
-                    description={t("settings.comingSoonBadge")}
-                    onClick={handleComingSoon}
+                    description={t("settings.manageAccountDesc")}
+                    onClick={handleManageAccount}
                   />
                   <LinkButton
                     icon={KeyRound}
                     label={t("settings.changePassword")}
-                    description={t("settings.comingSoonBadge")}
-                    onClick={handleComingSoon}
+                    description={t("settings.manageAccountDesc")}
+                    onClick={handleManageAccount}
                   />
                 </div>
               </div>

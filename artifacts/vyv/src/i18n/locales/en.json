@@ -441,7 +441,8 @@
     "aiCalendarAccessOffDesc": "Off. Assistant cannot see or change your calendar.",
     "myMemory": "My Memory",
     "myMemoryOnDesc": "VYV Guide quietly remembers what you share so future chats feel personal.",
-    "myMemoryOffDesc": "Off. VYV Guide will not remember anything between chats."
+    "myMemoryOffDesc": "Off. VYV Guide will not remember anything between chats.",
+    "manageAccountDesc": "Opens your secure account panel"
   },
   "devices": {
     "title": "Health Devices",
