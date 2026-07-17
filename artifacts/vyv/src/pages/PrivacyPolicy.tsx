@@ -3,12 +3,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const language = i18n.language?.startsWith("es") ? "es" : "en";
+
+  usePageMeta({
+    title: "Privacy Policy",
+    description:
+      "Read VYV's Privacy Policy to understand how we collect, use, and protect your personal information.",
+    canonicalPath: "/privacy-policy",
+  });
 
   const toggleLanguage = () => {
     i18n.changeLanguage(language === "es" ? "en" : "es");

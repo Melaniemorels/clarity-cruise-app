@@ -3,12 +3,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const language = i18n.language?.startsWith("es") ? "es" : "en";
+
+  usePageMeta({
+    title: "Terms of Use",
+    description:
+      "Read VYV's Terms of Use to understand the rules and guidelines for using the VYV wellness planner.",
+    canonicalPath: "/terms-of-use",
+  });
 
   const toggleLanguage = () => {
     i18n.changeLanguage(language === "es" ? "en" : "es");

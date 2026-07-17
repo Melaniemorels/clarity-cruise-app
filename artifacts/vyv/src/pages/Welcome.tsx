@@ -5,11 +5,42 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import vyvIcon from "@/assets/vyv-icon.jpeg";
+import { usePageMeta } from "@/hooks/use-page-meta";
+
+const WELCOME_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "VYV",
+  alternateName: "Visualize Your Vibe",
+  url: "https://vyvapp.com/",
+  applicationCategory: "HealthApplication",
+  operatingSystem: "Web, iOS, Android",
+  description:
+    "A wellbeing planner that gives time back. Plan your perfect day, discover great content, and connect with friends.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "VYV",
+    url: "https://vyvapp.com/",
+  },
+};
 
 const Welcome = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+
+  usePageMeta({
+    title: "VYV - Visualize Your Vibe",
+    description:
+      "A wellbeing planner that gives time back. Plan your perfect day, discover great content, and connect with friends.",
+    canonicalPath: "/welcome",
+    jsonLd: WELCOME_JSON_LD,
+  });
 
   useEffect(() => {
     if (user) {

@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { ChevronLeft, Lock } from "lucide-react";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 const PublicProfile = () => {
   const { t } = useTranslation();
@@ -53,6 +54,40 @@ const PublicProfile = () => {
       };
     },
     enabled: !!username,
+  });
+
+  const profileTitle = profile ? `@${profile.handle} on VYV` : undefined;
+  const profileDescription = profile
+    ? profile.bio
+      ? `${profile.bio} — @${profile.handle} on VYV`
+      : `Check out @${profile.handle}'s profile on VYV`
+    : undefined;
+  const profileJsonLd = profile && !profile.is_private
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: profile.name || `@${profile.handle}`,
+        alternateName: `@${profile.handle}`,
+        description: profile.bio || undefined,
+        image: profile.photo_url || undefined,
+        url: `https://vyvapp.com/u/${profile.handle}`,
+        interactionStatistic: [
+          {
+            "@type": "InteractionCounter",
+            interactionType: "https://schema.org/FollowAction",
+            userInteractionCount: profile.followers_count,
+          },
+        ],
+      }
+    : null;
+
+  usePageMeta({
+    title: profileTitle,
+    description: profileDescription,
+    canonicalPath: username ? `/u/${username}` : undefined,
+    ogType: "profile",
+    ogImage: profile?.photo_url || undefined,
+    jsonLd: profileJsonLd,
   });
 
   if (profile && user && profile.user_id === user.id) {
