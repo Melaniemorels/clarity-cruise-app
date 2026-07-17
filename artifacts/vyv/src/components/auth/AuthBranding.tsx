@@ -1,4 +1,4 @@
-import { Hexagon } from "lucide-react";
+import VyvLogo from "@/components/VyvLogo";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
@@ -13,11 +13,9 @@ export function AuthBranding() {
       className="hidden lg:flex flex-col justify-center items-center px-12 xl:px-20"
     >
       <div className="flex flex-col items-start gap-6">
-        <Hexagon
+        <VyvLogo
           size={56}
-          strokeWidth={1}
-          className="text-primary"
-          style={{ filter: "drop-shadow(0 0 16px hsl(var(--primary) / 0.15))" }}
+          style={{ filter: "drop-shadow(0 0 16px hsl(var(--vyv-logo) / 0.15))" }}
         />
         <span className="text-2xl font-semibold tracking-[0.08em] text-foreground">
           {t("brand.tagline")}

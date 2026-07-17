@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Hexagon, Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import VyvLogo from "@/components/VyvLogo";
 import { z } from "zod";
 
 const passwordSchema = z
@@ -106,7 +107,7 @@ const ResetPassword = () => {
   if (!isRecovery) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
-        <Hexagon size={48} strokeWidth={1.2} className="text-primary mb-6" />
+        <VyvLogo size={48} className="mb-6" withShadow />
         <h1 className="text-lg font-semibold text-foreground mb-2">
           {t("auth.invalidResetLink", "Invalid or expired link")}
         </h1>
@@ -140,7 +141,7 @@ const ResetPassword = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-4 mb-6">
-          <Hexagon size={48} strokeWidth={1.2} className="text-primary" />
+          <VyvLogo size={48} withShadow />
           <div className="text-center">
             <h1 className="text-lg font-semibold text-foreground">
               {t("auth.setNewPassword", "Set new password")}

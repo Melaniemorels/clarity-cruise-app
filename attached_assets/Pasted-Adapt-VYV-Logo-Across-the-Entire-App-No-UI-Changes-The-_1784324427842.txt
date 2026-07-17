@@ -1,0 +1,89 @@
+Adapt VYV Logo Across the Entire App (No UI Changes)
+The attached image is the official VYV logo. From now on, use this exact logo shape everywhere the VYV logo appears in the app.
+Important
+This is not a redesign request.
+Do NOT:
+Change layouts.
+Move components.
+Modify spacing.
+Change typography.
+Change animations.
+Change buttons.
+Change screens.
+Change navigation.
+Touch any functionality.
+The only task is to replace/adapt every existing VYV logo with this new official version while keeping the UI exactly as it is.
+Design Direction
+The logo should feel:
+Premium
+Minimal
+Old Money
+Timeless
+Quiet luxury
+Apple-level simplicity
+Elegant
+Soft
+Never flashy
+No neon.
+No heavy glow.
+No gradients unless they are extremely subtle.
+No gamer aesthetics.
+Dark Mode
+Adapt the logo to perfectly match the existing dark theme.
+Use colors already present in the app.
+Suggested palette:
+Deep Navy / Charcoal backgrounds
+Soft Teal
+Muted Aqua
+Sage-Teal
+Low-saturation Mint
+The logo should look integrated into the interface, almost as if it belongs to the material itself.
+Use only subtle effects:
+very soft opacity
+soft shadows
+slight blur if already used elsewhere
+gentle depth
+No strong outlines.
+Light Mode
+Create a version of the same logo that feels native to Light Mode.
+Keep exactly the same geometry.
+Use elegant colors such as:
+Deep Slate
+Muted Teal
+Dark Forest Teal
+Soft Navy
+Warm Gray
+The logo should never become pure black.
+It should feel premium and refined.
+Consistency
+Every place where the logo appears must use the same design system:
+Splash screen
+Login
+Sign Up
+Loading states
+Navigation
+Settings
+Empty states
+About screens
+Icons where applicable
+Any future reusable Logo component
+Create one reusable Logo component (or update the existing one) with theme-aware styling so every screen stays consistent.
+Theme Behavior
+Automatically adapt based on theme:
+Dark Mode:
+Uses the premium teal palette.
+Light Mode:
+Uses the refined slate/teal palette.
+Do not duplicate assets unnecessarily if the logo can adapt dynamically through theme tokens.
+Preserve Brand Identity
+Maintain the exact proportions and geometry of the provided logo.
+Do not stretch, rotate, reshape, or reinterpret it.
+Only adapt:
+color
+opacity
+subtle shadow
+subtle depth
+rendering quality
+Goal
+The user should feel that the logo has always belonged to the app.
+It should blend naturally with the current VYV design language without introducing visual noise or changing any other aspect of the interface.

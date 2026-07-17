@@ -23,7 +23,7 @@ import { useSocialBudgetTracker } from "@/hooks/use-social-budget";
 import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 import { useTranslation } from "react-i18next";
-import vyvIcon from "@/assets/vyv-icon.jpeg";
+import VyvLogo from "@/components/VyvLogo";
 import { useGuideAnchor } from "@/contexts/GuideContext";
 import VYVOnboardingTour from "@/components/VYVOnboardingTour";
 
@@ -279,13 +279,12 @@ const Feed = () => {
             className="text-theme-borderSubtle opacity-[0.08] absolute"
           />
           {/* Logo centered inside */}
-          <img 
-            src={vyvIcon} 
-            alt="" 
-            className="opacity-[0.04] grayscale absolute"
+          <VyvLogo
+            aria-label=""
+            className="opacity-[0.05] absolute"
             style={{
               width: device.isDesktop ? '120px' : device.isTablet ? '100px' : '80px',
-              height: 'auto',
+              height: device.isDesktop ? '120px' : device.isTablet ? '100px' : '80px',
             }}
           />
         </div>

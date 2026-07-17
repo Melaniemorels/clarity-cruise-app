@@ -17,7 +17,7 @@ import {
   validateHandle,
   normalizeHandle,
 } from "@/hooks/use-profile-update";
-import vyvLogo from "@/assets/vyv-logo.png";
+import VyvLogo from "@/components/VyvLogo";
 
 interface ProfileRow {
   handle: string;
@@ -140,7 +140,7 @@ const ProfileSetup = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Brand header */}
         <div className="flex items-center gap-3 px-1">
-          <img src={vyvLogo} alt="VYV" className="h-9 w-9 rounded-xl border border-border/40" />
+          <VyvLogo className="h-9 w-9" withShadow />
           <div>
             <div className="text-sm font-bold tracking-wide text-foreground">VYV</div>
             <div className="text-xs text-muted-foreground">{t("brand.tagline")}</div>

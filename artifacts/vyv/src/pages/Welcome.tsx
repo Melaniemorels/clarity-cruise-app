@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import vyvIcon from "@/assets/vyv-icon.jpeg";
+import VyvLogo from "@/components/VyvLogo";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
 const WELCOME_JSON_LD = {
@@ -65,12 +65,11 @@ const Welcome = () => {
         {/* Logo */}
         <div className="flex justify-center mb-8 animate-in fade-in zoom-in duration-700">
           <div className="relative">
-            <div className="absolute inset-0 bg-luxury-emerald/20 blur-3xl rounded-full" />
-            <img
-              src={vyvIcon}
-              alt="VYV Logo"
-              className="relative z-10 w-48 h-48 object-contain"
-              style={{ filter: 'drop-shadow(0 0 12px rgba(107, 223, 168, 0.4))' }}
+            <div className="absolute inset-0 bg-luxury-emerald/10 blur-3xl rounded-full" />
+            <VyvLogo
+              aria-label="VYV Logo"
+              className="relative z-10 w-48 h-48"
+              withShadow
             />
           </div>
         </div>

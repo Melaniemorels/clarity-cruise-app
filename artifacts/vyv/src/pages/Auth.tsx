@@ -1,4 +1,4 @@
-import { Hexagon } from "lucide-react";
+import VyvLogo from "@/components/VyvLogo";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -62,11 +62,9 @@ const Auth = () => {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
               className="mb-10 flex flex-col items-center gap-4"
             >
-              <Hexagon
+              <VyvLogo
                 size={56}
-                strokeWidth={1.2}
-                className="text-primary"
-                style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary) / 0.15))" }}
+                style={{ filter: "drop-shadow(0 0 12px hsl(var(--vyv-logo) / 0.15))" }}
               />
               <div className="flex flex-col items-center gap-1.5">
                 <h1 className="text-xl font-semibold tracking-[0.06em] text-foreground">

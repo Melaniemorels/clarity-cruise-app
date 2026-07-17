@@ -65,6 +65,9 @@
     --brand-green-light: 158 35% 50%;     /* lighter variant */
     --brand-green-dark: 158 35% 32%;      /* darker variant */
 
+    /* Official VYV logo mark fill — light mode: deep muted slate-teal */
+    --vyv-logo: 165 20% 34%;
+
     /* ==================== CATEGORY COLORS (muted, no strong green) ==================== */
     --category-work: 217 60% 55%;       /* blue */
     --category-sport: 142 35% 50%;      /* muted green (intentional for sport) */
@@ -150,6 +153,9 @@
     --brand-green: 158 40% 48%;           /* #4FB3A2 - elegant teal-green */
     --brand-green-light: 158 40% 58%;     /* lighter variant */
     --brand-green-dark: 158 40% 38%;      /* darker variant */
+
+    /* Official VYV logo mark fill — dark mode: soft sage-teal */
+    --vyv-logo: 168 21% 53%;
 
     /* ==================== CATEGORY COLORS - DARK (muted, no strong green) ==================== */
     --category-work: 210 50% 55%;         /* muted blue */

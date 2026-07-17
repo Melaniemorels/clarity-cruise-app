@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Sparkles, Briefcase, GraduationCap, Dumbbell, Users, HeartPulse, Palette, Brain, Lock, Calendar, UserCheck, Leaf, Zap } from "lucide-react";
 import { useOnboardingStep } from "@/hooks/use-onboarding-step";
 import { toast } from "sonner";
-import vyvLogo from "@/assets/vyv-logo.png";
+import VyvLogo from "@/components/VyvLogo";
 import { HEALTH_PHASE2_ENABLED } from "@/lib/feature-flags";
 
 const FOCUS_OPTIONS = [
@@ -80,7 +80,7 @@ const Personalization = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Brand header */}
         <div className="flex items-center gap-3 px-1">
-          <img src={vyvLogo} alt="VYV" className="h-9 w-9 rounded-xl border border-border/40" />
+          <VyvLogo className="h-9 w-9" withShadow />
           <div>
             <div className="text-sm font-bold tracking-wide text-foreground">VYV</div>
             <div className="text-xs text-muted-foreground">{t("brand.tagline")}</div>
