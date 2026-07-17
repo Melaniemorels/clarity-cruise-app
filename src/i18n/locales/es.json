@@ -438,6 +438,7 @@
   },
   "camera": {
     "title": "Captura Rápida",
+    "capturePresenceCopy": "Captura el momento con presencia. No lo fabriques.",
     "capture": "Capturar",
     "natural": "Natural",
     "blackAndWhite": "Blanco y Negro",

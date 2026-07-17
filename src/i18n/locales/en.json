@@ -438,6 +438,7 @@
   },
   "camera": {
     "title": "Quick Capture",
+    "capturePresenceCopy": "Capture the moment with presence. Don’t fabricate it.",
     "capture": "Capture",
     "natural": "Natural",
     "blackAndWhite": "Black & White",

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Camera, X, SwitchCamera, Download } from "lucide-react";
 import { FirstTapTooltip } from "@/components/FirstTapTooltip";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,23 @@ async function downloadImageToDevice(dataUrl: string) {
   document.body.removeChild(link);
 }
 
+function getErrorMessage(err: unknown): string {
+  if (!err) return "";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object") {
+    const anyErr = err as any;
+    return (
+      anyErr.message ||
+      anyErr.error_description ||
+      anyErr.error ||
+      anyErr.details ||
+      ""
+    );
+  }
+  return "";
+}
+
 interface QuickCameraProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -82,7 +99,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   const captureButtonRef = useRef<HTMLButtonElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const pendingImageRef = useRef<string | null>(null);
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
   const startCamera = async (mode: FacingMode = facingMode) => {
@@ -114,6 +131,26 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     }
   };
 
+  // Ensure camera starts/stops even when `open` is controlled externally.
+  useEffect(() => {
+    if (isOpen) {
+      setCapturedImage(null);
+      setCapturedTimestamp(null);
+      startCamera(facingMode);
+      return;
+    }
+
+    stopCamera();
+    setCapturedImage(null);
+    setCapturedTimestamp(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Cleanup on unmount (safety)
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
   const toggleCamera = () => {
     const newMode: FacingMode = facingMode === "environment" ? "user" : "environment";
     setFacingMode(newMode);
@@ -122,6 +159,10 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
   const capturePhoto = () => {
     if (!videoRef.current) return;
+    if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
+      toast.error(t("camera.cameraError"));
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     canvas.width = videoRef.current.videoWidth;
@@ -160,13 +201,20 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     stopCamera();
   };
 
-  const analyzeImage = async (imageUrl: string): Promise<{ emoji: string; label: string; category: string }> => {
+  const analyzeImage = async (
+    imageUrl: string,
+    accessToken?: string
+  ): Promise<{ emoji: string; label: string; category: string }> => {
     try {
+      if (!accessToken) {
+        return { emoji: "📸", label: t('calendar.instantCapture'), category: "otro" };
+      }
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ imageUrl, language: i18n.language?.split("-")[0] || "es" }),
       });
@@ -192,16 +240,42 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
   };
 
   const uploadAndCreate = async () => {
-    if (!capturedImage || !user) return;
+    if (!user || !session?.access_token) {
+      toast.error(t('errors.unauthorized'));
+      return;
+    }
+    if (!capturedImage) {
+      toast.error(t('post.errors.captureFirst'));
+      return;
+    }
 
     setIsUploading(true);
     try {
       const response = await fetch(capturedImage);
       const blob = await response.blob();
+      if (!blob || blob.size === 0) {
+        throw new Error("Empty image");
+      }
       const fileName = `${user.id}/${Date.now()}.jpg`;
 
+      // Prefer the existing "images" bucket (used by posts) if quick-captures is missing.
+      // This avoids hard failure on projects where the quick-captures bucket wasn't created.
+      let bucket: "quick-captures" | "images" = "quick-captures";
+      try {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        if (Array.isArray(buckets)) {
+          const ids = new Set(buckets.map((b) => b.id));
+          if (!ids.has("quick-captures") && ids.has("images")) {
+            bucket = "images";
+          }
+        }
+      } catch {
+        // If listing buckets is not allowed, fall back to images (most likely to exist).
+        bucket = "images";
+      }
+
       const { error: uploadError } = await supabase.storage
-        .from("quick-captures")
+        .from(bucket)
         .upload(fileName, blob, {
           contentType: 'image/jpeg',
           cacheControl: '3600',
@@ -210,12 +284,12 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from("quick-captures")
+        .from(bucket)
         .getPublicUrl(fileName);
 
       const timestamp = capturedTimestamp || new Date().toISOString();
 
-      const analysis = await analyzeImage(urlData.publicUrl);
+      const analysis = await analyzeImage(urlData.publicUrl, session.access_token);
       const activityTag = `${analysis.emoji} ${analysis.label}`;
 
       // Moderate content before saving
@@ -227,7 +301,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
 
       if (!modResult.approved) {
         // Clean up uploaded image
-        await supabase.storage.from("quick-captures").remove([fileName]);
+        await supabase.storage.from(bucket).remove([fileName]);
         toast.error(modResult.message || t('moderation.contentRejected'));
         setIsUploading(false);
         return;
@@ -277,6 +351,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       // Invalidate queries so captures appear immediately
       queryClient.invalidateQueries({ queryKey: ["entries"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-photo-entries"] });
 
       // Check if we should show auto-save prompt or auto-save
       if (!wasAutoSavePrompted()) {
@@ -292,7 +367,8 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
       if (import.meta.env.DEV) {
         console.error("Error uploading photo:", error);
       }
-      toast.error(t('camera.uploadError'));
+      const msg = getErrorMessage(error);
+      toast.error(msg ? `${t("camera.uploadError")}: ${msg}` : t("camera.uploadError"));
     } finally {
       setIsUploading(false);
     }
@@ -309,18 +385,7 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
     setShowAutoSavePrompt(false);
   };
 
-  const handleOpen = (open: boolean) => {
-    setIsOpen(open);
-    if (open) {
-      setCapturedImage(null);
-      setCapturedTimestamp(null);
-      startCamera(facingMode);
-    } else {
-      stopCamera();
-      setCapturedImage(null);
-      setCapturedTimestamp(null);
-    }
-  };
+  const handleOpen = (open: boolean) => setIsOpen(open);
 
   return (
     <>
@@ -342,7 +407,21 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
               <DialogTitle className="text-foreground text-[22px] font-semibold tracking-wide text-center">
                 {t('camera.title')}
               </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('camera.capturePresenceCopy')}
+              </p>
             </DialogHeader>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+              onClick={() => handleOpen(false)}
+              disabled={isUploading}
+              aria-label={t("common.close")}
+            >
+              <X className="h-5 w-5" />
+            </Button>
             {!capturedImage ? (
               <>
                 <div 
@@ -395,6 +474,15 @@ export const QuickCamera = ({ isOpen: controlledOpen, onOpenChange }: QuickCamer
                 >
                   <Camera className="mr-2" size={18} strokeWidth={1.4} />
                   {t('camera.capture')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="mt-3 w-[84%] text-muted-foreground hover:text-foreground"
+                  onClick={() => handleOpen(false)}
+                  disabled={isUploading}
+                >
+                  {t("common.cancel")}
                 </Button>
                 <FirstTapTooltip
                   tapId="focusCapture"

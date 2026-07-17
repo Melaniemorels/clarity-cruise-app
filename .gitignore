@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Supabase local CLI metadata
+supabase/.temp/

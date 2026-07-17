@@ -281,9 +281,11 @@ export function useDeleteEntry() {
       if (entry?.photo_url) {
         try {
           const url = new URL(entry.photo_url);
-          const pathMatch = url.pathname.match(/\/object\/public\/quick-captures\/(.+)$/);
-          if (pathMatch) {
-            await supabase.storage.from("quick-captures").remove([pathMatch[1]]);
+          const match = url.pathname.match(/\/object\/public\/(quick-captures|images)\/(.+)$/);
+          if (match) {
+            const bucket = match[1];
+            const path = match[2];
+            await supabase.storage.from(bucket).remove([path]);
           }
         } catch {
           // Storage cleanup is best-effort
