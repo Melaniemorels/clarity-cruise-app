@@ -178,8 +178,8 @@ const getClerkAppearance = (isDark: boolean) => {
     rootBox: { width: "100%", display: "flex", justifyContent: "center" },
     cardBox: {
       backgroundColor: "transparent",
-      width: "420px",
-      maxWidth: "100%",
+      width: "100%",
+      maxWidth: "440px",
       border: "0",
       boxShadow: "none",
       borderRadius: "0",
@@ -222,9 +222,18 @@ const getClerkAppearance = (isDark: boolean) => {
       elements: {
         ...bareCard,
         formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#08110F" },
-        socialButtonsBlockButton: { borderColor: "#2A323C" },
-        socialButtonsBlockButtonText: { color: "#E8EBED" },
-        footerActionLink: { color: "#4A8B7C" },
+        socialButtonsBlockButton: {
+          backgroundColor: "#151B23",
+          border: "1px solid #39434E",
+        },
+        socialButtonsBlockButtonText: { color: "#F2F4F6", fontWeight: 500 },
+        // Apple's glyph is black by default — invisible on a dark background.
+        socialButtonsProviderIcon__apple: { filter: "invert(1)" },
+        dividerText: { color: "#9AA4AE" },
+        dividerLine: { backgroundColor: "#39434E" },
+        formFieldLabel: { color: "#E8EBED" },
+        footerActionText: { color: "#9AA4AE" },
+        footerActionLink: { color: "#5FA893" },
       },
     };
   }
@@ -245,8 +254,16 @@ const getClerkAppearance = (isDark: boolean) => {
     elements: {
       ...bareCard,
       formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#FFFFFF" },
-      socialButtonsBlockButton: { borderColor: "#E0E0DA" },
-      footerActionLink: { color: "#3E7568" },
+      socialButtonsBlockButton: {
+        backgroundColor: "#FFFFFF",
+        border: "1px solid #C9C9C1",
+      },
+      socialButtonsBlockButtonText: { color: "#1C1C1E", fontWeight: 500 },
+      dividerText: { color: "#5B6166" },
+      dividerLine: { backgroundColor: "#D8D8D2" },
+      formFieldLabel: { color: "#1C1C1E" },
+      footerActionText: { color: "#4B5157" },
+      footerActionLink: { color: "#2F5F53" },
     },
   };
 };
@@ -296,15 +313,16 @@ const clerkAppearance = {
 // Sign-in gets the refined theme-aware appearance (scoped here on purpose so
 // no other Clerk surface is visually affected). The wrapper class scopes the
 // dev-banner muting CSS in index.css to this screen only.
+const authPageClass =
+  "vyv-signin flex min-h-[100dvh] w-full items-center justify-center bg-background px-5 sm:px-6 py-8 " +
+  "pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))] overflow-x-hidden";
+
 const SignInPage = () => {
-  const { theme } = useTheme();
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const appearance = useMemo(() => getClerkAppearance(isDark), [isDark]);
   return (
-    <div className="vyv-signin flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
+    <div className={authPageClass}>
       <SignIn
         routing="path"
         path={`${basePath}/sign-in`}
@@ -316,16 +334,22 @@ const SignInPage = () => {
   );
 };
 
-const SignUpPage = () => (
-  <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
-    <SignUp
-      routing="path"
-      path={`${basePath}/sign-up`}
-      signInUrl={`${basePath}/sign-in`}
-      fallbackRedirectUrl={`${basePath}/`}
-    />
-  </div>
-);
+const SignUpPage = () => {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const appearance = useMemo(() => getClerkAppearance(isDark), [isDark]);
+  return (
+    <div className={authPageClass}>
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+        fallbackRedirectUrl={`${basePath}/`}
+        appearance={appearance}
+      />
+    </div>
+  );
+};
 
 // Clears the react-query cache whenever the signed-in Clerk user changes, so one
 // user's cached data never leaks into another user's session.
@@ -386,7 +410,7 @@ const App = () => (
   <HelmetProvider>
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vyv-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="vyv-ui-theme">
         <TooltipProvider>
           <Toaster />
           <Sonner />

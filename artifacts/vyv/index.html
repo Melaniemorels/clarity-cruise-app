@@ -25,6 +25,25 @@
     <meta name="twitter:title" content="VYV - Visualize Your Vibe" />
     <meta name="twitter:description" content="A wellbeing planner that gives time back. Plan your perfect day, discover great content, and connect with friends." />
     <meta name="twitter:image" content="https://vyvapp.com/opengraph.jpg" />
+
+    <script>
+      // Apply the theme before React mounts to avoid a flash of the wrong
+      // theme. Priority: saved preference > system preference > light.
+      (function () {
+        try {
+          var stored = localStorage.getItem("vyv-ui-theme");
+          var theme =
+            stored === "dark" || stored === "light"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.classList.add(theme);
+        } catch (e) {
+          document.documentElement.classList.add("light");
+        }
+      })();
+    </script>
   </head>
 
   <body>

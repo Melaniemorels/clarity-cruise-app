@@ -1,0 +1,95 @@
+Fix ONLY the Sign In / Authentication screen. Do not redesign the app, change the logo, modify the overall visual identity, or touch unrelated pages.
+
+CURRENT PROBLEMS
+1. Some Sign In text and authentication buttons have insufficient contrast and are difficult to read, especially the “Continue with Apple” and “Continue with Google” areas.
+2. The screen does not adapt correctly to different screen sizes.
+3. The authentication screen should automatically respect the user’s system preference for light mode or dark mode.
+
+REQUIRED CHANGES
+
+1. IMPROVE TEXT CONTRAST
+- Review every text element on the Sign In and Sign Up screens.
+- Ensure all labels, placeholders, buttons, dividers, helper text and links are clearly readable.
+- In light mode:
+  - Use dark, high-contrast text.
+  - Do not use very light gray text on white backgrounds.
+  - Authentication buttons must have visible borders, readable text and recognizable Apple/Google icons.
+- In dark mode:
+  - Use light, high-contrast text.
+  - Use dark backgrounds and subtle borders that remain visible.
+- Keep disabled states visibly disabled, but still readable.
+- Follow WCAG AA contrast standards where possible.
+
+2. RESPONSIVE LAYOUT
+Make the complete authentication flow responsive for:
+- iPhone and Android phones
+- Tablets and iPads
+- Laptop screens
+- Desktop screens
+
+Requirements:
+- Use a mobile-first responsive layout.
+- On phones, the form should use the available width with safe horizontal padding.
+- On larger screens, center the form inside a controlled max-width container.
+- Do not stretch the form excessively on desktop.
+- Prevent horizontal scrolling, clipping or content being cut off.
+- Respect mobile safe areas.
+- Ensure the keyboard does not cover the email input or Continue button.
+- The page must remain vertically usable on short screens.
+- Use responsive CSS instead of fixed pixel positioning.
+- Do not create unnecessary empty space on the left or right.
+
+Suggested form behavior:
+- width: 100%
+- max-width approximately 420–480px
+- centered horizontally
+- responsive padding around 20–24px on mobile
+- comfortable spacing on desktop
+
+3. AUTOMATIC LIGHT/DARK MODE
+- Detect the device or browser theme using `prefers-color-scheme`.
+- On first load, automatically show light or dark mode based on the user’s system preference.
+- If the app already has a saved theme preference, the saved preference must take priority.
+- If no preference has been saved, use the system preference.
+- React to system theme changes when possible.
+- Avoid a flash of the wrong theme when the page first loads.
+- Use the app’s existing theme system and design tokens rather than creating a separate theme implementation.
+
+Theme priority:
+1. User’s saved app preference
+2. Device/browser `prefers-color-scheme`
+3. Light mode as fallback
+
+4. PRESERVE THE VYV STYLE
+- Keep the same VYV logo.
+- Keep the existing old-money, minimal and premium aesthetic.
+- Preserve the current green brand color.
+- Do not add gradients, animations, shadows or decorative elements unless they already exist.
+- Do not change authentication logic, OAuth configuration, routing, database connections or form behavior.
+- Do not remove Apple or Google authentication.
+- Do not modify any other screen.
+
+5. VERIFY BEFORE FINISHING
+Test the Sign In and Sign Up screens at these approximate viewport sizes:
+- 375 × 812
+- 390 × 844
+- 430 × 932
+- 768 × 1024
+- 1440 × 900
+
+Verify:
+- Every text element is readable.
+- Apple and Google buttons are clearly visible.
+- The form is centered correctly.
+- Nothing is clipped or overflowing.
+- Light mode looks intentional.
+- Dark mode looks intentional.
+- System theme preference is detected correctly.
+- Existing authentication actions still work.
+
+Before changing code, identify the exact components and styles responsible for the authentication screen. Make the smallest possible targeted changes. Do not refactor unrelated code.
+
+At the end, provide:
+1. The exact files changed.
+2. A brief explanation of each change.
+3. Confirmation that no unrelated pages or authentication logic were modified.
