@@ -1,0 +1,136 @@
+Refine Only the Sign-In Screen — Do Not Redesign the App
+Please make a very controlled visual refinement only to the current Sign-In screen.
+The current screen feels too empty, too web-like, and disconnected from the VYV visual identity because:
+There is too much empty white space surrounding the sign-in card.
+The card looks like a floating desktop form instead of the entrance to a premium mobile app.
+The VYV logo is too small and does not create enough brand presence.
+The overall screen lacks an intentional first impression.
+Critical restriction
+Do not redesign the app.
+Do not touch:
+Any other screen.
+Navigation.
+App structure.
+Authentication logic.
+Google or Apple login functionality.
+Form behavior.
+Typography system.
+Button behavior.
+Existing routes.
+Responsive logic outside this screen.
+Global spacing tokens.
+Global theme variables unless strictly required.
+Only modify the visual presentation of the Sign-In page container and its existing elements.
+Goal
+Make the Sign-In screen feel like the elegant entrance to VYV:
+Premium.
+Minimal.
+Old Money.
+Intentional.
+Calm.
+Modern.
+Mobile-first.
+Visually polished without adding noise.
+It should feel more like the opening of Instagram, Apple, or a refined wellness app, but still remain unmistakably VYV.
+Required Changes
+1. Remove the empty white-page feeling
+The complete viewport should use the existing VYV theme background.
+For Dark Mode:
+Use the current deep navy / charcoal background already used inside the app.
+Do not leave a white outer canvas.
+The screen background should feel continuous and immersive.
+For Light Mode:
+Use a warm off-white, soft ivory, or very light neutral already compatible with the app.
+Avoid pure white if it makes the screen feel unfinished.
+Do not change the internal app theme. Only make the sign-in page use the correct theme background across the full viewport.
+2. Preserve the existing card
+Keep the current sign-in card and its content structure.
+You may only make subtle improvements to:
+Maximum width.
+Vertical positioning.
+Padding.
+Border.
+Shadow.
+Border radius.
+Background contrast.
+Do not rebuild the form.
+The card should remain centered and compact, with a premium, quiet appearance.
+Do not make it oversized.
+3. Give the official VYV logo more presence
+Use the official VYV logo already added to the project.
+Keep the exact logo geometry.
+Increase its size slightly so it feels intentional and recognizable, but do not make it dominant or oversized.
+The logo should:
+Match the current teal VYV palette in Dark Mode.
+Adapt to a refined dark teal, slate, or forest tone in Light Mode.
+Have no neon effect.
+Have no heavy glow.
+Have no excessive gradient.
+Use only a very subtle shadow or depth if necessary.
+Do not place the logo inside a new shape unless the existing design already uses that shape consistently.
+4. Improve the visual hierarchy
+Keep all current text and controls, but refine their spacing so the order feels clear:
+VYV logo.
+“Sign in to VYV.”
+Supporting sentence.
+Apple and Google options.
+Divider.
+Email field.
+Continue button.
+Sign-up link.
+Do not add new copy.
+Do not add illustrations.
+Do not add decorative floating elements.
+Do not add cards, icons, patterns, animations, or sections.
+5. Keep the aesthetic quiet
+Use subtle refinement only:
+Gentle contrast.
+Soft borders.
+Controlled shadows.
+Balanced spacing.
+Existing color palette.
+Clean alignment.
+Avoid:
+Neon.
+Strong glows.
+Large gradients.
+Glassmorphism.
+Excessive blur.
+Bright accent colors.
+Orange decoration.
+Animated backgrounds.
+Particles.
+Loud effects.
+New visual concepts.
+The screen should feel expensive because it is restrained.
+Development Mode label
+The orange “Development mode” label is visually distracting.
+Do not remove its functionality.
+For development builds only:
+Reduce its visual prominence.
+Use a small muted label.
+Keep it outside the main visual hierarchy.
+Do not let it compete with the Sign-In content.
+It must remain clearly identifiable for developers, but it should not look like part of the VYV brand.
+Responsive behavior
+The page must look intentional on:
+Mobile.
+Tablet.
+Desktop preview.
+On desktop, do not simply place a small mobile card over a giant white canvas.
+Use the full themed background and center the card naturally.
+On mobile, the card may use most of the width while keeping safe margins.
+Do not create separate layouts unless necessary. Prefer one responsive implementation.
+Final verification
+Before completing the task, confirm that:
+Only the Sign-In screen was visually modified.
+No authentication logic changed.
+No other pages changed.
+No global layout was unintentionally affected.
+The official VYV logo remains exactly the same shape.
+Dark Mode and Light Mode both work.
+The page no longer has a large unintended white background.
+The result remains minimal and consistent with the current app.
+Make the smallest possible code changes needed to achieve this.
+Yo además le agregaría arriba de todo esta línea para evitar que improvise:
+First inspect the existing Sign-In component and theme implementation. Do not write or modify code until you have identified the smallest isolated change required.

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -15,7 +15,7 @@ import { VYVProvider } from "./contexts/VYVContext";
 import { GuideProvider } from "./contexts/GuideContext";
 import { FindFriendsModal } from "./components/FindFriendsModal";
 import { VYVAssistantButton } from "./components/VYVAssistantButton";
-import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeProvider, useTheme } from "./components/ThemeProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { QueryErrorBoundary } from "./components/QueryErrorBoundary";
@@ -157,8 +157,105 @@ function getClerkLocalization() {
   };
 }
 
-// VYV dark brand (emerald on near-black). Tailwind v3 project -> no cssLayerName;
-// element overrides use inline style objects.
+// VYV brand appearance (emerald, old-money, quiet). Tailwind v3 project -> no
+// cssLayerName; element overrides use inline style objects. Theme-aware: the
+// dark variant keeps the near-black card, the light variant uses warm ivory.
+const getClerkAppearance = (isDark: boolean) => {
+  const fontFamily =
+    '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  const shared = {
+    options: {
+      logoPlacement: "inside" as const,
+      logoLinkUrl: basePath || "/",
+      // Same glyph, theme-adapted fill: soft teal (dark) / deep slate-teal (light)
+      logoImageUrl: `${window.location.origin}${basePath}/${
+        isDark ? "logo.svg" : "logo-light.svg"
+      }`,
+      socialButtonsVariant: "blockButton" as const,
+    },
+  };
+  if (isDark) {
+    return {
+      ...shared,
+      theme: dark,
+      variables: {
+        colorPrimary: "#4A8B7C", // Emerald VYV branding
+        colorForeground: "#E8EBED",
+        colorMutedForeground: "#9AA4AE",
+        colorDanger: "#F87171",
+        colorBackground: "#12171E",
+        colorInput: "#1A2029",
+        colorInputForeground: "#E8EBED",
+        colorNeutral: "#2A323C",
+        fontFamily,
+        borderRadius: "0.75rem",
+      },
+      elements: {
+        rootBox: { width: "100%", display: "flex", justifyContent: "center" },
+        cardBox: {
+          backgroundColor: "#12171E",
+          width: "440px",
+          maxWidth: "100%",
+          borderRadius: "1rem",
+          overflow: "hidden",
+          border: "1px solid #222A33",
+          boxShadow: "0 12px 40px rgb(0 0 0 / 0.35)",
+        },
+        card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+        footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+        formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#08110F" },
+        socialButtonsBlockButton: { borderColor: "#2A323C" },
+        socialButtonsBlockButtonText: { color: "#E8EBED" },
+        footerActionLink: { color: "#4A8B7C" },
+        logoImage: { height: "3rem", width: "auto" },
+        logoBox: { justifyContent: "center", height: "3rem" },
+        headerTitle: { textAlign: "center" as const },
+        headerSubtitle: { textAlign: "center" as const },
+        header: { gap: "0.75rem" },
+      },
+    };
+  }
+  return {
+    ...shared,
+    variables: {
+      colorPrimary: "#4A8B7C",
+      colorForeground: "#1C1C1E",
+      colorMutedForeground: "#6B7176",
+      colorDanger: "#DC2626",
+      colorBackground: "#FFFFFF",
+      colorInput: "#FAFAF8",
+      colorInputForeground: "#1C1C1E",
+      colorNeutral: "#D8D8D2",
+      fontFamily,
+      borderRadius: "0.75rem",
+    },
+    elements: {
+      rootBox: { width: "100%", display: "flex", justifyContent: "center" },
+      cardBox: {
+        backgroundColor: "#FFFFFF",
+        width: "440px",
+        maxWidth: "100%",
+        borderRadius: "1rem",
+        overflow: "hidden",
+        border: "1px solid #E7E7E1",
+        boxShadow: "0 10px 32px rgb(28 28 30 / 0.08)",
+      },
+      card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+      footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+      formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#FFFFFF" },
+      socialButtonsBlockButton: { borderColor: "#E0E0DA" },
+      footerActionLink: { color: "#3E7568" },
+      logoImage: { height: "3rem", width: "auto" },
+      logoBox: { justifyContent: "center", height: "3rem" },
+      headerTitle: { textAlign: "center" as const },
+      headerSubtitle: { textAlign: "center" as const },
+      header: { gap: "0.75rem" },
+    },
+  };
+};
+
+// Baseline appearance for every Clerk surface EXCEPT the sign-in screen —
+// identical to the original dark branding so nothing else changes visually.
 const clerkAppearance = {
   theme: dark,
   variables: {
@@ -199,16 +296,28 @@ const clerkAppearance = {
   },
 };
 
-const SignInPage = () => (
-  <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
-    <SignIn
-      routing="path"
-      path={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      fallbackRedirectUrl={`${basePath}/`}
-    />
-  </div>
-);
+// Sign-in gets the refined theme-aware appearance (scoped here on purpose so
+// no other Clerk surface is visually affected). The wrapper class scopes the
+// dev-banner muting CSS in index.css to this screen only.
+const SignInPage = () => {
+  const { theme } = useTheme();
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const appearance = useMemo(() => getClerkAppearance(isDark), [isDark]);
+  return (
+    <div className="vyv-signin flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+        fallbackRedirectUrl={`${basePath}/`}
+        appearance={appearance}
+      />
+    </div>
+  );
+};
 
 const SignUpPage = () => (
   <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">

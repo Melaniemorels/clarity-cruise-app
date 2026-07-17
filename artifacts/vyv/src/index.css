@@ -322,6 +322,7 @@
     background-color: hsl(var(--primary) / 0.24);
     border-color: hsl(var(--primary));
   }
+
   
   .category-study {
     background-color: hsl(var(--category-study) / 0.24);
@@ -469,4 +470,13 @@
     transform: scale(1);
     opacity: 0;
   }
+}
+
+/* Mute Clerk's "Development mode" banner (dev builds only) on the sign-in
+   screen: keep it identifiable but visually quiet. Scoped under .vyv-signin so
+   no other Clerk surface is affected; unlayered so it wins over Clerk styles. */
+.vyv-signin .cl-cardBox > *:not(.cl-card):not(.cl-footer),
+.vyv-signin .cl-footer > *:not(:first-child) {
+  opacity: 0.35;
+  filter: grayscale(0.75);
 }
