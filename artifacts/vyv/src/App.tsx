@@ -140,10 +140,8 @@ function getClerkLocalization() {
       ...base.signIn,
       start: {
         ...base.signIn?.start,
-        title: es ? "Inicia sesión en VYV" : "Sign in to VYV",
-        subtitle: es
-          ? "Bienvenido de nuevo. Continúa para acceder a tu cuenta."
-          : "Welcome back. Continue to access your account.",
+        title: "Visualize Your Vibe",
+        subtitle: es ? "Tu día, con intención." : "Your day, intentionally.",
       },
     },
     signUp: {
@@ -174,6 +172,37 @@ const getClerkAppearance = (isDark: boolean) => {
       socialButtonsVariant: "blockButton" as const,
     },
   };
+  // Card-less, full-page style: the sign-in blends into the app background
+  // (like the original VYV entrance) instead of floating as a boxed card.
+  const bareCard = {
+    rootBox: { width: "100%", display: "flex", justifyContent: "center" },
+    cardBox: {
+      backgroundColor: "transparent",
+      width: "420px",
+      maxWidth: "100%",
+      border: "0",
+      boxShadow: "none",
+      borderRadius: "0",
+      overflow: "visible",
+    },
+    card: {
+      boxShadow: "none",
+      border: "0",
+      backgroundColor: "transparent",
+      paddingLeft: "0.25rem",
+      paddingRight: "0.25rem",
+    },
+    footer: { boxShadow: "none", border: "0", background: "transparent" },
+    logoImage: { height: "4.5rem", width: "auto" },
+    logoBox: { justifyContent: "center", height: "4.5rem" },
+    headerTitle: {
+      textAlign: "center" as const,
+      fontSize: "1.5rem",
+      letterSpacing: "0.01em",
+    },
+    headerSubtitle: { textAlign: "center" as const },
+    header: { gap: "0.75rem", marginBottom: "0.75rem" },
+  };
   if (isDark) {
     return {
       ...shared,
@@ -183,35 +212,19 @@ const getClerkAppearance = (isDark: boolean) => {
         colorForeground: "#E8EBED",
         colorMutedForeground: "#9AA4AE",
         colorDanger: "#F87171",
-        colorBackground: "#12171E",
-        colorInput: "#1A2029",
+        colorBackground: "#0B0F14",
+        colorInput: "#12171E",
         colorInputForeground: "#E8EBED",
         colorNeutral: "#2A323C",
         fontFamily,
         borderRadius: "0.75rem",
       },
       elements: {
-        rootBox: { width: "100%", display: "flex", justifyContent: "center" },
-        cardBox: {
-          backgroundColor: "#12171E",
-          width: "440px",
-          maxWidth: "100%",
-          borderRadius: "1rem",
-          overflow: "hidden",
-          border: "1px solid #222A33",
-          boxShadow: "0 12px 40px rgb(0 0 0 / 0.35)",
-        },
-        card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
-        footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+        ...bareCard,
         formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#08110F" },
         socialButtonsBlockButton: { borderColor: "#2A323C" },
         socialButtonsBlockButtonText: { color: "#E8EBED" },
         footerActionLink: { color: "#4A8B7C" },
-        logoImage: { height: "3rem", width: "auto" },
-        logoBox: { justifyContent: "center", height: "3rem" },
-        headerTitle: { textAlign: "center" as const },
-        headerSubtitle: { textAlign: "center" as const },
-        header: { gap: "0.75rem" },
       },
     };
   }
@@ -222,34 +235,18 @@ const getClerkAppearance = (isDark: boolean) => {
       colorForeground: "#1C1C1E",
       colorMutedForeground: "#6B7176",
       colorDanger: "#DC2626",
-      colorBackground: "#FFFFFF",
-      colorInput: "#FAFAF8",
+      colorBackground: "#FAFAF8",
+      colorInput: "#FFFFFF",
       colorInputForeground: "#1C1C1E",
       colorNeutral: "#D8D8D2",
       fontFamily,
       borderRadius: "0.75rem",
     },
     elements: {
-      rootBox: { width: "100%", display: "flex", justifyContent: "center" },
-      cardBox: {
-        backgroundColor: "#FFFFFF",
-        width: "440px",
-        maxWidth: "100%",
-        borderRadius: "1rem",
-        overflow: "hidden",
-        border: "1px solid #E7E7E1",
-        boxShadow: "0 10px 32px rgb(28 28 30 / 0.08)",
-      },
-      card: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
-      footer: { boxShadow: "none", border: "0", backgroundColor: "transparent" },
+      ...bareCard,
       formButtonPrimary: { backgroundColor: "#4A8B7C", color: "#FFFFFF" },
       socialButtonsBlockButton: { borderColor: "#E0E0DA" },
       footerActionLink: { color: "#3E7568" },
-      logoImage: { height: "3rem", width: "auto" },
-      logoBox: { justifyContent: "center", height: "3rem" },
-      headerTitle: { textAlign: "center" as const },
-      headerSubtitle: { textAlign: "center" as const },
-      header: { gap: "0.75rem" },
     },
   };
 };
