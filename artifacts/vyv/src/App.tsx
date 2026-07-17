@@ -47,6 +47,7 @@ const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
 const MediaConnections = lazy(() => import("./pages/MediaConnections"));
 const FindFriends = lazy(() => import("./pages/FindFriends"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const Members = lazy(() => import("./pages/Members"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Notes = lazy(() => import("./pages/Notes"));
@@ -334,6 +335,7 @@ const App = () => (
                   )}
                   <Route path="/find-friends" element={<ProtectedRoute><FindFriends /></ProtectedRoute>} />
                   <Route path="/u/:username" element={<PublicProfile />} />
+                  <Route path="/members" element={<Members />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-use" element={<TermsOfUse />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

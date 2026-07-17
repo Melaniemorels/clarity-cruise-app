@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -75,6 +75,17 @@ const Welcome = () => {
             <p className="text-xs text-muted-foreground">{t('welcome.features.wellness')}</p>
           </div>
         </div>
+
+        {/* Public footer — crawlable links for search engines */}
+        <nav className="pt-8 animate-in fade-in duration-700 delay-700">
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <li><Link to="/members" className="hover:text-foreground transition-colors">Members</Link></li>
+            <li><Link to="/sign-in" className="hover:text-foreground transition-colors">Sign In</Link></li>
+            <li><Link to="/sign-up" className="hover:text-foreground transition-colors">Sign Up</Link></li>
+            <li><Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/terms-of-use" className="hover:text-foreground transition-colors">Terms of Use</Link></li>
+          </ul>
+        </nav>
       </div>
     </div>
   );

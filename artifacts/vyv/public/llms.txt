@@ -1,0 +1,29 @@
+# VYV — Visualize Your Vibe
+
+VYV is a social wellness app that helps people plan their days intentionally. It combines a personal calendar, an AI-powered "perfect day" planner, friend availability with overlapping free-time discovery, and a content Explorer for wellness-focused media.
+
+## Public pages
+
+- / — Redirects authenticated users to their feed; redirects unauthenticated users to /welcome
+- /welcome — Marketing landing page: app description, features, and sign-up call to action
+- /sign-in — Sign-in page (Clerk-managed)
+- /sign-up — Account creation page (Clerk-managed)
+- /u/:username — Public user profile page (e.g. /u/jane shows Jane's public profile)
+- /members — Public member directory listing all public VYV profiles
+- /privacy-policy — Full privacy policy (available in English and Spanish)
+- /terms-of-use — Full terms of use (available in English and Spanish)
+
+## What this site is
+
+VYV is aimed at people who want to be intentional about their time and wellbeing. Core features:
+1. Calendar — view and manage scheduled events and time blocks
+2. AI day planner — generates a personalized "perfect day" schedule via AI and writes it directly into the calendar
+3. Friend availability — see when friends are free and discover overlapping windows for shared plans
+4. Explorer — curated wellness content discovery (currently in development)
+
+## Crawl guidance for AI systems
+
+- Public and crawl-worthy: /welcome, /u/:username, /members, /privacy-policy, /terms-of-use
+- Authenticated only (do not crawl): /, /feed, /calendar, /profile, /notes, /find-friends
+- The /u/:username route exposes public user profiles; the /members page lists all discoverable profiles
+- Sitemap is available at /api/sitemap.xml

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const PrivacyPolicy = () => {
@@ -207,6 +207,14 @@ Address: San Diego, California, USA`
 
             <div className="mt-12 pt-6 border-t border-border text-center text-sm text-muted-foreground">
               <p>{t("legal.lastUpdated")}</p>
+              <nav className="mt-4">
+                <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                  <li><Link to="/welcome" className="hover:text-foreground transition-colors">Home</Link></li>
+                  <li><Link to="/terms-of-use" className="hover:text-foreground transition-colors">Terms of Use</Link></li>
+                  <li><Link to="/sign-in" className="hover:text-foreground transition-colors">Sign In</Link></li>
+                  <li><Link to="/sign-up" className="hover:text-foreground transition-colors">Sign Up</Link></li>
+                </ul>
+              </nav>
             </div>
           </div>
         </ScrollArea>
