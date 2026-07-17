@@ -87,6 +87,7 @@
     "@supabase/supabase-js": "^2.108.2",
     "i18next": "^26.3.3",
     "i18next-browser-languagedetector": "^8.2.1",
+    "react-helmet-async": "^3.0.0",
     "react-i18next": "^17.0.8",
     "react-intersection-observer": "^10.0.3",
     "react-router-dom": "^7.18.1"

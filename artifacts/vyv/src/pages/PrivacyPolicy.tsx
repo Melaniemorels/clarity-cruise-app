@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -156,6 +157,15 @@ Address: San Diego, California, USA`
   const content = language === "es" ? spanishContent : englishContent;
 
   return (
+    <>
+    <Helmet>
+      <title>Privacy Policy — VYV</title>
+      <meta name="description" content="VYV Privacy Policy — learn how we collect, use, and protect your personal information." />
+      <link rel="canonical" href="https://vyvapp.com/privacy-policy" />
+      <meta property="og:title" content="Privacy Policy — VYV" />
+      <meta property="og:description" content="Learn how VYV collects, uses, and protects your personal information." />
+      <meta property="og:type" content="website" />
+    </Helmet>
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -220,6 +230,7 @@ Address: San Diego, California, USA`
         </ScrollArea>
       </div>
     </div>
+    </>
   );
 };
 

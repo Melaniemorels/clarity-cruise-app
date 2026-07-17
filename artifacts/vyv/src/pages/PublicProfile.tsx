@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -66,22 +67,70 @@ const PublicProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Skeleton className="h-32 w-64 rounded-2xl" />
-      </div>
+      <>
+        <Helmet>
+          <title>{username ? `@${username} — VYV` : "VYV"}</title>
+        </Helmet>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Skeleton className="h-32 w-64 rounded-2xl" />
+        </div>
+      </>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
-        <p className="text-lg text-muted-foreground">{t("publicProfile.notFound")}</p>
-        <Button variant="outline" onClick={() => navigate("/")}>{t("publicProfile.goHome")}</Button>
-      </div>
+      <>
+        <Helmet>
+          <title>{username ? `@${username} — VYV` : "Profile not found — VYV"}</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+          <p className="text-lg text-muted-foreground">{t("publicProfile.notFound")}</p>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("publicProfile.goHome")}</Button>
+        </div>
+      </>
     );
   }
 
+  const pageTitle = profile.name
+    ? `${profile.name} (@${profile.handle}) — VYV`
+    : `@${profile.handle} — VYV`;
+  const pageDescription = profile.is_private
+    ? `${profile.name ?? "@" + profile.handle} has a private profile on VYV.`
+    : [
+        profile.bio,
+        `${profile.followers_count} followers · ${profile.following_count} following · ${profile.posts_count} posts on VYV.`,
+      ]
+        .filter(Boolean)
+        .join(" ");
+  const canonicalUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/u/${profile.handle}`;
+
   return (
+    <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        {profile.photo_url && <meta property="og:image" content={profile.photo_url} />}
+        <meta name="twitter:card" content={profile.photo_url ? "summary_large_image" : "summary"} />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        {profile.photo_url && <meta name="twitter:image" content={profile.photo_url} />}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Person",
+          "name": profile.name ?? profile.handle,
+          "alternateName": `@${profile.handle}`,
+          "url": canonicalUrl,
+          ...(profile.photo_url ? { "image": profile.photo_url } : {}),
+          ...(profile.bio ? { "description": profile.bio } : {}),
+        })}</script>
+      </Helmet>
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardContent className="p-6 text-center space-y-4">
@@ -126,6 +175,7 @@ const PublicProfile = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 

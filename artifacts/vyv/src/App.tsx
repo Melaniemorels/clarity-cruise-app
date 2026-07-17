@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -276,6 +277,7 @@ function ClerkWithRouter({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <HelmetProvider>
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vyv-ui-theme">
@@ -356,6 +358,7 @@ const App = () => (
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
+  </HelmetProvider>
 );
 
 export default App;

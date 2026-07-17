@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 
 const TermsOfUse = () => {
   const navigate = useNavigate();
@@ -128,6 +129,15 @@ Address: San Diego, California, USA`
   const content = language === "es" ? spanishContent : englishContent;
 
   return (
+    <>
+    <Helmet>
+      <title>Terms of Use — VYV</title>
+      <meta name="description" content="VYV Terms of Use — the rules and guidelines for using the VYV wellness app." />
+      <link rel="canonical" href="https://vyvapp.com/terms-of-use" />
+      <meta property="og:title" content="Terms of Use — VYV" />
+      <meta property="og:description" content="Read the terms and guidelines for using VYV, the wellness app that gives you back your time." />
+      <meta property="og:type" content="website" />
+    </Helmet>
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -192,6 +202,7 @@ Address: San Diego, California, USA`
         </ScrollArea>
       </div>
     </div>
+    </>
   );
 };
 

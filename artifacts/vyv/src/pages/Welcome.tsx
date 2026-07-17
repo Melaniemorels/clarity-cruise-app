@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -17,6 +18,17 @@ const Welcome = () => {
   }, [user, navigate]);
 
   return (
+    <>
+    <Helmet>
+      <title>VYV — Visualize Your Vibe</title>
+      <meta name="description" content="A wellness app that gives you back your time. Plan your perfect day, discover content, and connect with friends — all in one place." />
+      <meta property="og:title" content="VYV — Visualize Your Vibe" />
+      <meta property="og:description" content="A wellness app that gives you back your time. Plan your perfect day, discover content, and connect with friends." />
+      <meta property="og:type" content="website" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="VYV — Visualize Your Vibe" />
+      <meta name="twitter:description" content="A wellness app that gives you back your time." />
+    </Helmet>
     <div className="min-h-screen bg-gradient-to-br from-background via-luxury-emerald/5 to-luxury-navy/5 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 text-center">
         {/* Logo */}
@@ -88,6 +100,7 @@ const Welcome = () => {
         </nav>
       </div>
     </div>
+    </>
   );
 };
 

@@ -4,6 +4,7 @@ import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import router from "./routes";
+import publicProfileRouter from "./routes/publicProfile";
 import { logger } from "./lib/logger";
 import { attachUser } from "./lib/auth";
 import {
@@ -55,6 +56,10 @@ app.use(
 );
 
 app.use(attachUser);
+
+// Public profile SSR — must be before the /api router so it is reachable
+// at /u/:username (the canonical path, proxied from the Vite dev server).
+app.use(publicProfileRouter);
 
 app.use("/api", router);
 
