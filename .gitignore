@@ -48,3 +48,9 @@ Thumbs.db
 .cache/
 .local/
 dist-test
+
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+*.env.local
